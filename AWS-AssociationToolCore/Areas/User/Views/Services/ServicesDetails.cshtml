@@ -1,0 +1,102 @@
+﻿@{
+    ViewBag.Title = "Services Details - Telugu Association Tool - TAT";
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var objServices = (AWS_AssociationToolCore.Entities.Services)ViewBag.objServices;
+    List<AWS_AssociationToolCore.Entities.ServiceImages> lstServiceImages = ViewBag.lstServiceImages;
+
+    var Type = ViewBag.Type;
+
+    var ChapterName = ViewBag.ChapterName;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var ServiceimglocNormal = objAppInfo.AdminImageUrl + "ServiceImages/Images/";
+}
+<script>
+    $(document).ready(function () {
+        LoadEventsList();
+    });
+
+    function LoadEventsList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("ServicesDonationsList", "Services")',
+            success: function (data) {
+                $("#divDonationDetails").html(data);
+            },
+            error: function () {
+                $("#divDonationDetails").html('<p class="text-danger">Failed to load events.</p>');
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+    $(window).load(function () {
+        $('#slider2').nivoSlider({
+            directionNav: true,
+            controlNav: false
+        });
+        PagerClickBind();
+    });
+
+    function Donationsbind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = ($.trim($('#txtsearch').val()));
+        var ServiceId = '@objServices.ServiceId';
+        var cname = '@ChapterName';
+        $.ajax({
+            url: '@Url.Action("ServicesDonationsList", "Services")',
+            type: 'GET',
+            cache: false,
+            data: { ServiceId: ServiceId, cname: cname, Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items },
+            success: function (result) {
+                $('#divDonationDetails').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Donationsbind($(this).text());
+        });
+    }
+    function ClearSearch() {
+        $('#EventId').val('');
+        $('#txtsearch').val('');
+        Donationsbind();
+    }
+
+</script>
+<div class="cmn-inner-head t-t-c">
+    Donors List
+</div>
+<div class="cus-about-sec member_list">
+    <div class="row g-3">
+        <div class="col-sm-6 col-xl-4">
+            <input type="text" placeholder="FirstName / LastName" name="txtsearch" id="txtsearch" class="form-control" />
+
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <select name="ServiceDonationId" id="ServiceDonationId" class="w-100 ">
+            </select>
+
+        </div>
+      
+        <div class="col-xl-3 text-end">
+            <input type="button" value="Search" class="btn_success" onclick="Donationsbind();">
+            <input type="reset" value="Clear" class="btn_danger" onclick="ClearSearch();">
+        </div>
+
+        <div id="divDonationDetails">
+
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,643 @@
+﻿@{
+    ViewBag.Title = "Index";
+
+
+
+    ViewBag.Pageheading = "Committee Members";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var CommitteeCategoryId = ViewBag.CommitteeCategoryId;
+
+    List<AWS_AssociationToolCore.Entities.CommitteeMembers> lstCommittee = ViewBag.lstCommittee;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeCategory = ViewBag.lstCommitteeCategory;
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+    List<AWS_AssociationToolCore.Entities.Chapters> lstLChapters = ViewBag.lstLChapters;
+    List<AWS_AssociationToolCore.Entities.CommitteeMembers> lstCommitteebyedit = ViewBag.lstCommitteebyedit;
+
+    Int64 ChapterId = ViewBag.ChapterId;
+    Int64 mid = ViewBag.mid;
+
+ 
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+
+
+}
+<script>
+    $(document).ready(function () {
+        LoadCommitteeList();
+    });
+
+       function LoadCommitteeList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("CommitteeMemberList", "CommitteeMember")',
+            data: {
+                IsEdit: '@IsEdit',
+                IsView: '@IsView',
+                IsDelete: '@IsDelete',
+                IsExport: '@IsExport',
+                CommitteeCategoryId: '@CommitteeCategoryId',
+                IsAdd: '@IsAdd',
+                Mid: @Mid, // ✅ remove quotes
+                YearId: @DateTime.Now.Year, // ✅ FIXED
+                ChapterId: @(ChapterId == 0 ? 1 : ChapterId)
+            },
+            success: function (data) {
+                $("#divcommittee").html(data);
+            },
+            error: function (xhr) {
+                console.log(xhr.responseText); // ✅ debug
+                $("#divcommittee").html('<p class="text-danger">Failed to load events.</p>');
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wCommittees,wCommitteeMembers').addClass('active');
+        $('.closable').append('<span id="lblclose" class="closelink" title="Close"></span>');
+        $('#SponsorCategoryId').val(CommitteeCategoryId);
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        PagerClickBind();
+    });
+
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1);
+    }
+
+    function Onload(Pageno) {
+
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#keyword').val();
+        var CommitteeCategoryId = $('#CommitteeCategoryId').val();
+        var ChapterId = $('#ddlChapterId').val();
+
+
+        $.ajax({
+            url: '@Url.Action("CommitteeMemberList", "CommitteeMember")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, CommitteeCategoryId: CommitteeCategoryId, ChapterId: ChapterId, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid'},
+            success: function (result) {
+                $('#divcommittee').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+    function PagerClickBind() {
+             $(document).off("click", ".pagination .page-link").on("click", ".pagination .page-link", function () {
+                 var id = $(this).attr("id");
+                 var pageNo;
+
+                 if (id === "Previous" || id === "Next") {
+                     pageNo = parseInt($(this).data("page"));
+                 } else {
+                     pageNo = parseInt(id);
+                 }
+
+                 if (!pageNo || isNaN(pageNo) || pageNo < 1) return;
+
+                 $('#hdnPageNo').val(pageNo);
+                     Onload(pageNo);
+             });
+         }
+
+    function ClearSearch() {
+        $('#keyword').val('');
+        //$('#CommitteeCategoryId').val('');
+        $('#CommitteeCategoryId').val('').trigger('change');
+        $('#ddlChapterId').val('').trigger('change');
+        $('#ddlChapterId').val(@ChapterId);
+        $('#CommitteeCategoryId').val(@CommitteeCategoryId);
+        $('#hdnPageNo').val(1);
+        Onload(1);
+    }
+
+    function Add() {
+        clearCommitteeMember();
+       
+        $("#AddCommitteeMember").modal("show");
+        $('#lbltitle').html('Add Committee Member');
+    }
+
+    function EditCommitteeMember(CommitteeMemberId) {
+        $.ajax({
+            url: '@Url.Action("EditCommitteeMember", "CommitteeMember")',
+            type: 'POST',
+            data: { CommitteeMemberId: CommitteeMemberId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objCommitteeMember = result.data;
+                    $('#ddlCommitteeMemberId').val(objCommitteeMember.CommitteeMemberId);
+                    $('#ddllChapterId').val(objCommitteeMember.ChapterId);
+                    $('#ddlCommitteeCategoryId').val(objCommitteeMember.CommitteeCategoryId);
+                    $('#ddlMemberId').val(objCommitteeMember.MemberId);
+                    $('#ddlDesignation').val(objCommitteeMember.Designation);
+                    $('#ddlDescription').val(objCommitteeMember.Description);
+                    $('#ddlDisplayOrder').val(objCommitteeMember.DisplayOrder);
+                    $('#ddllbltitle').html('Edit Committee Member');
+                    
+ 
+                    $("#editCommitteeMember").modal("show");
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+    }
+
+    function clearCommitteeMember() {
+        $('#CommitteeId').val('');
+        $('#Designation').val('');
+        $('#spanCommitteeId').html('');
+        $('#spanDesignation').html('');
+        $('#Designation').focus().focus().removeClass("red-border");
+        
+    }
+
+    function Validate() {
+        if ($('#hdnMode').val() == 'add') {
+            if ($('#MemberId').val() == '') { $('#spanMemberId').html('Required.'); $('#MemberId').focus(); return false; } else { $('#spanMemberId').html(''); $('#MemberId').focus(); }
+            if ($('#ChapterId').val() == '') { $('#spanChapterId').html('Required.'); $('#ChapterId').focus(); return false; } else { $('#spanChapterId').html(''); $('#ChapterId').focus(); }
+            //if ($('#Designation').val() == '') { $('#spanDesignation').html('Required.'); $('#Designation').focus(); return false; } else { $('#spanDesignation').html(''); $('#Designation').focus(); }
+
+        }
+        return true;
+    }
+
+    function AddEditValidate(mode, CommitteeMemberId) {
+        $('#hdnMode').val(mode);
+        if (mode == 'add') {
+            Add();
+        }
+        else {
+            EditCommitteeMember(CommitteeMemberId);
+        }
+    }
+</script>
+<input id="hdnMode" type="hidden" value="add" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="DisplayOrder" />
+<input id="hdnsortorder" type="hidden" value="ASC" />
+
+<!-- breadcumb -->
+
+
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+            @*<div class="col-lg-3 col-md-6 col-8">
+                    <div class="input-box">
+                        <label class="form-label">Search <span class="text-danger">*</span></label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Name">
+                            <span class="input-group-text pointer" style="cursor:pointer" onclick="Onload(1);" id="keyword" name="keyword"><i class="bi bi-search"></i></span>
+                        </div>
+                    </div>
+                </div>*@
+
+
+            <div class="col-lg-3 col-md-3 col-6">
+                <div class="input-box">
+                    <label class="form-label">Search<span class="text-danger"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Name">
+
+                    </div>
+
+                </div>
+            </div>
+            @if (objAppInfo.chapterStatus == "Yes")
+            {
+
+                <div class="col-lg-2 col-md-6 col-8">
+                    <div class="input-box">
+                        <label class="form-label">Chapters</label>
+
+                        @*<select class="single-select" id="ddlChapterId" name="ChapterId">*@
+
+                        <select class="form-control" id="ddlChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+
+                            <option value="">-- Select --</option>
+                            @if (lstLChapters != null && lstLChapters.Count != 0)
+                            {
+                                foreach (var item in lstLChapters)
+                                {
+                                    @*<option value="@item.ChapterId">@item.ChapterName</option>*@
+                                    <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+            }
+            
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Committees :<span class="text-danger"></span></label>
+                    <select class="single-select" name="CommitteeCategoryId" id="CommitteeCategoryId">
+                        @if (lstCommitteeCategory != null)
+                        {
+                            <option value="">Select</option>
+                            foreach (var item in lstCommitteeCategory)
+                            {
+                                <option @(item.CommitteeCategoryId == CommitteeCategoryId ? "selected='selected'" : "") value="@item.CommitteeCategoryId">@item.CategoryName</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="ol-lg-3 col-md-3 col-6">
+                <div>
+                    <label>&nbsp;</label>
+                </div>
+
+                <button type="submit" class="btn btn-primary px-3" onclick="Onload(1);">Search</button>
+
+                <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+            </div>
+
+
+            @if (IsAdd == true )
+            {
+                if (CommitteeCategoryId != null && CommitteeCategoryId != 0)
+                {
+                    <div class="col-lg-2 col-4 text-end ms-auto">
+                        <div class="btn-align">
+                            <button type="button" class="btn btn-primary" onclick="AddEditValidate('add', 0);">Add Member to Committee</button>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="modal fade" id="AddCommitteeMember" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("AddCommitteeMember", "CommitteeMember", FormMethod.Post, new { enctype = "multipart/form-data", @id = "SponsorForm", @name = "SponsorForm" }))
+            {
+                <input type="hidden" id="CommitteeCategoryId1" name="CommitteeCategoryId" value="@CommitteeCategoryId" />
+                <input type="hidden" id="CommitteeMemberId" name="CommitteeMemberId" value="0" />
+                <input type="hidden" id="mid" name="mid" value="@mid" />
+
+
+                if (objAppInfo.chapterStatus == "No")
+                {
+                    <input id="ChapterId" name="ChapterId" type="hidden" value="1" />
+                }
+
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body" id="addhide">
+                        <div class="row g-2">
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label"> Select  Member : <span class="text-danger">*</span></label>
+                                    <select id="MemberId" class="m-single-select" name="MemberId">
+                                        @if (lstCommittee != null)
+                                        {
+                                            <option value="">Select</option>
+
+                                            foreach (var item in lstCommittee)
+                                            {
+                                                @*<option @(item.MemberId == MemberId ? "selected='selected'" : "") value="@item.MemberId">@item.Name</option>*@
+
+                                                <option value="@item.MemberId">@item.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            @if (objAppInfo.chapterStatus == "Yes")
+                            {
+                                <div class="col-lg-12 col-md-6">
+                                    <div class="input-box">
+                                        <label class="form-label">Chapters</label>
+
+                                      
+
+                                            <select class="form-control" id="ChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+                                                <option value="">-- Select --</option>
+                                                @if (lstChapters != null && lstChapters.Count != 0)
+                                                {
+                                                    foreach (var item in lstChapters)
+                                                    {
+                                                        <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                                    }
+                                                }
+                                            </select>
+</div>
+                                </div>
+
+                            }
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label"> Order No : <span class="text-danger"></span></label>
+                                    <input type="text" class="form-control" id="DisplayOrder" name="DisplayOrder" onkeypress="return Common.isNumberKey(event);">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Designation : <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="Designation" name="Designation" placeholder="Designation">
+                                </div>
+                            </div>
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Description</label>
+                                    <textarea type="text" id="Description" class="form-control" name="Description" placeholder="Description"></textarea>
+                                </div>
+                            </div>
+                         
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>}
+        </div>
+    </div>
+    <div class="modal fade" id="editCommitteeMember" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("AddCommitteeMember", "CommitteeMember", FormMethod.Post, new { enctype = "multipart/form-data", @id = "CommitteeMemberForm", @name = "CommitteeMemberForm" }))
+            {
+                <input type="hidden" id="dllCommitteeCategoryId1" name="CommitteeCategoryId" value="@CommitteeCategoryId" />
+                <input type="hidden" id="ddlCommitteeMemberId" name="CommitteeMemberId" value="0" />
+                @*<input type="hidden" id="ChapterId" name="ChapterId" value="" />*@
+                <input type="hidden" id="mid" name="mid" value="@mid" />
+
+
+
+                if (objAppInfo.chapterStatus == "No")
+                {
+                    <input id="ddllChapterId" name="ChapterId" type="hidden" value="1" />
+                }
+
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span id="ddllbltitle"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+
+
+                    <div class="modal-body">
+                        <div class="row g-2">
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label"> Select  Member : <span class="text-danger">*</span></label>
+                                    <select id="ddlMemberId" class="m-single-select" name="MemberId">
+                                        @if (lstCommitteebyedit != null)
+                                        {
+                                            <option value="">Select</option>
+
+                                            foreach (var item in lstCommitteebyedit)
+                                            {
+                                                @*<option @(item.MemberId == MemberId ? "selected='selected'" : "") value="@item.MemberId">@item.Name</option>*@
+
+                                                <option value="@item.MemberId">@item.Name</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            @if (objAppInfo.chapterStatus == "Yes")
+                            {
+
+                                <div class="col-lg-12 col-md-6">
+                                    <div class="input-box">
+                                        <label class="form-label">Chapters</label>
+
+                                      
+                                            <select class="form-control" id="ddlChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+                                                <option value="">-- Select --</option>
+                                                @if (lstChapters != null && lstChapters.Count != 0)
+                                                {
+                                                    foreach (var item in lstChapters)
+                                                    {
+                                                        <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                                    }
+                                                }
+                                            </select>
+</div>
+                                </div>
+                            }
+
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label"> Order No : <span class="text-danger"></span></label>
+                                    <input type="text" class="form-control" id="ddlDisplayOrder" name="DisplayOrder" onkeypress="return Common.isNumberKey(event);">
+                                </div>
+                            </div>
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Designation : <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="ddlDesignation" name="Designation" placeholder="Designation">
+                                </div>
+                            </div>
+                            <div class="col-lg-12 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Description</label>
+                                    <textarea type="text" id="ddlDescription" class="form-control" name="Description"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </div>}
+        </div>
+    </div>
+    <div id="divcommittee" class="box-body table-responsive">
+
+    </div>
+
+
+</div>
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+        PagerClickBind();
+    });
+
+    $(document).ready(function () {
+        $("#SponsorForm").validate({
+            rules: {
+                Designation: "required",
+                MemberId: "required",
+            },
+            messages: {
+                Designation: "required",
+                MemberId:"Please Select Member"
+            },
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+
+
+    });
+    $(document).ready(function () {
+        $("#CommitteeMemberForm").validate({
+            rules: {
+                Designation: "required",
+                MemberId: "required",
+            },
+            messages: {
+                Designation: "required",
+                MemberId:"Please Select Member"
+            },
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+
+
+    });
+
+
+</script>

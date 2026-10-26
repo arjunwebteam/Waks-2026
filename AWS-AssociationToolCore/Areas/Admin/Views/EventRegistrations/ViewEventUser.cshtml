@@ -1,0 +1,311 @@
+﻿@{
+    ViewBag.Title = "ViewEventUser";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    var objEventUserInfo = (AWS_AssociationToolCore.Entities.EventUserInfo)ViewBag.objEventUserInfo;
+    List<AWS_AssociationToolCore.Entities.EventRegistrationCounts> lstEventRegistrationCounts = ViewBag.lstEventRegistrationCounts; 
+   
+}
+
+<script type="text/javascript">
+    $(function () {
+        $(".ui-accordion").accordion({
+            collapsible: true,
+            heightStyle: "content"
+        });
+
+        // date picker
+        $(function () {
+            $(function () {
+                $(".datepicker").datepicker({
+                    altField: "#alternate",
+                    altFormat: "DD, d MM, yy"
+                });
+            });
+        });
+    });
+    $(document).ready(function () {
+        $('#MEvents').addClass('active');
+
+    });
+</script>
+
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>View Event User</h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li><a href="@Url.Action("Index", "Events", new { EventType = "current" })">Events</a></li>
+        <li class="active">Edit Event</li>
+    </ol>
+</div>
+<!-- end breadcumb -->
+
+<div class="content">
+    <!-- Main content -->
+    <div class="clearfix sepH_b"></div>
+    <div id="divmessage">
+        @if (TempData["message"] != null)
+        {@Html.Raw(TempData["message"].ToString())}
+
+        @if (ViewBag.message != null)
+        {@Html.Raw(ViewBag.message.ToString())}
+    </div>
+    @if (objEventUserInfo.ItemName != null && objEventUserInfo.ItemName != "")
+    {
+        <div class="box validation">
+            <div class="box-header">
+                <h3 class="box-title dis-in"> Personal Details</h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">First Name :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.FirstName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Last Name :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.LastName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Email :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.Email</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">City :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.City</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">State :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.State</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Mobile :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.Mobile</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 col-lg-12 col-sm-6">
+                        <label class="t-p5">Additional Info :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.Comments</label>
+                    </div>
+                </div>
+
+                </div>
+            </div>
+
+        <div class="box validation">
+            <div class="box-header">
+                <h3 class="box-title dis-in"> Competition Info </h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Competition Name :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.ItemCategory</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5"> No of Participants :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.ItemName</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+    else
+    {
+        <div class="box validation">
+            <div class="box-header">
+                <h3 class="box-title dis-in">Event Registration Details </h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>First Name :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.FirstName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Last Name :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.LastName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Email :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.Email</label>
+                    </div>
+
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>State :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.State</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>City :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.City</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Mobile :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.Mobile</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 col-lg-12 col-sm-6">
+                        <label class="t-p5">Additional Info :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.Comments</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (lstEventRegistrationCounts != null && lstEventRegistrationCounts.Count != 0)
+    {
+        <div class="box validation">
+            <div class="box-header">
+                <h3 class="box-title dis-in">Registration Types</h3>
+            </div>
+            <table cellspacing="0" cellpadding="0" border="0" class="tbl membership" width="800">
+                <tbody>
+                    <tr>
+                        <td>
+                            <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span9 omb table_vam table-black tvm">
+                                <thead>
+                                    <tr style="background-color:#000;">
+                                        <th width="180" align="center" style="color:#fff;">Registration Title</th>
+                                        <th width="180" align="center" style="color:#fff;">Reg.Count</th>
+                                        <th width="100" align="center" style="color:#fff;">Amount($)</th>
+
+
+                                    </tr>
+                                    @foreach (var item in lstEventRegistrationCounts)
+                                    {
+                                        <tr>
+                                            <td width="180">
+                                                <label class="t-p5 black-t">@item.RegistrationTitle</label>
+                                            </td>
+                                            <td width="110" align="left">
+                                                <label class="t-p5 black-t">@item.Count</label>
+                                            </td>
+                                            <td width="180" align="left">
+                                                <label class="t-p5 black-t">$ @item.Amount</label>
+                                            </td>
+
+                                        </tr>
+
+                                    }
+
+
+                                </thead>
+                            </table>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- end personal info form -->
+        </div>
+    }
+
+    @if (objEventUserInfo.lstEventParticipant.Count() != 0 && objEventUserInfo.lstEventParticipant != null)
+    {
+        <!-- end personal info form -->
+        <div class="box validation">
+            <div class="box-header">
+                <h3 class="box-title dis-in">Particpatnts</h3>
+            </div>
+            <table cellspacing="0" cellpadding="0" border="0" class="tbl membership" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span9 omb table_vam table-black tvm">
+                                <thead>
+                                    <tr>
+                                        <th width="180">First Name</th>
+                                        <th width="180">Last Name</th>
+                                        <th width="100" align="center">( Age )</th>
+                                        <th width="180" align="center">Parents Name</th>
+
+                                    </tr>
+                                    @if (objEventUserInfo.lstEventParticipant != null && objEventUserInfo.lstEventParticipant.Count != 0)
+                                    {
+                                        Int64 i = 0;
+                                        foreach (var Item in objEventUserInfo.lstEventParticipant)
+                                        {
+                                            <tr>
+                                                <td width="180">
+                                                    <label class="t-p5 black-t">@Item.FirstName</label>
+                                                </td>
+                                                <td width="110" align="center">
+                                                    <label class="t-p5 black-t">@Item.LastName</label>
+                                                </td>
+                                                <td width="180" align="center">
+                                                    <label class="t-p5 black-t">@Item.Age</label>
+                                                </td>
+                                                <td width="180" align="center">
+                                                    <label class="t-p5 black-t">@Item.Mobile</label>
+                                                </td>
+
+                                            </tr>
+                                            i++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td width="180" colspan="4" class="t-c">
+                                                <label class="t-p5 black-t t-c">No User's Found</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </thead>
+                            </table>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    }
+    <hr class="mN" />
+    <div class="clearfix sepH_b b-m0"></div>
+
+    <div class="box validation">
+        <div class="box-header">
+            <h3 class="box-title dis-in">Payment Details</h3>
+        </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Payment Method :</label>
+                    <label class="t-p5 black-t">@(objEventUserInfo.objEventOrderDetails.PaymentMethod == null ? "N/A" : objEventUserInfo.objEventOrderDetails.PaymentMethod)</label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Transaction Id  :</label>
+                    <label class="t-p5 black-t">@(objEventUserInfo.objEventOrderDetails.TransactionId == null ? "N/A" : objEventUserInfo.objEventOrderDetails.TransactionId)</label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Total Amount :</label>
+                    <label class="t-p5 black-t"> $ @(objEventUserInfo.OtherPaymentId == null ? "N/A" : objEventUserInfo.OtherPaymentId)</label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Discount :</label>
+                    <label class="t-p5 black-t"> $ @(objEventUserInfo.Gender == null ? "N/A" : objEventUserInfo.Gender)</label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Amount Paid :</label>
+                    <label class="t-p5 black-t"> $ @(objEventUserInfo.objEventOrderDetails.AmountPaid == null ? "N/A" : objEventUserInfo.objEventOrderDetails.AmountPaid.ToString())<span id="payamount"></span></label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Payment Status :</label>
+                    <label class="t-p5 black-t">@(objEventUserInfo.objEventOrderDetails.PaymentStatus == null ? "Pending" : objEventUserInfo.objEventOrderDetails.PaymentStatus)</label>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end other details form -->
+</div>
+
+
+
+
+

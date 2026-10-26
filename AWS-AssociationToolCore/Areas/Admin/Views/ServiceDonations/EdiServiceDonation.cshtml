@@ -1,0 +1,617 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+
+@{
+    ViewBag.Title = "AddDetails";
+    ViewBag.Pageheading = "Service Donation Details";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var baseUrl = HttpContextAccessor.HttpContext?.Session.GetString("BaseUrl") ?? "";
+    var userSiteUrl = HttpContextAccessor.HttpContext?.Session.GetString("UserSiteUrl") ?? "";
+
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+    //var imglocNormal = Session["BaseUrl"].ToString() + "Content/ServiceDonationReceiptImages/";
+    var chequeimage = baseUrl + "Content/ServiceDonationReceiptImages/";
+    var cssloc = userSiteUrl + "Content/Admin/front-end-style.css";
+    //var imglocNormal = Session["BaseUrl"].ToString() + "Content/ServiceDonationReceiptImages/";
+    var imglocNormal = baseUrl + "Content/ServiceDonationReceiptImages/";
+    int status = 0;
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+
+
+    var Test = objPhotosImageSettings.Photosize; // Assuming objPhotosImageSettings.Eventsize is a string
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+    Int64 ChapterId = ViewBag.ChapterId;
+
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+
+        // Now you can use value1 and value2 as integers
+    }
+    else
+    {
+        // Handle the case where the split didn't produce two parts
+        // This could happen if the input string doesn't contain '*'
+        // or if there are more than one '*' characters in the string
+    }
+
+
+
+    Int64 ServiceId = ViewBag.ServiceId;
+    List<AWS_AssociationToolCore.Entities.Services> lstServices = ViewBag.lstServices;
+    AWS_AssociationToolCore.Entities.ServiceDonations objServiceDonations = ViewBag.objServiceDonations;
+
+    AWS_AssociationToolCore.BLL.ServiceDonations _ServiceDonations = new AWS_AssociationToolCore.BLL.ServiceDonations();
+
+    int _qstatus = 0;
+    Int64 ServiceDonationId = ViewBag.ServiceDonationId;
+    //AWS_AssociationToolCore.Entities.ServiceDonations objServiceDonations = _ServiceDonations.ServiceDonationsGetById(ServiceDonationId, ref _qstatus);
+
+   
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+}
+
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+
+<script>
+    $(document).ready(function () {
+        PaymentMethodBind();
+        $('#wDonate-Sponsors, #wServiceDonors').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $("#OrderDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-10:+10", altFormat: 'mm/dd/yy' });
+
+    });
+
+    function Validate() {
+
+        if ($.trim($('#DonationCause').val()) == '') { document.getElementsByName('DonationCause')[0].placeholder = 'Required'; $('#DonationCause').focus().addClass("validate"); return false; } else { $('#DonationCause').focus().removeClass("validate"); }
+        if ($.trim($('#Amount').val()) == '') { document.getElementsByName('Amount')[0].placeholder = 'Required'; $('#Amount').focus().addClass("validate"); return false; } else { $('#Amount').focus().removeClass("validate"); }
+        if ($.trim($('#TransactionId').val()) == '') { document.getElementsByName('TransactionId')[0].placeholder = 'Required'; $('#TransactionId').focus().addClass("validate"); return false; } else { $('#TransactionId').focus().removeClass("validate"); }
+        if ($.trim($('#PaymentMethodId').val()) == '') { document.getElementsByName('PaymentMethodId')[0].placeholder = 'Required'; $('#PaymentMethodId').focus().addClass("validate"); return false; } else { $('#PaymentMethodId').focus().removeClass("validate"); }
+        if ($.trim($('#PaymentStatusId').val()) == '') { document.getElementsByName('PaymentStatusId')[0].placeholder = 'Required'; $('#PaymentStatusId').focus().addClass("validate"); return false; } else { $('#PaymentStatusId').focus().removeClass("validate"); }
+
+        return true;
+    }
+    function ResetValidateClass() {
+        $('#DonationCause').removeClass("validate");
+        $('#Amount').removeClass("validate");
+        $('#TransactionId').removeClass("validate");
+        $('#PaymentMethodId').removeClass("validate");
+        $('#PaymentStatusId').removeClass("validate");
+    }
+
+    function formatPhoneNumber(number) {
+        // Remove any non-numeric characters
+        const cleanedNumber = number.replace(/\D/g, "");
+
+        // Ensure the number has 10 digits
+        if (cleanedNumber.length < 10) {
+            return "Entered less than 10 digits.";
+        }
+        if (cleanedNumber.length > 10) {
+            return "Entered more than 10 digits.";
+        }
+
+        // Format the number using string slicing
+        const areaCode = cleanedNumber.slice(0, 3);
+        const firstThree = cleanedNumber.slice(3, 6);
+        const lastFour = cleanedNumber.slice(6);
+
+        return `${areaCode}-${firstThree}-${lastFour}`;
+    }
+
+    // Example usage
+    const phoneNumber = document.getElementById("phoneNumber"); // Assuming you have an element with this ID
+    phoneNumber.addEventListener("input", function () {
+        const formattedNumber = formatPhoneNumber(this.value);
+        this.value = formattedNumber; // Update the input value with the formatted number
+    });
+
+
+    function handlePaste(event) {
+        // Check if the target is the input element
+        if (event.target.id === "PhoneNo") {
+            const pastedNumber = (event.clipboardData || window.clipboardData).getData('text');
+            const formattedNumber = formatPhoneNumber(pastedNumber);
+            event.target.value = formattedNumber;
+            // Replace input value with formatted number
+            event.preventDefault();
+            // Prevent default pasting behavior
+        }
+    }
+    function handlePastes(event) {
+        // Check if the target is the input element
+        if (event.target.id === "SpouseCell") {
+            const pastedNumber = (event.clipboardData || window.clipboardData).getData('text');
+            const formattedNumber = formatPhoneNumber(pastedNumber);
+            event.target.value = formattedNumber;
+            // Replace input value with formatted number
+            event.preventDefault();
+            // Prevent default pasting behavior
+        }
+    }
+    
+    function PhoneNochange(event) {
+        if (event.keyCode == 8 || event.keyCode == 46) {
+        }
+        else {
+            var ph = $('#PhoneNo').val();
+            if (ph.length == 3) { $('#PhoneNo').val(ph + '-'); }
+            if (ph.length == 7) { $('#PhoneNo').val(ph + '-'); }
+        }
+    }
+
+
+
+
+    function PaymentMethodBind() {
+
+        var PaymentMethod = document.getElementById("PaymentMethodId").value;
+
+        //var PaymentMethod = $('#PaymentMethodId').val();
+        if (PaymentMethod == 3) {
+
+            $('#ChequeHolderNamehide').show()
+            $('#ZellePartnerNamehide').hide()
+        }
+        else if (PaymentMethod == 6) {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').show()
+        }
+        else {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').hide()
+        }
+    }
+</script>
+
+<div class="content">
+
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("AddServiceDonation", "ServiceDonations", FormMethod.Post, new { enctype = "multipart/form-data", @id = "ServiceDonation", @name = "ServiceDonation" }))
+    {
+        <input type="hidden" value="@ServiceId" name="ServiceId" />
+        <input type="hidden" value="@objServiceDonations.MemberId" id="MemberId" name="MemberId" />
+        <input type="hidden" name="ServiceDonationId" id="ServiceDonationId" value="@objServiceDonations.ServiceDonationId" />
+        <input type="hidden" id="mid" name="mid" value="@ViewBag.mid" />
+        if (objAppInfo.chapterStatus == "No")
+        {
+
+            <input type="hidden" id="ChapterId" name="ChapterId" value="1" />
+        }
+        else
+        {
+
+            <input type="hidden" id="ChapterId" name="ChapterId" value="@ChapterId" />
+
+        }
+
+        <div class="card">
+            <div class="card-body">
+                <input class="form-control" type="hidden" id="PageDetailId" name="PageDetailId" value="@objServiceDonations.YearTotalAmount" />
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in">Personal Details </h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">First Name :  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="FirstName" id="FirstName" value="@objServiceDonations.FirstName" onkeypress="return Common.isChar(event)" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Last Name :  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="LastName" id="LastName" value="@objServiceDonations.LastName" onkeypress="return Common.isChar(event)" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Email :  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Email" id="Email" value="@objServiceDonations.Email" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Mobile Number : <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="PhoneNo" id="PhoneNo" value="@objServiceDonations.PhoneNo" maxlength="12" onpaste="handlePaste(event);" onkeypress=" PhoneNochange(event); return Common.isNumberKey(event)" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Country : </label>
+                            <select class="form-control" id="Country" name="Country" disabled>
+                                <option value="">Select </option>
+                                <option @(objServiceDonations.Country == "USA" ? "selected=selected" : "") value="USA">USA </option>
+                                <option @(objServiceDonations.Country == "India" ? "selected=selected" : "") value="India">India</option>
+                                <option @(objServiceDonations.Country == "Canada" ? "selected=selected" : "") value="Canada">Canada</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Zip Code : </label>
+                            <input type="text" class="form-control" name="ZipCode" id="ZipCode" value="@objServiceDonations.ZipCode" onkeypress="return Common.isNumberKey(event)" maxlength="6" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Address : </label>
+                            <input type="text" class="form-control" name="Address" id="Address" value="@objServiceDonations.Address" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Donation Cause : </label>
+                            <select class="form-control" name="ServiceId" id="ServiceId" disabled>
+                                @if (lstServices != null)
+                                {
+                                    <option value="">Select</option>
+                                    foreach (var item in lstServices)
+                                    {
+                                        <option @(item.ServiceId == objServiceDonations.ServiceId ? "selected=selected" : "") value="@item.ServiceId">@item.ServiceTitle</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="box validation" style="display:none;">
+            <div class="box-header">
+                <h3 class="box-title dis-in"> Recurring Details </h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Frequency Donation : </label>
+                        <select class="form-control" name="FrequencyofDonation" id="FrequencyofDonation" type="text" onchange="NoofPaym();">
+                            <option value="">Select</option>
+                            <option @(objServiceDonations.FrequencyofDonation == "MONT" ? "selected='selected'" : "") value="MONT">Monthly</option>
+                            <option @(objServiceDonations.FrequencyofDonation == "SMYR" ? "selected='selected'" : "") value="SMYR">Quarterly</option>
+                            <option @(objServiceDonations.FrequencyofDonation == "YEAR" ? "selected='selected'" : "") value="YEAR">Annual</option>
+
+                        </select>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>No of Payments: </label>
+                        <input type="text" onkeypress="return Common.isNumberKey(event);" maxlength="4" value="@objServiceDonations.NoofPayments" id="NoofPayments" name="NoofPayments" class="form-control">
+                    </div>
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Donation Amount : </label>
+                        <input type="text" onkeypress="return Common.isNumberKey(event);" id="DonationAmount" value="@objServiceDonations.Field1" name="DonationAmount" class="form-control">
+                    </div>
+                    @*<div class="col-xs-12 col-lg-3 col-sm-6">
+                            <label>Donation Strats From : </label>
+                            <input type="text" id="Field2" value="@objServiceDonations.Field2" name="Field2" class="form-control Cdate">
+                        </div>*@
+                </div>
+            </div>
+        </div>
+
+        if (objServiceDonations.lstServiceContributions != null && objServiceDonations.lstServiceContributions.Count != 0)
+        {
+            Int64 i = 0;
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Contribution Info </h3>
+                </div>
+                <table cellspacing="0" cellpadding="0" border="0" class="tbl membership" width="1000">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table id="childinfo" name="childinfo" width="950" cellspacing="0" cellpadding="0" border="0" class="table table-hover span12 omb table_vam table-black tvm">
+                                    <thead>
+                                        <tr style="background-color:#000;">
+                                            <th width="180" align="center" style="color:#fff;">Service Title</th>
+                                            <th width="180" align="center" style="color:#fff;">Percentage</th>
+
+                                        </tr>
+
+                                        @foreach (var Item in objServiceDonations.lstServiceContributions)
+                                        {
+                                            <input id="ContributionId-@(i)" name="[@(i)].ContributionId" value="@(Item.ContributionId)" type="hidden" />
+                                            <tr>
+                                                <td width="260">
+                                                    <input type="text" value="@Item.ServiceTitle" id="ServiceTitle-@i" name="[@i].ServiceTitle" class="form-control b-m0" readonly="readonly" />
+                                                </td>
+
+                                                <td width="100" align="left">
+                                                    <input type="text" value="@Item.Percentage %" id="Percentage-@i" name="[@i].Percentage" onkeypress="return Common.isNumberKey(event);" class="form-control b-m0" readonly="readonly" />
+                                                </td>
+                                            </tr>
+                                            i++;
+                                        }
+
+                                    </thead>
+                                </table>
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- end personal info form -->
+            </div>
+        }
+        <div class="card">
+            <div class="card-body">
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in">Payment Details </h3>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Amount ($) : </label>
+                            <input type="text" class="form-control" name="Amount" id="Amount" readonly="readonly" onkeypress="return Common.isNumberKey(event)" value="$@Math.Round(objServiceDonations.Amount,2)">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Payment Method : </label>
+                            <select class="form-control" name="PaymentMethodId" id="PaymentMethodId" onchange="PaymentMethodBind();">
+                                @if (lstPaymentMethod != null)
+                                {
+                                    <option value="">Select</option>
+                                    foreach (var item in lstPaymentMethod)
+                                    {
+                                        <option @(item.PaymentMethodId == objServiceDonations.PaymentMethodId ? "selected=selected" : "") value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    @*<div class="col-lg-3 col-md-6" id="ChequeHolderNamehide">
+                            <div class="input-box">
+                                <label class="form-label">Handed the cash/cheque to - Name of the :</label>
+                                <input type="text" class="form-control" id="ChequeHolderName" name="ChequeHolderName">
+                            </div>
+                        </div>*@
+
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">TransactionId : </label>
+                            <input type="text" class="form-control" name="TransactionId" id="TransactionId" value="@objServiceDonations.TransactionId">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">IP.Address : </label>
+                            <input type="text" class="form-control" name="Field2" id="Field2" value="@objServiceDonations.Field2">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Payment Status : </label>
+                            <select class="form-control" name="PaymentStatusId" id="PaymentStatusId">
+                                @if (lstPaymentStatus != null)
+                                {
+                                    <option value="">Select</option>
+                                    foreach (var item in lstPaymentStatus)
+                                    {
+                                        <option @(item.PaymentStatusId == objServiceDonations.PaymentStatusId ? "selected=selected" : "") value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Order Date : </label>
+                            <input type="text" class="form-control" name="OrderDate" id="OrderDate" value="@objServiceDonations.OrderDate">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label> Is Ananymous : </label>
+                            <select class="form-control" name="Field3" id="Field3">
+                                <option value="">Select</option>
+                                <option @(objServiceDonations.Field3 == "Yes" ? "Selected=Selected" : "") value="Yes">Yes</option>
+                                <option @(objServiceDonations.Field3 == "No" ? "Selected=Selected" : "") value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+                    <div id="ChequeHolderNamehide">
+
+                        <div class="row">
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label class="dk-t poppins-regular"> Cheque Image :  </label>
+                              <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objServiceDonations.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+
+                               
+@*                                 <img style="width:100%; max-width:151px;" title="@objServiceDonations.FirstName" alt="@objServiceDonations.LastName" src="@AWS_AssociationToolCore.BLL.Common.GetImagePath(imglocNormal, (objServiceDonations.ReceiptUrl != null && objServiceDonations.ReceiptUrl != "" ? objServiceDonations.ReceiptUrl : "N/A"), "~/Content/User/images/favicon.png")" class="borwhite5 border-radius shadow" />
+ *@
+                            </div>
+
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Cheque Holder Name  :</label>
+                                <input type="text" id="ChequeHolderName" value="@objServiceDonations.ChequeHolderName" class="form-control" name="ChequeHolderName">
+                                <span class="field-validation-error" id="spanTransactionId"></span>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div id="ZellePartnerNamehide">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <label>Zelle Id   :</label>
+                                <input type="text" id="Zelle" value="@objServiceDonations.Zelle" class="form-control" name="Zelle">
+
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <label>Zelle PartnerName :</label>
+                                <input type="text" id="ZellePartnerName" value="@objServiceDonations.ZellePartnerName" class="form-control" name="ZellePartnerName">
+
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <label class="dk-t poppins-regular"> Zelle Receipt Image :  </label>
+                                <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objServiceDonations.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+
+
+@*                                 <img style="width:100%; max-width:151px;" title="@objServiceDonations.FirstName" alt="@objServiceDonations.LastName" src="@AWS_AssociationToolCore.BLL.Common.GetImagePath(imglocNormal, (objServiceDonations.ReceiptUrl != null && objServiceDonations.ReceiptUrl != "" ? objServiceDonations.ReceiptUrl : "N/A"), "~/Content/User/images/no-imagefinal.jpg")" class="borwhite5 border-radius shadow" />
+ *@
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="row">
+                        <div class="col-lg-3 col-3 text-end ms-auto">
+                            <button type="submit" class="btn btn-success px-3 " onclick="return Validate();" value="submit">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                            <a class="btn btn-primary px-3" href="@Url.Action("Index", "ServiceDonations", new { mid = ViewBag.mid })">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+    }
+</div>
+
+                <script type="text/javascript">
+
+                    $(document).ready(function () {
+                        PagerClickBind();
+                      
+                    });
+
+                    $(document).ready(function () {
+                       
+                        $("#ServiceDonation").validate({
+                            rules: {
+                                FirstName: "required",
+                                LastName: "required",
+                                Email: {
+                                    required: true,
+                                    email: {
+                                        depends: function (element) {
+                                            // Only validate if SpouseEmail is not null
+                                            return $(element).val() !== null;
+                                        },
+                                        messages: "Please Enter Valid Email Address"
+                                    }
+                                },
+
+                                PhoneNo: {
+                                    required: true,
+                                    phoneFormat: true
+                                },
+                                ServiceId: "required",
+                            },
+                            messages: {
+                                FirstName: "First Name Is required",
+                                LastName: "Last Name Is required",
+                                Email: {
+                                    required: "Please Enter Your Email Address",
+                                    validate_email: "Please Enter Valid Email Address",
+
+                                },
+                                PhoneNo: {
+                                    required: "Please Enter Phone Number",
+                                    phoneFormat: "Please Enter Valid Phone Number",
+                                },
+                                ServiceId: "Please Select Donation Cause",
+
+                            },
+                           
+
+                            errorElement: "div",
+                            errorPlacement: function (error, element) {
+                                // Add the `invalid-feedback` class to the error element
+                                error.addClass("invalid-feedback");
+                                if (element.prop("type") === "checkbox") {
+                                    error.insertAfter(element.parent("label"));
+                                } else {
+                                    error.insertAfter(element);
+                                }
+                                // Move the error element after the fieldset element
+                                if (element.closest(".input-box").length) {
+                                    element.closest(".input-box").after(error);
+                                }
+                            },
+                            highlight: function (element, errorClass, validClass) {
+                                // Highlight the input, textarea, or select element with the `is-invalid` class
+                                var $element = $(element);
+                                if ($element.is('input, textarea, select')) {
+                                    $element.addClass("is-invalid").removeClass("is-valid");
+                                }
+                            },
+                            unhighlight: function (element, errorClass, validClass) {
+                                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                                var $element = $(element);
+                                if ($element.is('input, textarea, select')) {
+                                    $element.addClass("is-valid").removeClass("is-invalid");
+                                }
+                            },
+
+
+                        });
+
+
+
+                    });
+
+                    //function PaymentMethodBind() {
+
+                    //    var PaymentMethod = $('#PaymentMethodId').val();
+                    //    if (PaymentMethod == 3) {
+                    //        $('#ChequeHolderNamehide').show()
+                    //        $('#ZellePartnerNamehide').hide()
+                    //    }
+                    //    else if (PaymentMethod == 6) {
+                    //        $('#ChequeHolderNamehide').hide()
+                    //        $('#ZellePartnerNamehide').show()
+                    //    }
+                    //    else {
+                    //        $('#ChequeHolderNamehide').hide()
+                    //        $('#ZellePartnerNamehide').hide()
+                    //    }
+                    //}
+
+
+
+
+
+
+
+
+
+                   
+                </script>
+
+
+

@@ -1,0 +1,257 @@
+﻿
+@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+    //Int64 RCount = (Int64)ViewBag.RCount;
+
+    List<AWS_AssociationToolCore.Entities.Events> Eventslist = ViewBag.Eventslist;
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+}
+<link rel="stylesheet" href="Content/Admin/css/mobiscroll.javascript.min.css">
+<script src="Scripts/Admin/mobiscroll.javascript.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+    function EventsStatus(EventId) {
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("Eventtatus", "Events")', // the URL of the controller action method
+            data: { EventId: EventId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                  /*  $('#divmessage').html(result.data);*/
+                    EventBind($('#hdnPageNo').val());
+                   /* $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');*/
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+
+
+
+    function AWSEventsStatus(EventId) {
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("Eventtatus", "Events")', // the URL of the controller action method
+            data: { EventId: EventId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                    //$('#divmessage').html(result.data);
+                    //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    EventBind($('#hdnPageNo').val());
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+
+</script>
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+
+                    <th width="70" class="text-center">S.No</th>
+
+
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('EventName');" class="white-t-u aws-h-a">
+                            Event Name @if (sortcolumn == "EventName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+
+
+
+                    <th>EventCategory</th>
+
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('StartDate');" class="white-t-u aws-h-a">
+                            Start Date @if (sortcolumn == "StartDate")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+
+
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('EndDate');" class="white-t-u aws-h-a">
+                            End Date @if (sortcolumn == "EndDate")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                    <th>
+                      Event Registrations
+
+                    </th>
+                    <th>
+                        Cultural Registrations
+
+                    </th>
+
+                    @if (IsEdit == true)
+                    {
+                        <th width="8%">Status</th>
+                    }
+                    @if (IsEdit == true  || IsDelete == true)
+                    {
+                        <th class="text-center" width="50">Action</th>
+                    }
+
+                </tr>
+            </thead>
+            <tbody>
+                @if (Total != 0)
+                {
+                    //int i = 1;
+                    foreach (var item in (List<AWS_AssociationToolCore.Entities.Events>)ViewBag.Eventslist)
+                    {
+                        <tr>
+                            <td align="center">@item.RId</td>
+                            <td>@item.EventName</td>
+                            <td>@item.EventCategory</td>
+
+                            <td>@(item.StartDate != null && item.StartDate != DateTime.MinValue ? item.StartDate.ToString("MM/dd/yyyy") : "N/A")</td>
+                            <td>@(item.EndDate != null && item.EndDate != DateTime.MinValue ? item.EndDate.ToString("MM/dd/yyyy") : "N/A")</td>
+                            <td>
+                                @if (item.IsRegistration == true)
+                                {
+                                    <a href="@Url.Action("Index", "EventRegistrations", new { EventId = item.EventId, EventName = item.EventName, mid = ViewBag.Mid })">Registrations<span class="red-t l-m8">(@item.UsersCount)</span></a>
+                                }
+                                else
+                                {
+                                    @Html.Raw("No Registrations")
+                                }
+                                
+                            </td>
+                            <td>
+                               
+                                 @if (item.IsCulturalRegistration == true)
+                                {
+                                    <a href="@Url.Action("Index", "CulturalRegistrations", new { EventId = item.EventId, EventName = item.EventName, mid = ViewBag.Mid })">Cultural Registrations<span class="red-t l-m8">(@item.CUsersCount)</span></a>
+                                }
+                                else
+                                {
+                                    @Html.Raw("No Registrations")
+                                }
+                            </td>
+
+                            @if (IsEdit == true )
+                            {
+                                <td>
+                                    <div class="menu-hover">
+                                        @{ var isChecked = item.IsActive ? "checked" : ""; }
+                                        @{var titleValue = item.IsActive ? "Active" : "Disabled";}
+                                        <div>
+                                            <label class="switch" title="@titleValue">
+                                                <input type="checkbox" onclick="AWSEventsStatus(@item.EventId)" @isChecked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+                            }
+                            @if (IsEdit == true || IsDelete == true)
+                            {
+                                <td class="text-center">
+                                    <div class="table-actions d-flex align-items-center gap-3 fs-6">
+                                        @if (IsEdit == true )
+                                        {
+                                            <a class="text-warning cursor-pointer" href="@Url.Action("EditEvent", "Events", new { EventId = item.EventId, mid = ViewBag.Mid })" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                        }
+                                        @if (IsDelete == true )
+                                        {
+                                            <a class="text-danger cursor-pointer" title="Delete" id="54" onclick="javascript:Delete(@(item.EventId), '@(item.BannerUrl)')" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+
+                                            @*<a class="text-danger cursor-pointer"
+                                               title="Delete"
+                                               onclick="openDeletePopup(@item.EventId)"
+                                               aria-label="Delete">
+                                                <i class="bi bi-trash-fill"></i>
+                                            </a>*@
+                                        }
+                                    </div>
+
+
+</td>
+                            }
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+ <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>

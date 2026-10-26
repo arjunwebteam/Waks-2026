@@ -1,0 +1,1599 @@
+﻿@* _ViewImports.cshtml *@
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@{
+    ViewBag.Title = "EventUser";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+    ViewBag.pageHeading = "Event UserInfo Details";
+
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    int status = 0;
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var lstMembershipType = (List<AWS_AssociationToolCore.Entities.MembershipTypes>)objMembers.lstMembershipType;
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+    var objEventUserInfo = (AWS_AssociationToolCore.Entities.EventUserInfo)ViewBag.objEventUserInfo;
+    List<AWS_AssociationToolCore.Entities.EventRegistrationCounts> lstEventRegistrationCounts = ViewBag.lstEventRegistrationCounts;
+    List<AWS_AssociationToolCore.Entities.EventCompetitions> lstEventCompetitions = ViewBag.lstEventCompetitions;
+    List<AWS_AssociationToolCore.Entities.EventRegTickets> lstEventRegTickets = ViewBag.lstEventRegTickets;
+
+    var EventName = objEventUserInfo.EventName;
+    ViewBag.EventName = EventName;
+    // var imglocNormal = objAppInfo.BaseUrl + "Content/EventReceiptImages/";
+    var imglocNormal = objAppInfo.BaseUrl + "Content/EventReceiptImages/";
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+    //List<AWS_AssociationToolCore.Entities.EventRegistrationHistory> lstRegistrationHistory = ViewBag.lstRegistrationHistory;
+
+
+    var Test = objPhotosImageSettings.Photosize; // Assuming objPhotosImageSettings.Eventsize is a string
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+
+        // Now you can use value1 and value2 as integers
+    }
+    else
+    {
+        // Handle the case where the split didn't produce two parts
+        // This could happen if the input string doesn't contain '*'
+        // or if there are more than one '*' characters in the string
+    }
+
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    //Int64 Total = (Int64)ViewBag.total;
+    //var PageNo = (Int64)ViewBag.pageno;
+    //var Items = (Int64)ViewBag.items;
+
+}
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+        font-size: 17px;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+
+    .section {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #c81515;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .section-title::before {
+            content: '';
+            width: 15px;
+            height: 15px;
+            background: linear-gradient(135deg, #c81515, #e53e3e);
+            border-radius: 50%;
+        }
+
+    /* Main Registration Table */
+    .table-container {
+        overflow-x: auto;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+        .modern-table th {
+            background: linear-gradient(135deg, #c81515, #e53e3e);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            font-size: 0.85rem;
+        }
+
+        .modern-table td {
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #4a5568;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .modern-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .modern-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    /* Parent Registration Row */
+    .parent-row {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #ffffff;
+    }
+
+        .parent-row:hover {
+            background: #f1f5f9;
+        }
+
+    /* Individual Ticket Rows */
+    .ticket-row {
+        background: #f8f9fa;
+        border-left: 4px solid #c81515;
+    }
+
+        .ticket-row td {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+            color: #4a5568;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ticket-row:hover {
+            background: #f1f5f9;
+        }
+
+        .ticket-row.hidden {
+            display: none;
+        }
+
+    .ticket-indent {
+        padding-left: 30px;
+        position: relative;
+    }
+
+        .ticket-indent::before {
+            content: '└─';
+            position: absolute;
+            left: 10px;
+            color: #c81515;
+            font-weight: bold;
+        }
+
+    .status-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-completed {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .status-pending {
+        background: #fef5e7;
+        color: #c05621;
+    }
+
+    .status-partial {
+        background: #bee3f8;
+        color: #2c5282;
+    }
+
+    .amount-highlight {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #c81515;
+    }
+
+    .expand-icon {
+        transition: transform 0.3s ease;
+        font-size: 1.2rem;
+        color: #c81515;
+        width: 20px;
+        display: inline-block;
+        text-align: center;
+    }
+
+        .expand-icon.expanded {
+            transform: rotate(90deg);
+        }
+
+    .ticket-id {
+        font-family: 'Courier New', monospace;
+        background: #e2e8f0;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+    }
+
+    .structure-diagram {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid #c81515;
+    }
+
+    .hierarchy {
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: #2d3748;
+    }
+
+        .hierarchy .level-1 {
+            color: #c81515;
+            font-weight: bold;
+        }
+
+        .hierarchy .level-2 {
+            color: #718096;
+            margin-left: 20px;
+        }
+
+        .hierarchy .level-3 {
+            color: #4a5568;
+            margin-left: 40px;
+        }
+
+    .ticket-header {
+        background: #718096;
+        color: white;
+    }
+
+        .ticket-header td {
+            font-weight: 500;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            padding: 10px 15px;
+        }
+
+    .no-border {
+        border-bottom: none !important;
+    }
+</style>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+<script>
+    $(document).ready(function () {
+        //$('#ChequeHolderNamehide').hide()
+        //$('#ZellePartnerNamehide').hide()
+        $('#MEvents').addClass('active');
+        $('#ServicesHistoryhide').hide();
+        PaymentMethodBind()
+    });
+    function Validate() {
+        if ($('#FirstName').val() == '') { $('#spanFirstName').html('Required.'); $('#FirstName').focus().addClass("red-border"); return false; } else { $('#spanFirstName').html(''); $('#FirstName').focus().removeClass("red-border"); }
+        if ($('#LastName').val() == '') { $('#spanLastName').html('Required.'); $('#LastName').focus().addClass("red-border"); return false; } else { $('#spanLastName').html(''); $('#LastName').focus().removeClass("red-border"); }
+        if ($('#Email').val() == '') { $('#spanEmail').html('Required.'); $('#Email').focus().addClass("red-border"); return false; } else { $('#spanEmail').html(''); $('#Email').focus().removeClass("red-border"); }
+        if (!Common.CheckEmail($('#Email').val())) { $('#spanEmail').html('Invalid email address.'); $('#Email').focus().addClass("red-border"); return false; } else { $('#spanEmail').html(''); $('#Email').focus().removeClass("red-border"); }
+        return true;
+    }
+    //function PaymentMethodBind() {
+
+    //    var PaymentMethod = $('#PaymentMethodId').val();
+    //    if (PaymentMethod == 3) {
+    //        $('#ChequeHolderNamehide').show()
+    //        $('#ZellePartnerNamehide').hide()
+    //        $('#ZelleTransactionIdhide').hide()
+    //        $('#ZellePartnerNamehide').hide()
+    //        $('#TransactionIdhide').show()
+    //    }
+    //    else if (PaymentMethod == 6) {
+    //        $('#ChequeHolderNamehide').hide()
+    //        $('#ZellePartnerNamehide').show()
+    //        $('#ZelleTransactionIdhide').show()
+    //        $('#TransactionIdhide').hide()
+
+    //    }
+    //    else {
+    //        $('#ChequeHolderNamehide').hide()
+    //        $('#ZellePartnerNamehide').hide()
+    //        $('#ZelleTransactionIdhide').hide()
+    //        $('#ZellePartnerNamehide').hide()
+    //        $('#TransactionIdhide').show()
+    //    }
+    //}
+
+    //function paymentbind(type) {
+    //    $('#PaymentType').val(type);
+    //}
+
+
+    function PaymentMethodBind() {
+
+        var PaymentMethod = document.getElementById("PaymentMethodId").value;
+
+        //var PaymentMethod = $('#PaymentMethodId').val();
+        if (PaymentMethod == 3) {
+
+            $('#ChequeHolderNamehide').show()
+            $('#ZellePartnerNamehide').hide()
+        }
+        else if (PaymentMethod == 6) {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').show()
+        }
+        else {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').hide()
+        }
+    }
+
+    function paymentbind(type) {
+        $('#PaymentType').val(type);
+    }
+    function scrollToSection() {
+        $('#ServicesHistoryhide').show();
+        const targetElement = document.getElementById("ServicesHistoryhide");
+        if (targetElement) {
+            const offset = 100; // Adjust as needed for headers
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            });
+        } else {
+            console.error("Element with id 'DonationHistoryhide' not found.");
+        }
+    }
+</script>
+<!-- breadcumb -->
+<!-- end breadcumb -->
+
+<div class="content">
+    <!-- Main content -->
+    <div class="clearfix sepH_b"></div>
+
+
+    @using (Html.BeginForm("UpdateEventUser", "EventRegistrations", FormMethod.Post, new { enctype = "multipart/form-data", @id = "FormAddEvents", @name = "FormAddEvents" }))
+    {
+        string RefCode = objAppInfo.SiteName.Trim().Replace(" ", "") + objEventUserInfo.EventUserInfoId;
+        <input type="hidden" id="EventUserInfoId" name="EventUserInfoId" value="@objEventUserInfo.EventUserInfoId" />
+        <input type="hidden" id="EventOrderId" name="EventOrderId" value="@objEventUserInfo.objEventOrderDetails.EventOrderId" />
+        <input type="hidden" id="EventId" name="EventId" value="@objEventUserInfo.EventId" />
+        <input type="hidden" id="PaymentType" name="PaymentType" value="" />
+        <input type="hidden" id="AmountPaid" name="AmountPaid" value="@objEventUserInfo.objEventOrderDetails.AmountPaid" />
+        <input type="hidden" value="@ViewBag.mid" name="mid" id="mid" />
+
+        @*if (objEventUserInfo.ItemName != null && objEventUserInfo.ItemName != "")
+            {
+                <div class="custom-adn grayBackground nobL nobR">
+                    <div class="ui-accordion">
+                        <h3 class="bor0 black-t"><b>Competition Info</b></h3>
+                        <div class="clearfix">
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <div class="clearfix rp10">
+                                        <div class="row-fluid">
+                                            <div class="span5">
+                                                <label class="t-p5">Competition Name :</label>
+                                            </div>
+                                            <div class="span6">
+                                                <select class="form-control" id="ItemCategory" name="ItemCategory">
+                                                    <option value="">-- Select --</option>
+                                                    @if (lstEventCompetitions != null && lstEventCompetitions.Count != 0)
+                                                    {
+                                                        foreach (var item in lstEventCompetitions)
+                                                        {
+                                                            <option value="@item.CompetitionName">@item.CompetitionName</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row-fluid">
+                                            <div class="span5">
+                                                <label class="t-p5">No of Particepents :</label>
+                                            </div>
+                                            <div class="span6">
+                                                <input type="text" id="ItemName" name="ItemName" value="@objEventUserInfo.ItemName" class="form-control" />
+                                                <span class="field-validation-error" id="spanItemName"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                $(document).ready(function () {
+                    $('#ItemCategory').val('@objEventUserInfo.ItemCategory');
+
+                          });
+                </script>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row  g-3">
+
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">First Name :<span class="text-danger">*</span></label>
+                                    <input type="text" id="FirstName" name="FirstName" value="@objEventUserInfo.FirstName" class="form-control" readonly>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Last Name :<span class="text-danger">*</span></label>
+                                    <input type="text" id="LastName" name="LastName" value="@objEventUserInfo.LastName" class="form-control" readonly>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Mobile Number  :<span class="text-danger">*</span></label>
+                                    <input type="text" id="Mobile" name="Mobile" value="@objEventUserInfo.Mobile" onclick="Common.isNumberKey();" onpaste="handlePaste(event);" class="form-control" readonly>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label"> Email :<span class="text-danger">*</span></label>
+                                    <input type="text" id="Email" name="Email" value="@objEventUserInfo.Email" class="form-control" readonly>
+                                </div>
+                            </div>
+
+
+
+
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Address:<span class="text-danger">*</span></label>
+                                    <input type="text" id="Address" value="@objEventUserInfo.Address" name="Address" class="form-control" readonly>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">City :<span class="text-danger">*</span></label>
+                                    <input type="text" id="City" value="@objEventUserInfo.City" name="City" class="form-control" readonly>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">State :<span class="text-danger">*</span></label>
+                                    <select class="form-control" id="State" name="State" readonly>
+                                        <option value="" selected="selected">--Select--</option>
+                                        <option @(objEventUserInfo.State == "Alabama" ? "selected=selected" : "") value="Alabama">Alabama</option>
+                                        <option @(objEventUserInfo.State == "Alaska" ? "selected=selected" : "") value="Alaska">Alaska</option>
+                                        <option @(objEventUserInfo.State == "Arizona" ? "selected=selected" : "") value="Arizona">Arizona</option>
+                                        <option @(objEventUserInfo.State == "Arkansas" ? "selected=selected" : "") value="Arkansas">Arkansas</option>
+                                        <option @(objEventUserInfo.State == "California" ? "selected=selected" : "") value="California">California</option>
+                                        <option @(objEventUserInfo.State == "Colorado" ? "selected=selected" : "") value="Colorado">Colorado</option>
+                                        <option @(objEventUserInfo.State == "Connecticut" ? "selected=selected" : "") value="Connecticut">Connecticut</option>
+                                        <option @(objEventUserInfo.State == "Delaware" ? "selected=selected" : "") value="Delaware">Delaware</option>
+                                        <option @(objEventUserInfo.State == "Florida" ? "selected=selected" : "") value="Florida">Florida</option>
+                                        <option @(objEventUserInfo.State == "Georgia" ? "selected=selected" : "") value="Georgia">Georgia</option>
+                                        <option @(objEventUserInfo.State == "Hawaii" ? "selected=selected" : "") value="Hawaii">Hawaii</option>
+                                        <option @(objEventUserInfo.State == "Idaho" ? "selected=selected" : "") value="Idaho">Idaho</option>
+                                        <option @(objEventUserInfo.State == "Illinois" ? "selected=selected" : "") value="Illinois">Illinois</option>
+                                        <option @(objEventUserInfo.State == "Indiana" ? "selected=selected" : "") value="Indiana">Indiana</option>
+                                        <option @(objEventUserInfo.State == "Iowa" ? "selected=selected" : "") value="Iowa">Iowa</option>
+                                        <option @(objEventUserInfo.State == "Kansas" ? "selected=selected" : "") value="Kansas">Kansas</option>
+                                        <option @(objEventUserInfo.State == "Kentucky" ? "selected=selected" : "") value="Kentucky">Kentucky</option>
+                                        <option @(objEventUserInfo.State == "Louisiana" ? "selected=selected" : "") value="Louisiana">Louisiana</option>
+                                        <option @(objEventUserInfo.State == "Maine" ? "selected=selected" : "") value="Maine">Maine</option>
+                                        <option @(objEventUserInfo.State == "Maryland" ? "selected=selected" : "") value="Maryland">Maryland</option>
+                                        <option @(objEventUserInfo.State == "Massachusetts" ? "selected=selected" : "") value="Massachusetts">Massachusetts</option>
+                                        <option @(objEventUserInfo.State == "Michigan" ? "selected=selected" : "") value="Michigan">Michigan</option>
+                                        <option @(objEventUserInfo.State == "Minnesota" ? "selected=selected" : "") value="Minnesota">Minnesota</option>
+                                        <option @(objEventUserInfo.State == "Mississippi" ? "selected=selected" : "") value="Mississippi">Mississippi</option>
+                                        <option @(objEventUserInfo.State == "Missouri" ? "selected=selected" : "") value="Missouri">Missouri</option>
+                                        <option @(objEventUserInfo.State == "Montana" ? "selected=selected" : "") value="Montana">Montana</option>
+                                        <option @(objEventUserInfo.State == "Nebraska" ? "selected=selected" : "") value="Nebraska">Nebraska</option>
+                                        <option @(objEventUserInfo.State == "Nevada" ? "selected=selected" : "") value="Nevada">Nevada</option>
+                                        <option @(objEventUserInfo.State == "New Hampshire" ? "selected=selected" : "") value="New Hampshire">New Hampshire</option>
+                                        <option @(objEventUserInfo.State == "New Jersey" ? "selected=selected" : "") value="New Jersey">New Jersey</option>
+                                        <option @(objEventUserInfo.State == "New Mexico" ? "selected=selected" : "") value="New Mexico">New Mexico</option>
+                                        <option @(objEventUserInfo.State == "New York" ? "selected=selected" : "") value="New York">New York</option>
+                                        <option @(objEventUserInfo.State == "North Carolina" ? "selected=selected" : "") value="Maryland">North Carolina</option>
+                                        <option @(objEventUserInfo.State == "North Dakota" ? "selected=selected" : "") value="North Dakota">North Dakota</option>
+                                        <option @(objEventUserInfo.State == "Ohio" ? "selected=selected" : "") value="Ohio">Ohio</option>
+                                        <option @(objEventUserInfo.State == "Oklahoma" ? "selected=selected" : "") value="Oklahoma">Oklahoma</option>
+                                        <option @(objEventUserInfo.State == "Oregon" ? "selected=selected" : "") value="Oregon">Oregon</option>
+                                        <option @(objEventUserInfo.State == "Pennsylvania" ? "selected=selected" : "") value="Pennsylvania">Pennsylvania</option>
+                                        <option @(objEventUserInfo.State == "Rhode Island" ? "selected=selected" : "") value="Rhode Island">Rhode Island</option>
+                                        <option @(objEventUserInfo.State == "South Carolina" ? "selected=selected" : "") value="South Carolina">South Carolina</option>
+                                        <option @(objEventUserInfo.State == "South Dakota" ? "selected=selected" : "") value="South Dakota">South Dakota</option>
+                                        <option @(objEventUserInfo.State == "Tennessee" ? "selected=selected" : "") value="Tennessee">Tennessee</option>
+                                        <option @(objEventUserInfo.State == "Texas" ? "selected=selected" : "") value="Texas">Texas</option>
+                                        <option @(objEventUserInfo.State == "North Dakota" ? "selected=selected" : "") value="North Dakota">North Dakota</option>
+                                        <option @(objEventUserInfo.State == "Utah" ? "selected=selected" : "") value="Utah">Utah</option>
+                                        <option @(objEventUserInfo.State == "Vermont" ? "selected=selected" : "") value="Vermont">Vermont</option>
+                                        <option @(objEventUserInfo.State == "Virginia" ? "selected=selected" : "") value="Virginia">Virginia</option>
+                                        <option @(objEventUserInfo.State == "Washington" ? "selected=selected" : "") value="Washington">Washington</option>
+                                        <option @(objEventUserInfo.State == "West Virginia" ? "selected=selected" : "") value="West Virginia">West Virginia</option>
+                                        <option @(objEventUserInfo.State == "Wisconsin" ? "selected=selected" : "") value="Wisconsin">Wisconsin</option>
+                                        <option @(objEventUserInfo.State == "Wyoming" ? "selected=selected" : "") value="Wyoming">Wyoming</option>
+                                        <option @(objEventUserInfo.State == "Other" ? "selected=selected" : "") value="Other">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Zip Code:<span class="text-danger">*</span></label>
+                                    <input type="text" id="ZipCode" value="@objEventUserInfo.ZipCode" name="ZipCode" class="form-control" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            }
+            else
+            {*@
+        <div class="card">
+            <div class="card-body">
+
+                <div class="box-header">
+                    <div class="row py-1">
+
+                        <div class="col-lg-12">
+
+                            @if (objAppInfo.IsQRCode == "Yes")
+                            {
+                                <h3 class="box-title dis-in text-end">
+                                   @*  <div style="float:left; text-align:center; margin-right:12px; background:#f9f9f9; padding:8px; border-radius:10px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                                        <img src="~/Content/QRCodeGeneration/QR-of-@(RefCode).jpg"
+                                             style="width:60px;"
+                                             alt="QR Code" />
+                                        <div style="font-size:12px; color:#007bff; margin-top:6px; font-weight:600;">
+                                            Overall Profile Page
+                                        </div>
+                                    </div> *@
+                                    <a href="#" onclick="scrollToSection(); return false;" class="aws-h-a log-title">
+                                        Log History
+                                    </a>
+                                </h3>
+
+                            }
+
+                        </div>
+
+
+                    </div>
+
+
+                </div>
+                <div class="row  g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">First Name :<span class="text-danger"></span></label>
+                            <input type="text" id="FirstName" name="FirstName" value="@objEventUserInfo.FirstName" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Last Name :<span class="text-danger"></span></label>
+                            <input type="text" id="LastName" name="LastName" value="@objEventUserInfo.LastName" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Mobile Number  :<span class="text-danger"></span></label>
+                            <input type="text" id="Mobile" name="Mobile" value="@objEventUserInfo.Mobile" onclick="Common.isNumberKey();" onpaste="handlePaste(event);" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label"> Email :<span class="text-danger"></span></label>
+                            <input type="text" id="Email" name="Email" value="@objEventUserInfo.Email" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Address Line:<span class="text-danger"></span></label>
+                            <input type="text" id="Address" value="@objEventUserInfo.Address" name="Address" class="form-control" readonly>
+                        </div>
+                    </div>
+                    @*<div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Address Line-2:<span class="text-danger"></span></label>
+                                <input type="text" id="Address2" value="@objEventUserInfo.Address2" name="Address2" class="form-control" readonly>
+                            </div>
+                        </div>*@
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">City :<span class="text-danger"></span></label>
+                            <input type="text" id="City" value="@objEventUserInfo.City" name="City" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">State :<span class="text-danger"></span></label>
+                            <select class="form-control" id="State" name="State" readonly>
+                                <option value="" selected="selected">--Select--</option>
+                                <option @(objEventUserInfo.State == "Alabama" ? "selected=selected" : "") value="Alabama">Alabama</option>
+                                <option @(objEventUserInfo.State == "Alaska" ? "selected=selected" : "") value="Alaska">Alaska</option>
+                                <option @(objEventUserInfo.State == "Arizona" ? "selected=selected" : "") value="Arizona">Arizona</option>
+                                <option @(objEventUserInfo.State == "Arkansas" ? "selected=selected" : "") value="Arkansas">Arkansas</option>
+                                <option @(objEventUserInfo.State == "California" ? "selected=selected" : "") value="California">California</option>
+                                <option @(objEventUserInfo.State == "Colorado" ? "selected=selected" : "") value="Colorado">Colorado</option>
+                                <option @(objEventUserInfo.State == "Connecticut" ? "selected=selected" : "") value="Connecticut">Connecticut</option>
+                                <option @(objEventUserInfo.State == "Delaware" ? "selected=selected" : "") value="Delaware">Delaware</option>
+                                <option @(objEventUserInfo.State == "Florida" ? "selected=selected" : "") value="Florida">Florida</option>
+                                <option @(objEventUserInfo.State == "Georgia" ? "selected=selected" : "") value="Georgia">Georgia</option>
+                                <option @(objEventUserInfo.State == "Hawaii" ? "selected=selected" : "") value="Hawaii">Hawaii</option>
+                                <option @(objEventUserInfo.State == "Idaho" ? "selected=selected" : "") value="Idaho">Idaho</option>
+                                <option @(objEventUserInfo.State == "Illinois" ? "selected=selected" : "") value="Illinois">Illinois</option>
+                                <option @(objEventUserInfo.State == "Indiana" ? "selected=selected" : "") value="Indiana">Indiana</option>
+                                <option @(objEventUserInfo.State == "Iowa" ? "selected=selected" : "") value="Iowa">Iowa</option>
+                                <option @(objEventUserInfo.State == "Kansas" ? "selected=selected" : "") value="Kansas">Kansas</option>
+                                <option @(objEventUserInfo.State == "Kentucky" ? "selected=selected" : "") value="Kentucky">Kentucky</option>
+                                <option @(objEventUserInfo.State == "Louisiana" ? "selected=selected" : "") value="Louisiana">Louisiana</option>
+                                <option @(objEventUserInfo.State == "Maine" ? "selected=selected" : "") value="Maine">Maine</option>
+                                <option @(objEventUserInfo.State == "Maryland" ? "selected=selected" : "") value="Maryland">Maryland</option>
+                                <option @(objEventUserInfo.State == "Massachusetts" ? "selected=selected" : "") value="Massachusetts">Massachusetts</option>
+                                <option @(objEventUserInfo.State == "Michigan" ? "selected=selected" : "") value="Michigan">Michigan</option>
+                                <option @(objEventUserInfo.State == "Minnesota" ? "selected=selected" : "") value="Minnesota">Minnesota</option>
+                                <option @(objEventUserInfo.State == "Mississippi" ? "selected=selected" : "") value="Mississippi">Mississippi</option>
+                                <option @(objEventUserInfo.State == "Missouri" ? "selected=selected" : "") value="Missouri">Missouri</option>
+                                <option @(objEventUserInfo.State == "Montana" ? "selected=selected" : "") value="Montana">Montana</option>
+                                <option @(objEventUserInfo.State == "Nebraska" ? "selected=selected" : "") value="Nebraska">Nebraska</option>
+                                <option @(objEventUserInfo.State == "Nevada" ? "selected=selected" : "") value="Nevada">Nevada</option>
+                                <option @(objEventUserInfo.State == "New Hampshire" ? "selected=selected" : "") value="New Hampshire">New Hampshire</option>
+                                <option @(objEventUserInfo.State == "New Jersey" ? "selected=selected" : "") value="New Jersey">New Jersey</option>
+                                <option @(objEventUserInfo.State == "New Mexico" ? "selected=selected" : "") value="New Mexico">New Mexico</option>
+                                <option @(objEventUserInfo.State == "New York" ? "selected=selected" : "") value="New York">New York</option>
+                                <option @(objEventUserInfo.State == "North Carolina" ? "selected=selected" : "") value="Maryland">North Carolina</option>
+                                <option @(objEventUserInfo.State == "North Dakota" ? "selected=selected" : "") value="North Dakota">North Dakota</option>
+                                <option @(objEventUserInfo.State == "Ohio" ? "selected=selected" : "") value="Ohio">Ohio</option>
+                                <option @(objEventUserInfo.State == "Oklahoma" ? "selected=selected" : "") value="Oklahoma">Oklahoma</option>
+                                <option @(objEventUserInfo.State == "Oregon" ? "selected=selected" : "") value="Oregon">Oregon</option>
+                                <option @(objEventUserInfo.State == "Pennsylvania" ? "selected=selected" : "") value="Pennsylvania">Pennsylvania</option>
+                                <option @(objEventUserInfo.State == "Rhode Island" ? "selected=selected" : "") value="Rhode Island">Rhode Island</option>
+                                <option @(objEventUserInfo.State == "South Carolina" ? "selected=selected" : "") value="South Carolina">South Carolina</option>
+                                <option @(objEventUserInfo.State == "South Dakota" ? "selected=selected" : "") value="South Dakota">South Dakota</option>
+                                <option @(objEventUserInfo.State == "Tennessee" ? "selected=selected" : "") value="Tennessee">Tennessee</option>
+                                <option @(objEventUserInfo.State == "Texas" ? "selected=selected" : "") value="Texas">Texas</option>
+                                <option @(objEventUserInfo.State == "North Dakota" ? "selected=selected" : "") value="North Dakota">North Dakota</option>
+                                <option @(objEventUserInfo.State == "Utah" ? "selected=selected" : "") value="Utah">Utah</option>
+                                <option @(objEventUserInfo.State == "Vermont" ? "selected=selected" : "") value="Vermont">Vermont</option>
+                                <option @(objEventUserInfo.State == "Virginia" ? "selected=selected" : "") value="Virginia">Virginia</option>
+                                <option @(objEventUserInfo.State == "Washington" ? "selected=selected" : "") value="Washington">Washington</option>
+                                <option @(objEventUserInfo.State == "West Virginia" ? "selected=selected" : "") value="West Virginia">West Virginia</option>
+                                <option @(objEventUserInfo.State == "Wisconsin" ? "selected=selected" : "") value="Wisconsin">Wisconsin</option>
+                                <option @(objEventUserInfo.State == "Wyoming" ? "selected=selected" : "") value="Wyoming">Wyoming</option>
+                                <option @(objEventUserInfo.State == "Other" ? "selected=selected" : "") value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Country:<span class="text-danger"></span></label>
+                            <input type="text" id="Address" value="@objEventUserInfo.Address" name="Address" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Zip Code:<span class="text-danger"></span></label>
+                            <input type="text" id="ZipCode" value="@objEventUserInfo.ZipCode" name="ZipCode" class="form-control" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @*}*@
+
+
+        if (objAppInfo.IsQRCode == "Yes")
+        {
+            @if (objEventUserInfo.IsQRCode == "Multiple")
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <hr class="mN" />
+
+                            @if (lstEventRegistrationCounts != null && lstEventRegistrationCounts.Count != 0)
+                            {
+                                bool hasEarlyBird = lstEventRegistrationCounts.Any(x => x.EarlyBirdMemberAmount != 0 && x.EarlyBirdMemberAmount != null);
+
+                                <div class="section">
+                                    <div class="section-title">Registration Management</div>
+                                    <div class="table-container">
+                                        <table class="modern-table">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="3">Registration Title</th>
+                                                    <th>Count</th>
+                                                    <th>Amount</th>
+                                                    @if (hasEarlyBird)
+                                                    {
+                                                        <th>Early Bird Amount</th>
+                                                    }
+                                                    <th>Overall Status</th>
+                                                    <th>Check-In Details</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var item in lstEventRegistrationCounts)
+                                                {
+                                                    <tr class="parent-row" onclick="toggleTickets('entrypass')">
+                                                        <td colspan="3"><strong>@item.RegistrationTitle</strong></td>
+                                                        <td>@item.Count</td>
+                                                        <td><span class="amount-highlight">$@item.Amount</span></td>
+                                                        @if (hasEarlyBird)
+                                                        {
+                                                            <td><span class="amount-highlight">$@item.EarlyBirdMemberAmount</span></td>
+                                                        }
+                                                        <td><span class="status-badge status-completed">@item.OverallStatus</span></td>
+                                                        <td>@item.CheckInDetails Checked In</td>
+                                                    </tr>
+
+                                                    @if (lstEventRegTickets != null && lstEventRegTickets.Count != 0)
+                                                    {
+                                                        <tr class="ticket-row ticket-header hidden" id="header-entrypass">
+                                                            <td></td>
+                                                            <td><strong>Ticket ID</strong></td>
+                                                            <td><strong>QR-Code</strong></td>
+                                                            <td><strong>Seq#</strong></td>
+                                                            <td><strong>Status</strong></td>
+                                                            <td><strong>Check-In Time</strong></td>
+                                                            <td><strong>Seat No</strong></td>
+                                                            <td><strong>Seats Allocation</strong></td>
+                                                        </tr>
+
+                                                        @foreach (var item1 in lstEventRegTickets)
+                                                        {
+                                                            @if (item.EventRegistrationTypeId == item1.EventRegistrationTypeId)
+                                                            {
+                                                                string ticketRefCode = objAppInfo.SiteName + "-Ticket-" + item1.EventRegTicketId;
+                                                                <tr class="ticket-row hidden" id="ticket-entrypass-1">
+                                                                    <td></td>
+                                                                    <td class="ticket-indent"><span class="ticket-id">@item1.TicketId</span></td>
+                                                                    <td><img src="~/Content/QRCodeGeneration/QR-of-@(ticketRefCode).jpg" alt="QR Code" style="width:40px;" /></td>
+                                                                    <td>@item1.SequenceNo</td>
+                                                                    <td><span class="status-badge status-completed">@(item1.CheckInStatus == null ? "No" : item1.CheckInStatus)</span></td>
+                                                                    <td>@(item1.CheckInDate == null || item1.CheckInDate == DateTime.MinValue ? "N/A" : item1.CheckInDate.ToString("dd-MM-yyyy hh:mm tt"))</td>
+                                                                    <td>@item1.SeatNo</td>
+                                                                    <td>
+                                                                        <input type="text" id="seat-@item1.EventRegTicketId"
+                                                                               class="seat-input form-control"
+                                                                               placeholder="Enter Seat No." style="width: 140px; display: inline;"
+                                                                               value="" />
+                                                                        <button type="button" class="btn-allocate btn btn-primary px-3"
+                                                                                style="color:white; background-color:#2d3748;"
+                                                                                onclick="allocateSeat(@item1.EventRegTicketId, '@item1.TicketId')">
+                                                                            Allocate
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (objEventUserInfo.IsQRCode == "Single")
+            {
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row  g-3">
+                            <hr class="mN" />
+                            @if (lstEventRegistrationCounts != null && lstEventRegistrationCounts.Count != 0)
+                            {
+                                <div class="box validation">
+
+                                    <div class="box-header">
+                                        <div class="row py-1">
+                                            <div class="col-lg-6">
+                                                <h3 class="box-title dis-in">Registration Types</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @{
+                                        bool hasEarlyBird = lstEventRegistrationCounts.Any(x => x.EarlyBirdMemberAmount != 0);
+                                    }
+
+                                    <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span9 omb table_vam table-black tvm">
+                                        <thead>
+                                            <tr style="background-color: #000;">
+                                                <th width="180" align="center" style="color: #fff;">Registration Title</th>
+                                                <th width="180" align="center" style="color: #fff;">Count</th>
+                                                <th width="100" align="center" style="color: #fff;">Amount($)</th>
+                                                @if (hasEarlyBird)
+                                                {
+                                                    <th width="100" align="center" style="color: #fff;">Early Bird Amount($)</th>
+                                                }
+                                             
+                                            </tr>
+
+                                            @foreach (var item in lstEventRegistrationCounts)
+                                            {
+                                                <tr>
+                                                    <td width="180">
+                                                        <label class="t-p5 black-t">@item.RegistrationTitle</label>
+                                                    </td>
+                                                    <td width="110" align="left">
+                                                        <label class="t-p5 black-t">@item.Count</label>
+                                                    </td>
+                                                    <td width="180" align="left">
+                                                        <label class="t-p5 black-t">$ @item.Amount</label>
+                                                    </td>
+                                                    @if (hasEarlyBird)
+                                                    {
+                                                        <td width="180" align="left">
+                                                            <label class="t-p5 black-t">$ @item.EarlyBirdMemberAmount</label>
+                                                        </td>
+                                                    }
+                                                    
+                                                </tr>
+                                            }
+                                        </thead>
+                                    </table>                                    <!-- end personal info form -->
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        }
+        else
+        {
+     
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row  g-3">
+                            <hr class="mN" />
+                            @if (lstEventRegistrationCounts != null && lstEventRegistrationCounts.Count != 0)
+                            {
+                                <div class="box validation">
+
+                                    <div class="box-header">
+                                        <div class="row py-1">
+                                            <div class="col-lg-6">
+                                                <h3 class="box-title dis-in">Registration Types</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                  
+
+                                    <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span9 omb table_vam table-black tvm">
+                                        <thead>
+                                            <tr style="background-color: #000;">
+                                                <th width="180" align="center" style="color: #fff;">Registration Title</th>
+                                                <th width="180" align="center" style="color: #fff;">Count</th>
+                                                <th width="100" align="center" style="color: #fff;">Amount($)</th>
+                                               
+
+                                            </tr>
+
+                                            @foreach (var item in lstEventRegistrationCounts)
+                                            {
+                                                <tr>
+                                                    <td width="180">
+                                                        <label class="t-p5 black-t">@item.RegistrationTitle</label>
+                                                    </td>
+                                                    <td width="110" align="left">
+                                                        <label class="t-p5 black-t">@item.Count</label>
+                                                    </td>
+                                                    <td width="180" align="left">
+                                                        <label class="t-p5 black-t">$ @item.Amount</label>
+                                                    </td>
+                                                   
+
+                                                </tr>
+                                            }
+                                        </thead>
+                                    </table>                                    <!-- end personal info form -->
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+                </div>
+           
+        }
+
+
+
+
+        <hr class="mN" />
+        if (objEventUserInfo.lstEventParticipant != null && objEventUserInfo.lstEventParticipant.Count != 0)
+        {
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in">Particpatnts</h3>
+                </div>
+                <table cellspacing="0" cellpadding="0" border="0" class="tbl membership" width="100%">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span9 omb table_vam table-black tvm">
+                                    <thead>
+                                        <tr>
+                                            <th width="180">First Name</th>
+                                            <th width="180">Last Name</th>
+                                            <th width="100" align="center">( Age )</th>
+                                            <th width="180" align="center">Parents Name</th>
+
+                                        </tr>
+                                        @if (objEventUserInfo.lstEventParticipant != null && objEventUserInfo.lstEventParticipant.Count != 0)
+                                        {
+                                            Int64 i = 0;
+                                            foreach (var Item in objEventUserInfo.lstEventParticipant)
+                                            {
+                                                <input id="EventParticipantId-@(i)" name="[@(i)].EventParticipantId" value="@(Item.EventParticipantId)" type="hidden" />
+                                                <tr>
+                                                    <td width="180">
+                                                        <label class="t-p5 black-t">@Item.FirstName</label>
+                                                    </td>
+                                                    <td width="110" align="center">
+                                                        <label class="t-p5 black-t">@Item.LastName</label>
+                                                    </td>
+                                                    <td width="180" align="center">
+                                                        <label class="t-p5 black-t">@Item.Age</label>
+                                                    </td>
+                                                    <td width="180" align="center">
+                                                        <label class="t-p5 black-t">@Item.Mobile</label>
+                                                    </td>
+                                                </tr>
+                                                i++;
+                                            }
+                                        }
+
+                                    </thead>
+                                </table>
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- end personal info form -->
+            <hr class="mN" />
+        }
+
+        <div class="card mb-3">
+            <div class="card-body">
+                <div class="box-header mb-3">
+                    <h3 class="box-title dis-in">Payment Amount Details</h3>
+                </div>
+
+                <!-- Amount Summary Row -->
+                <div class="payment-summary-grid">
+
+                    <div class="payment-metric-card">
+                        <span class="pm-icon">💰 Total Amount</span>
+                        <p class="pm-label">Registration Total</p>
+                        @{
+                            decimal totalRegAmount = 0;
+                            if (lstEventRegistrationCounts != null && lstEventRegistrationCounts.Count > 0)
+                            {
+                                totalRegAmount = lstEventRegistrationCounts.Sum(x => x.Amount);
+                            }
+                        }
+                        <p class="pm-value">$ @totalRegAmount.ToString("F2")</p>
+                    </div>
+                    @if (lstEventRegistrationCounts != null && lstEventRegistrationCounts.Count > 0)
+                    {
+                        decimal totalEarlyBird = lstEventRegistrationCounts.Sum(x => x.EarlyBirdMemberAmount);
+
+                        if (totalEarlyBird != 0)
+                        {
+                            <div class="payment-metric-card">
+                                <span class="pm-icon">🐦 Early Bird Amount</span>
+                                <p class="pm-label">Discounted Price</p>
+                                <p class="pm-value">$ @totalEarlyBird.ToString("F2")</p>
+                            </div>
+                        }
+                    }
+                    @if (!string.IsNullOrEmpty(objEventUserInfo.Gender) && objEventUserInfo.Gender != "0")
+                    {
+                        <div class="payment-metric-card">
+                            <span class="pm-icon">🏷️ Promo Discount</span>
+                            <p class="pm-label">Code Applied</p>
+                            <p class="pm-value">@objEventUserInfo.Gender %</p>
+                        </div>
+                    }
+                    <div class="payment-metric-card">
+                        <span class="pm-icon">✅ Amount Paid</span>
+                        <p class="pm-label">Received</p>
+                        <p class="pm-value">$ @objEventUserInfo.objEventOrderDetails.AmountPaid</p>
+                    </div>
+
+                </div>
+                <!-- End Amount Summary Row -->
+                <!-- Your existing payment form fields below -->
+              
+
+            </div>
+        </div>
+   
+        <div class="card">
+            <div class="card-body">
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in"> Payment Details</h3>
+                    </div>
+
+                   
+                    <div class="col-lg-3 col-md-6">
+                        <label>Payment Method :<span class="text-danger">*</span></label>
+                        <select class="form-control" name="PaymentMethodId" id="PaymentMethodId" onchange="PaymentMethodBind();">
+                            @if (lstPaymentMethod != null)
+                            {
+                                <option value="">Select</option>
+                                foreach (var item in lstPaymentMethod)
+                                {
+                                    <option @(item.PaymentMethodId == objEventUserInfo.objEventOrderDetails.PaymentMethodId ? "selected=selected" : "") value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                                }
+                            }
+                        </select>
+                        <span class="field-validation-error" id="spanPaymentMethodId"></span>
+                    </div>
+
+
+
+                    <div class="col-lg-3 col-md-6">
+                        <label>Payment Status :<span class="text-danger">*</span></label>
+                        <select class="form-control" name="PaymentStatusId" id="PaymentStatusId">
+                            @if (lstPaymentStatus != null)
+                            {
+                                <option value="">Select</option>
+                                foreach (var item in lstPaymentStatus)
+                                {
+                                    <option onclick="paymentbind('@item.PaymentStatus1');" @(item.PaymentStatusId == objEventUserInfo.objEventOrderDetails.PaymentStatusId ? "selected=selected" : "") value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                                }
+                            }
+                        </select>
+                        <span class="field-validation-error" id="spanPaymentStatusId"></span>
+                    </div>
+                    <div class="col-lg-3 col-md-6" id="TransactionIdhide">
+                        <div class="input-box">
+                            <label class="form-label">TransactionId:<span class="text-danger">*</span></label>
+                            <input type="text" id="TransactionId" value="@objEventUserInfo.objEventOrderDetails.TransactionId" class="form-control" name="TransactionId">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Admin Comments : <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="DocumentUrl" name="DocumentUrl">@objEventUserInfo.DocumentUrl</textarea>
+
+
+                        </div>
+                    </div>
+
+
+
+
+
+
+                    <div id="ChequeHolderNamehide">
+
+                        <div class="row">
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label class="dk-t poppins-regular"> Cheque Image :  </label>
+
+ <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objEventUserInfo.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+
+
+                            </div>
+
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Cheque Holder Name  :</label>
+                                <input type="text" id="ChequeHolderName" value="@objEventUserInfo.ChequeHolderName" class="form-control" name="ChequeHolderName">
+                                <span class="field-validation-error" id="spanTransactionId"></span>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div id="ZellePartnerNamehide">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <label>Zelle Id   :</label>
+                                <input type="text" id="Zelle" value="@objEventUserInfo.Zelle" class="form-control" name="Zelle">
+
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <label>Zelle PartnerName :</label>
+                                <input type="text" id="ZellePartnerName" value="@objEventUserInfo.ZellePartnerName" class="form-control" name="ZellePartnerName">
+
+                            </div>
+                            <div class="col-lg-3 col-md-6">
+                                <label class="dk-t poppins-regular">Zelle Receipt Image :</label>
+                                 <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objEventUserInfo.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+@* 
+                                @{
+                                    string receiptUrl = string.IsNullOrEmpty(objEventUserInfo.ReceiptUrl)
+                                    ? "N/A"
+                                    : objEventUserInfo.ReceiptUrl;
+
+                                    // ✅ Pass env.WebRootPath instead of env
+                                    string receiptImgSrc = AWS_AssociationToolCore.BLL.Common.GettImagePath(
+                                    env.WebRootPath,
+                                    imglocNormal,
+                                    receiptUrl,
+                                    "Content/User/images/no-imagefinal.jpg");
+                                } *@
+                            @*     <img style="width:100%; max-width:151px;"
+                                     title="@objEventUserInfo.FirstName"
+                                     alt="@objEventUserInfo.LastName"
+                                     src="@receiptImgSrc"
+                                     class="borwhite5 border-radius shadow" /> *@
+                            </div>
+                      @*       <div class="col-lg-3 col-md-6">
+                                <label class="dk-t poppins-regular"> Zelle Receipt Image :  </label>
+                                <img style="width:100%; max-width:151px;" title="@objEventUserInfo.FirstName" alt="@objEventUserInfo.LastName" src="@AWS_AssociationToolCore.BLL.Common.GetImagePath(imglocNormal, (objEventUserInfo.ReceiptUrl != null && objEventUserInfo.ReceiptUrl != "" ? objEventUserInfo.ReceiptUrl : "N/A"), "~/Content/User/images/no-imagefinal.jpg")" class="borwhite5 border-radius shadow" />
+
+                            </div> *@
+                        </div>
+                    </div>
+
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6 d-none">
+                        <div class="input-box">
+                            <label class="form-label">Modified By  :<span class="text-danger">*</span></label>
+                            <input type="text" id="UpdatedBy" value="@User.Identity?.Name" name="UpdatedBy" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 d-none">
+                        <div class="input-box">
+                            <label class="form-label">Modified Date  :<span class="text-danger">*</span></label>
+                            <input type="text" id="UpdatedTime" value="@DateTime.UtcNow.ToString("MM/dd/yyyy HH:mm:ss")" name="UpdatedTime" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 ">
+                        <div class="input-box">
+                            <label>&nbsp;</label>
+                            <label class="form-label" style="margin-top: 29px;">Last Modified by :<span class="text-danger"> @objEventUserInfo.UpdatedBy</span></label>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            @*<label>&nbsp;</label>*@
+                            <label class="form-label" style="margin-top: 29px;">Last Modified Date :<span class="text-danger"> @objEventUserInfo.UpdatedTime</span></label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3 col-3 text-end ms-auto">
+                <button type="submit" id="add" name="add" class="btn btn-success px-3"> Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Index", "EventRegistrations", new { EventId = objEventUserInfo.EventId, EventName = objEventUserInfo.EventName ,mid= ViewBag.mid})">Cancel</a>
+            </div>
+        </div>
+
+
+
+
+
+        <!-- end other details form -->
+
+    }
+</div>
+
+
+<div class="card" style="margin-top: 15px;" id="ServicesHistoryhide">
+    <div class="card-body">
+        <div class="box-header">
+            <h3 class="box-title dis-in">Log History</h3>
+        </div>
+        <div class="table-responsive">
+            <table width="100%" class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+
+
+
+                        <th width="3%" style="padding: 8px 6px;">S.No</th>
+
+
+                        <th width="13%" style="text-align:left;">
+                            <a onclick="javascript:sortresult('FirstName');" class="white-t-u" style="color: black">
+                                First Name
+                                @if (sortcolumn == "FirstName")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+                        <th width="13%" style="text-align:left;">
+                            <a onclick="javascript:sortresult('LastName');" class="white-t-u" style="color: black">
+                                Last Name
+                                @if (sortcolumn == "LastName")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+
+                        <th width="20%" style="text-align:left; padding: 8px 6px">
+                            <a onclick="javascript:sortresult('Email');" class="white-t-u" style="color: black">
+                                Email-Id @if (sortcolumn == "Email")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+                        <th style="text-align:left" width="10%">Phone Number</th>
+                        <th style="text-align:left" width="10%">City</th>
+                        <th style="text-align:left" width="10%">State</th>
+                        <th style="text-align:left" width="10%">Zip Code</th>
+                        <th style="text-align:left" width="10%">Amount</th>
+                        <th style="text-align:left" width="10%">TransactionId</th>
+                        <th style="text-align:left" width="10%">Payment Method</th>
+                        <th style="text-align:left" width="10%">Payment Status</th>
+                        <th style="text-align:left" width="10%">Address1</th>
+                        <th style="text-align:left" width="10%">Address2</th>
+                        <th style="text-align:left" width="10%">Last Modified By</th>
+
+                        <th style="text-align: center; padding: 8px 6px" width="14%">
+                            <a onclick="javascript:sortresult('UpdatedDate');" class="white-t-u" style="color: black">
+
+                                Last Modified Date @if (sortcolumn == "UpdatedDate")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+
+
+
+
+                    </tr>
+                </thead>
+                @*<tbody>
+                    @if (lstRegistrationHistory.Count != 0)
+                    {
+                        Int64 i = 1;
+                        foreach (var item in lstRegistrationHistory)
+                        {
+
+                            <tr>
+
+                                <td style="text-align: left;">
+                                    @item.RId
+                                </td>
+
+
+                                <td class="underline-on-hover" style="text-align:left">
+                                    @item.FirstName
+
+                                </td>
+                                <td class="underline-on-hover" style="text-align:left">
+                                    @item.LastName
+
+                                </td>
+
+
+
+
+                                <td style="text-align: left"><a href="mailto:@item.Email">@item.Email</a></td>
+                                <td style="text-align: left">@item.PhoneNo</td>
+                                <td style="text-align: left">@item.City</td>
+                                <td style="text-align: left">@item.State</td>
+                                <td style="text-align: left">@item.ZipCode</td>
+
+                                <td style="text-align: left">@Math.Round(item.Amount, 2)</td>
+                                <td style="text-align: left">@item.TransactionId</td>
+                                <td style="text-align: left">@item.PaymentMethod</td>
+                                <td style="text-align: left">@item.PaymentStatus</td>
+                                <td style="text-align: left">@item.Address1</td>
+                                <td style="text-align: left">@item.Address2</td>
+                                <td style="text-align: left">@item.UpdatedBy</td>
+
+
+
+                                <td style="text-align: center">
+                                    @item.UpdatedDate.ToString("MM/dd/yyyy")&nbsp;@item.UpdatedDate.ToString("hh:mm:ss tt")
+                                </td>
+
+
+
+
+                            </tr>
+
+                            i++;
+
+                        }
+                    }
+                    else
+                    {
+                        <tr class="odd"><td valign="top" colspan="25" class="font-14 text-center">No data found</td></tr>
+                    }
+                </tbody>*@
+            </table>
+        </div>
+
+    </div>
+</div>
+<style>
+    .payment-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .payment-metric-card {
+        background: #f8f9fa;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 14px 16px;
+        border-top: 3px solid #c81515;
+    }
+
+        .payment-metric-card .pm-label {
+            font-size: 12px;
+            color: #718096;
+            margin: 0 0 6px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            font-weight: 500;
+        }
+
+        .payment-metric-card .pm-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #c81515;
+            margin: 0;
+        }
+
+        .payment-metric-card .pm-icon {
+            font-size: 13px;
+            color: #718096;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+    @@media (max-width: 768px) {
+        .payment-summary-grid
+
+    {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .payment-summary-grid
+
+    {
+        grid-template-columns: 1fr;
+    }
+
+    }
+</style>
+<script>
+    function toggleTickets(type) {
+     
+        const icon = document.getElementById('icon-' + type);
+        const header = document.getElementById('header-' + type);
+        const isExpanded = icon.classList.contains('expanded');
+      
+        // Get all ticket rows for this type
+        const ticketRows = document.querySelectorAll(`[id^="ticket-${type}-"]`);
+
+        if (isExpanded) {
+            // Collapse
+            header.classList.add('hidden');
+            ticketRows.forEach(row => row.classList.add('hidden'));
+            icon.textContent = '▶';
+            icon.classList.remove('expanded');
+        } else {
+            // Expand
+            header.classList.remove('hidden');
+            ticketRows.forEach(row => row.classList.remove('hidden'));
+            icon.textContent = '▼';
+            icon.classList.add('expanded');
+        }
+    }
+
+    // Add smooth animations
+    document.addEventListener('DOMContentLoaded', function () {
+        const sections = document.querySelectorAll('.section');
+        sections.forEach((section, index) => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+
+            setTimeout(() => {
+                section.style.transition = 'all 0.7s ease';
+                section.style.opacity = '1';
+                section.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+
+
+    function allocateSeat(eventticketId, ticketId) {
+        var seatNo = document.getElementById("seat-" + eventticketId).value;
+        var EventUserInfoId = @objEventUserInfo.EventUserInfoId;
+        var EventId = @objEventUserInfo.EventId;
+        var email = '@objEventUserInfo.Email';
+        if (!seatNo) {
+            alert("Please enter a seat number.");
+            return;
+        }
+
+        // Ask admin whether to notify attendee
+        if (confirm("Do you want to send seating details to the attendee via email?")) {
+            notify = true;
+        } else {
+            notify = false;
+        }
+
+        $.ajax({
+            url: '/EventRegistrations/AllocateSeat',
+            type: 'POST',
+            data: { eventticketId: eventticketId, TicketId: ticketId, seatNo: seatNo, EventUserInfoId: EventUserInfoId, EventId: EventId, notify: notify, email: email },
+            success: function (response) {
+                alert(response.message);
+            },
+            error: function () {
+                alert("Error allocating seat. Please try again.");
+            }
+        });
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        $("#FormAddEvents").validate({
+            rules: {
+                PaymentMethodId: "required",
+                PaymentStatusId: "required",
+                TransactionId: "required",
+                DocumentUrl: "required",
+                //FirstName: "required",
+                //LastName: "required",
+                //Email: {
+                //    required: true,
+                //    email: {
+                //        depends: function (element) {
+                //            // Only validate if SpouseEmail is not null
+                //            return $(element).val() !== null;
+                //        },
+                //        messages: "Please Enter Valid Email Address"
+                //    }
+                //},
+                //Address: "required",
+
+                //City: "required",
+                //State: "required",
+                //ZipCode: "required",
+
+            },
+            messages: {
+                PaymentMethodId: "Please Select Your Payment Method",
+                PaymentStatusId: "Please Select Your Payment Status ",
+                TransactionId: "Please Enter Your Transaction Id ",
+                DocumentUrl: "Please Enter Your Comment ",
+                //FirstName: "Please Enter Your First Name",
+                //LastName: "Please Enter Your Last Name ",
+
+                //Email: {
+                //    required: "Please Enter Your Event Contact Email",
+                //    validate_email: "Please Enter Valid Email Address",
+
+                //},
+                //Address: "Please Enter Your Address",
+
+                //City: {
+                //    required: "Please Enter Your City"
+                //},
+                //State: {
+                //    required: "Please Enter Your State"
+                //},
+                //ZipCode: {
+                //    required: "Please Enter Your ZipCode"
+                //},
+            },
+
+
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormAddEvents')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+
+
+    });
+
+
+</script>

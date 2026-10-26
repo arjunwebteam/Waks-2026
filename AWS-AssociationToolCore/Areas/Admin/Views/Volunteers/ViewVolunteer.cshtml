@@ -1,0 +1,174 @@
+﻿@{
+    ViewBag.Title = "AddDetails";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    AWS_AssociationToolCore.Entities.Volunteers objVolunteer = ViewBag.objVolunteers;
+}
+<script>
+     
+    $(document).ready(function () {
+        $('#wVolunteer, #wVolunteers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');  
+    });
+
+    
+         
+
+</script>
+
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>View Volunteer </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index","Home")"><i class="fa fa-dashboard"></i> Home</a></li>
+        <li><a href="@Url.Action("Index", "Volunteer", new { mid = ViewBag.mid })"><i class="fa fa-file-text-o"></i>Volunteers</a></li>
+        <li class="active"><i class="fa fa-file-text-o"></i> View Volunteer</li>
+    </ol>
+</div>
+<!--end breadcumb -->
+
+<div class="content">
+    <!-- Main content -->
+    <div id="divmessage">
+        @if (TempData["message"] != null)
+        {@Html.Raw(TempData["message"].ToString())}
+
+        @if (ViewBag.message != null)
+        {@Html.Raw(ViewBag.message.ToString())}
+    </div>
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("AddVolunteer", "Volunteers", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <input type="hidden" name="VolunteerId" id="VolunteerId" value="@objVolunteer.VolunteerId" />
+        <input type="hidden" name="mid" id="mid" value="@ViewBag.mid" />
+        <div class="box validation">
+            <div class="box-header">
+
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>First Name: </label>
+                        @objVolunteer.FirstName
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Last Name: </label>
+                        @objVolunteer.LastName
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Email :</label>
+                        @objVolunteer.Email
+                        <span id="spanEmail" class="red-t font12 dis-in l-h16 t-l" style="display:none;"></span>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Phone No :</label>
+                        @objVolunteer.PhoneNo
+                    </div>
+
+                </div>
+
+                <div class="row">
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>City : </label>
+                        @objVolunteer.City
+                    </div>
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Country :</label>
+                        @objVolunteer.Country
+                    </div>
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>State :</label>
+                        @objVolunteer.State
+                    </div>
+
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>ZipCode: </label>
+                        @objVolunteer.ZipCode
+                    </div>
+
+
+                </div>
+
+
+                <div class="row">
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6" style="display:none">
+                        <label>Chapters : </label>
+                        @objVolunteer.ChapterName
+                    </div>
+
+
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6" id="divVolunteerCategory">
+                        <label>Volunteer Category : </label>
+
+                        @objVolunteer.CategoryName
+
+                    </div>
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6" style="display:none;">
+                        <label>Events : </label>
+
+                        @objVolunteer.EventName
+
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Address :</label>
+                        @objVolunteer.Address
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Address2 :</label>
+                        @objVolunteer.Address2
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+        <div class="box validation" style="display:none;">
+            <div class="box-header">
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>City : <span class="red-t">*</span></label>
+                        @objVolunteer.SelfCity
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>District : <span class="red-t">*</span></label>
+                        @objVolunteer.SelfDistrict 
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Contact Name : <span class="red-t">*</span></label>
+                        @objVolunteer.SelfName 
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Contact Phone : <span class="red-t">*</span></label>
+                        @objVolunteer.SelfPhoneNo 
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6" style="display:none;">
+                        <label>Your Relation : <span class="red-t">*</span></label>
+                        @objVolunteer.SelfRelation 
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="box">
+            <!-- /.box-header -->
+            <div class="box-body text-right">
+                <a class="btn btn-info" href="@Url.Action("Index", "Volunteers", new { mid = ViewBag.mid })">Cancel</a>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    }
+</div>
+
+

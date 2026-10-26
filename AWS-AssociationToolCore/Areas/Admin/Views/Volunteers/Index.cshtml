@@ -1,0 +1,320 @@
+﻿@{
+    ViewBag.Title = "Index";
+    ViewBag.Pageheading = "Volunteers";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var catlist = (List<AWS_AssociationToolCore.Entities.VolunteerCategories>)ViewBag.catlist;
+
+    var eventlist = (List<AWS_AssociationToolCore.Entities.Events>)ViewBag.eventlist;
+
+    Int64 EventId = ViewBag.EventId;
+
+
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+    Int64 ChapterId = ViewBag.ChapterId;
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wVolunteer, #wVolunteers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        PagerClickBind();
+    });
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        VolunteerBind(1);
+    }
+
+    function VolunteerView(VolunteerId) {
+        $.ajax({
+            url: '@Url.Action("EditVolunteer", "Volunteers")',
+            type: 'POST',
+            data: { VolunteerId: VolunteerId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objInnerPageCategory = result.data;
+                    $('#lblCategoryName').html(objInnerPageCategory.CategoryName);
+
+                    $("#InnerPageCategoryView").dialog("open");
+
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+
+    }
+    function VolunteerBind(Pageno) {
+    var pageno     = Common.Pageno(Pageno);
+    var sortcolumn = $('#hdnsortcolumn').val();
+    var sortorder  = $('#hdnsortorder').val();
+    var items      = $('#txtitems').val();
+    var Search     = $('#txtsearch').val().trim();
+    var eventid    = $('#EventId').val();
+
+    // ✅ Parse single dropdown value e.g. "5|Waks" or "6|Kannada"
+    var selected      = $('#VolunteerCategoryId').val();
+    var waksId        = 0;
+    var kannadaId     = 0;
+
+    if (selected && selected !== '0') {
+        var parts = selected.split('|');
+        var id    = parts[0];
+        var type  = parts[1];
+        if (type === 'Waks')    waksId    = id;
+        if (type === 'Kannada') kannadaId = id;
+    }
+
+    $.ajax({
+        url: '@Url.Action("VolunteersList", "Volunteers")',
+        type: 'GET',
+        cache: false,
+        data: {
+            Search:              Search,
+            PageNo:              pageno,
+            SortColumn:          sortcolumn,
+            SortOrder:           sortorder,
+            Items:               items,
+            WaksCategoryId:      waksId,      // ✅ send Waks
+            KannadaCategoryId:   kannadaId,   // ✅ send Kannada
+            EventId:             eventid,
+            IsEdit:              '@IsEdit',
+            IsView:              '@IsView',
+            IsDelete:            '@IsDelete',
+            IsExport:            '@IsExport',
+            IsAdd:               '@IsAdd',
+            Mid:                 '@Mid',
+            ChapterId:           @ChapterId
+        },
+        success: function (result) {
+            $('#divDetails').html(result);
+            PagerClickBind();
+        }
+    });
+}
+
+    function Delete(VolunteerId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteVolunteer", "Volunteers")',  // the URL of the controller action method
+                data: { VolunteerId: VolunteerId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    VolunteerBind(1);
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+        }
+    }
+    function VolunteerStatus(VolunteerId) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Volunteerstatus", "Volunteers")',  // the URL of the controller action method
+                data: { VolunteerId: VolunteerId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    VolunteerBind(1);
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+    }
+
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            VolunteerBind($(this).text());
+        });
+    }
+
+    function SearchClear() {
+        $('#txtsearch').val('');
+        VolunteerBind(1);
+    }
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        $('#VolunteerId').val('');
+        $('#hdnPageNo').val(1);
+        $('#VolunteerCategoryId').val('').trigger('change');
+        $('#EventId').val('');
+        VolunteerBind(1);
+    }
+
+
+
+
+    function ExporttoExcel() {
+         var chapterId = '@ViewBag.ChapterId';
+        window.location.href = "Admin/Volunteers/VolunteersExporttoExcel?Search=" + $('#txtsearch').val() + "&ChapterId=" + chapterId  + "&VolunteerCategoryId=" + $('#VolunteerCategoryId').val()  + "&EventId=" + $('#EventId').val() + "";
+
+
+    }
+
+
+</script>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedDate" />
+<input id="hdnsortorder" type="hidden" value="Desc" />
+
+
+    <div class="card" >
+        <div class="card-header py-3 mb-3">
+            <div class="row gx-2">
+            <div class="col-md-3" style="display:none;">
+    <label>Volunteer Category</label>
+<select id="VolunteerCategoryId" class="form-control">
+    <option value="0">-- Select --</option>
+
+    @if (ViewBag.lstWaksCategories != null)
+    {
+        <optgroup label="── Waks ──">
+            @foreach (var item in ViewBag.lstWaksCategories)
+            {
+                <option value="@item.VolunteerCategoryId|Waks"
+                    @(ViewBag.SelectedCategory == item.VolunteerCategoryId + "|Waks" 
+                      ? "selected" : "")>
+                    @item.CategoryName
+                </option>
+            }
+        </optgroup>
+    }
+
+    @if (ViewBag.lstKannadaCategories != null)
+    {
+        <optgroup label="── Kannada Shaale ──">
+            @foreach (var item in ViewBag.lstKannadaCategories)
+            {
+                <option value="@item.VolunteerCategoryId|Kannada"
+                    @(ViewBag.SelectedCategory == item.VolunteerCategoryId + "|Kannada" 
+                      ? "selected" : "")>
+                    @item.CategoryName
+                </option>
+            }
+        </optgroup>
+    }
+</select>
+</div>
+
+        <div class="col-lg-2 col-md-6 col-8">
+            <div class="input-box">
+                <label class="form-label">Search  <span class="text-danger"></span></label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Name/Email/PhoneNo">
+                </div>
+            </div>
+        </div>
+
+                
+                <div class="col-lg-2 col-2" id="clearhide">
+                    <div>
+                        <label>&nbsp;</label>
+                    </div>
+                    <button type="button" class="btn btn-primary px-3" onclick="VolunteerBind(1);">Search</button>
+                    <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                </div>
+
+
+                @*<div class="col-lg-3 col-sm-6">
+            <div>
+                <label>&nbsp;</label>
+            </div>
+            @if (IsAdd == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+            {
+                if (EventId != 0)
+                {
+                    <a data-toggle="modal" href="@Url.Action("AddVolunteer", "Volunteers", new { EventId = EventId, mid = Mid })" class="btn btn-danger pull-right">Add Volunteer</a>
+                }
+                else
+                {
+                    <a data-toggle="modal" href="@Url.Action("AddVolunteer", "Volunteers", new { mid = Mid})" class="btn btn-danger pull-right" style="margin-left: 5px;">Add Volunteer</a>
+                }
+            }
+            @if (IsExport == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+            {
+                <a data-toggle="modal" onclick="ExporttoExcel();" class="btn btn-primary pull-right" style="">Export Details to Excel</a>
+            }
+        </div>*@
+
+
+                <div class="col-lg-2 col-4 text-end ms-auto">
+                    <div class="btn-align">
+                        @if (IsAdd == true )
+                        {
+
+                            if (EventId != 0)
+                            {
+                                <a href="@Url.Action("AddVolunteer", "Volunteers", new { EventId = EventId, mid = Mid,ChapterId=ChapterId })" class="btn btn-primary">Add Volunteer</a>
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("AddVolunteer", "Volunteers", new { mid = Mid,ChapterId=ChapterId})" class="btn btn-primary" style="margin-left: 5px;">Add Volunteer</a>
+                            }
+                            <a class="cursor-pointer do new-download " data-bs-toggle="tooltip" style="border: 0; background: transparent; border: 1px solid #e8e6e7; padding: 10px; border-radius: 50%; /*! width: 100px; */ background-color: #e8e6e7;" onclick="ExporttoExcel();" title="Export to Data ">
+                                <i class="lni lni-download" style="font-size: 20px; color: black;"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                
+
+
+
+              
+
+            </div>
+          
+
+
+
+
+        </div>
+        <div id="divDetails" class="box-body table-responsive">
+
+        </div>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type : "GET",
+                url  : '@Url.Action("VolunteersList", "Volunteers")',
+                data : {
+                    IsEdit    : '@IsEdit',
+                    IsView    : '@IsView',
+                    IsDelete  : '@IsDelete',
+                    IsExport  : '@IsExport',
+                    IsAdd     : '@IsAdd',
+                    Mid       : '@Mid',
+                    ChapterId : '@(ChapterId == 0 ? 1 : ChapterId)'
+                },
+                success: function (data) {
+                    $("#divDetails").html(data);
+                },
+                error: function () {
+                    $("#divDetails").html('<p class="text-danger">Failed to load.</p>');
+                }
+            });
+        });
+    </script>
+    </div>

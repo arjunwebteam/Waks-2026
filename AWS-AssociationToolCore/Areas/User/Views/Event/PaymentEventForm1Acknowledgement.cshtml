@@ -1,0 +1,98 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Acknowledgment - " + /*System.Configuration.ConfigurationManager.AppSettings["ApplicationName"]*/  objAppInfo.SiteName;
+
+    AWS_AssociationToolCore.Entities.Form1 objForm1 = ViewBag.objForm1;
+}
+
+
+<script type="text/javascript">
+     //Disable browser Back button [Start]
+            function preventBack() { window.history.forward(); }
+            setTimeout("preventBack()", 0);
+            window.onunload = function () { null };
+    //Disable browser Back button [End]
+</script>
+
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5">Acknowledgement</h3>
+        </article>
+        <!------------------------------------------------------------------------------------------------------------------->
+        <article class="clearfix l-r-m-auto" style="max-width:750px;">
+            <article class="clearfix t-c t-b-p20">
+                <img src="Content/User/images/thankyou2.png" alt="" width="203" height="196">
+            </article>
+            <article class="clearfix t-p15">
+                <article class="clearfix border-t3 border border-radius5 shadow1 white-bg" style="border-top-color: #952b71;">
+                    <article class="clearfix part-row">
+                        <article class="clearfix part-6 border-r grayborder1">
+                            <article class="clearfix t-p15 b-p15">
+                                <h4 class="clearfix t-m0 Montserrat-Regular font15 dk-t4"><span class="border-b grayborder1 rp35 tabhorizontal-r-p10 b-p10"><span class="l-p25"><b>Your Details</b></span></span></h4>
+                            </article>
+                            <article class="clearfix b-p25 l-p25">
+                                <h5 class="OpenSans dk-t4 t-m0 font15">@objForm1.FirstName @objForm1.LastName</h5>
+                                <label class="OpenSans font14 lowgray-t3 l-h20">
+                                    @objForm1.Notes 
+                                </label>
+                                <a href="mailto:@objForm1.ContactEmail" class="Poppins-SemiBold font14 violet-t l-h20">@objForm1.ContactEmail</a>
+                            </article>
+                        </article>
+                        <article class="clearfix part-6">
+                            <article class="clearfix t-p15 b-p15 mobile-t-p0">
+                                <h4 class="clearfix t-m0 Montserrat-Regular font15 dk-t4"><span class="border-b grayborder1 r-p45 b-p10"><span class="l-p25"><b>Payment Received By</b></span></span></h4>
+                            </article>
+                            <article class="clearfix b-p25 l-p25">
+                                <h5 class="OpenSans dk-t4 t-m0 font15">@System.Configuration.ConfigurationManager.AppSettings["ApplicationName"]</h5>
+                                <a href="mailto:@System.Configuration.ConfigurationManager.AppSettings["adminemailid"]" class="Poppins-SemiBold font14 violet-t l-h20">@System.Configuration.ConfigurationManager.AppSettings["adminemailid"]</a>
+                            </article>
+                        </article>
+                    </article>
+                </article>
+            </article>
+            <article class="clearfix dashborder-t border-t t-m5 tablet-t-m5 l-r-m-auto t-p10" style="max-width:800px;">
+                <article class="clearfix t-p0 border grayborder table-responsive t-m10">
+                    <table width="100%" cellspacing="0" cellpadding="0" border="0" class="table table-hover table-bordered poppins-regular gray-t font13 m0">
+                        <tbody>
+                            <tr>
+                                <th width="22%">Date - Time</th>
+                                <th width="29%">Transaction Number</th>
+                                <th width="25%">Summary</th>
+                                <th width="13%">Status</th>
+                                <th width="11%" class="text-right">Amount</th>
+                            </tr>
+                            <tr>
+                                <td style="text-align:center">@objForm1.PaymentDate.ToString("MM/dd/yyyy")</td>
+                                <td style="text-align:center">@objForm1.TransactionId</td>
+                                <td style="text-align:center">Event Registration for @System.Configuration.ConfigurationManager.AppSettings["ApplicationName"]</td>
+                                <td style="text-align:center">@objForm1.PaymentStatus</td>
+                               @{
+    var totalAmount = Context.Session.GetString("TotalAmount");
+}
+
+@if (!string.IsNullOrEmpty(totalAmount))
+{
+    <td style="text-align:center">$ @totalAmount</td>
+}
+else
+{
+    <td style="text-align:center">$ @objForm1.AmountPaid</td>
+}
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+            </article>
+        </article>
+
+        <!------------------------------------------------------------------------------------------------------------------->
+    </article>
+</article>

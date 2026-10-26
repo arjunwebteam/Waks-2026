@@ -1,0 +1,59 @@
+﻿@{
+    Layout = null;
+
+    var lstVolunteerCategory = (List<AWS_AssociationToolCore.Entities.VolunteerCategories>)ViewBag.lstVolunteerCategory;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Volunteers - " + objAppInfo.SiteName;
+
+    var lstVolunteers = (List<AWS_AssociationToolCore.Entities.Volunteers>)ViewBag.lstVolunteers;
+}
+
+       
+                    <div class="col-12 ">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-stripped  member_table">
+                                <thead>
+                                    <tr>
+                                        <th>Volunteer Id</th>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Category Name</th>
+                                        <th>Email</th>
+
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    @if (lstVolunteers != null && lstVolunteers.Count != 0)
+                                    {
+                                        Int64 i = 1;
+                                        foreach (var item in lstVolunteers)
+                                        {
+                                    <tr>
+                                        <td>@item.VolunteerId</td>
+                                        <td>@item.FirstName</td>
+                                        <td>@item.LastName</td>
+                                        <td>@((item.CategoryName == null || item.CategoryName == "") ? "N/A" : item.CategoryName)</td>
+                                  
+                                        <td><a href="mailto:@item.Email">@item.Email</a></td>
+                                    </tr>
+                                            i++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td class="norecords" colspan="7">No Records Found.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                
+

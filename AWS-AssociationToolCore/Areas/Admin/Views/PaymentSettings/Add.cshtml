@@ -1,0 +1,412 @@
+﻿@{
+    ViewBag.Title = "Add";
+    ViewBag.Pageheading = "PaymentSettings";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var objPaymentSettings = (AWS_AssociationToolCore.Entities.PaymentSettings)ViewBag.objPaymentSettings;
+    List<AWS_AssociationToolCore.Entities.PaymentMethods> lstpaymentMethods = ViewBag.PaymentMethodsList;
+}
+
+@using (Html.BeginForm("UpdateAppInfo", "PaymentSettings", FormMethod.Post, new { enctype = "multipart/form-data", style = "margin-bottom:0", @id = "SponsorForm", @name = "SponsorForm" }))
+{
+    <input id="mid" name="mid" value="@ViewBag.mid" type="hidden" />
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                
+                <div class="box-body">
+                    <div class="row  g-3">
+                        @if (objPaymentSettings == null)
+                        {
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Payment Method   <span class="text-danger">*</span></label>
+                                    @Html.DropDownList("PaymentMethodId", new SelectList((IEnumerable<AWS_AssociationToolCore.Entities.PaymentMethods>)ViewBag.PaymentMethodsList, "PaymentMethodId", "PaymentMethod"), "Select Payment Method", new { id = "ddlPaymentMethod", @class = "form-control", @onchange = "Methodbind();" })
+                                    <span class="field-validation-error" id="spanFirstName"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Account Type :  <span class="text-danger">*</span></label>
+                                    <select class="single-select" name="AccountType" id="AccountType" type="text">
+                                        <option value="" selected="selected">--Select--</option>
+                                        <option value="Test">Test</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" id="PaymentUrlhide">
+                                <div class="input-box">
+                                    <label id="pay1" class="form-label"><span class="text-danger">*</span></label>
+                                    <label id="cc1" style="display:none;">PAYFLOW_HOST :<span class="text-danger">*</span></label>
+                                    @Html.TextBox("PaymentUrl", "", new { @class = "form-control", @onchange = "return ValidateApplication();" })
+
+                                </div>
+                            </div>
+
+
+                            <div class="col-lg-3 col-md-6" id="SuccessEmailhide">
+                                <div class="input-box">
+                                    <label class="form-label">Payment/Success Email :<span class="text-danger">*</span></label>
+                                    @Html.TextBox("PaymentEmail", "", new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="FailureEmailhide">
+                                <div class="input-box">
+                                    <label class="form-label">Failure Email :<span class="text-danger">*</span></label>
+                                    @Html.TextBox("PaymentPassword", "", new
+                               {
+                                   @class = "form-control",
+                                   id = "FailureEmail"@*, @onchange = "return ValidateApplication();"*@})
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="CurrencyCodehide">
+                                <div class="input-box">
+                                    <label class="form-label">Currency Code  :<span class="text-danger"></span></label>
+                                    @Html.DropDownList("CurrencyCodeId", new SelectList((IEnumerable<AWS_AssociationToolCore.Entities.CurrencyCodes>)ViewBag.CurrencyCodesList, "CurrencyCodeId", "CurrencyCode"), "Select Currency Code", new{ id = "ddlCurrencyCode", @class = "form-control"@*, @onchange = "ValidateApplication();"*@})
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="SuccessUrlhide">
+                                <div class="input-box">
+                                    <label id="pay2" class="form-label"><span class="text-danger">*</span></label>
+                                    <label id="cc2" style="display:none;">USER :<span class="text-danger">*</span></label>
+                                    @Html.TextBox("SuccessUrl", "", new { @class = "form-control", @onchange = "ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="CancelUrlhide">
+                                <div class="input-box">
+                                    <label id="pay3" class="form-label"></label>
+                                    <label id="cc3" style="display:none;">VENDOR :<span class="text-danger">*</span></label>
+                                    @Html.TextBox("CancelUrl", "", new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="NotifyUrlhide">
+                                <div class="input-box">
+                                    <label id="pay4" class="form-label">Notify Url  :<span class="text-danger">*</span></label>
+                                    <label id="cc4" style="display:none;">PARTNER :</label>
+                                    @Html.TextBox("NotifyUrl", "", new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="TokenNohide">
+                                <div class="input-box">
+                                    <label id="pay5" class="form-label">Token No  :<span class="text-danger">*</span></label>
+                                    <label id="cc5" style="display:none;">PWD :</label>
+
+                                    @Html.TextBox("TokenNo", "", new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="PaymentSettingId" id="PaymentSettingId" value="@(objPaymentSettings.PaymentSettingId)" />
+                           
+                            
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Payment Method   <span class="text-danger">*</span></label>
+                                    @Html.DropDownList("PaymentMethodId", new SelectList((IEnumerable<AWS_AssociationToolCore.Entities.PaymentMethods>)ViewBag.PaymentMethodsList, "PaymentMethodId", "PaymentMethod"), "Select Payment Method", new{ id = "ddlPaymentMethod",@class = "form-control"@*, @onchange = "ValidateApplication();"*@})
+                                    <span class="field-validation-error" id="spanFirstName"></span>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Account Type :  <span class="text-danger">*</span></label>
+                                    <select class="single-select" name="AccountType" id="AccountType" type="text">
+                                        <option value="" selected="selected">--Select--</option>
+                                        <option value="Test">Test</option>
+                                        <option value="Online">Online</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" id="PaymentUrlhide">
+                                <div class="input-box">
+                                    <label id="pay1" class="form-label">Payment Url:<span class="text-danger">*</span></label>
+                                    <label id="cc1" style="display:none;">PAYFLOW_HOST :<span class="text-danger">*</span></label>
+                                    @Html.TextBox("PaymentUrl", objPaymentSettings.PaymentUrl, new { @class = "form-control", @onchange = "return ValidateApplication();" })
+
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="SuccessEmailhide">
+                                <div class="input-box">
+                                    <label class="form-label">Payment Email :<span class="text-danger">*</span></label>
+                                    @Html.TextBox("PaymentEmail", objPaymentSettings.PaymentEmail, new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="CurrencyCodehide">
+                                <div class="input-box">
+                                    <label class="form-label">Currency Code  :<span class="text-danger">*</span></label>
+                                    @Html.DropDownList("CurrencyCodeId", new SelectList((IEnumerable<AWS_AssociationToolCore.Entities.CurrencyCodes>)ViewBag.CurrencyCodesList, "CurrencyCodeId", "CurrencyCode"), "Select Currency Code", new {id = "ddlCurrencyCode", @class = "form-control"@*, @onchange = "ValidateApplication();"*@})
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6" id="SuccessUrlhide">
+                                <div class="input-box">
+                                    <label id="pay2" class="form-label">Success Url  :<span class="text-danger"></span></label>
+                                    <label id="cc2" style="display:none;">USER :<span class="text-danger"></span></label>
+                                    @Html.TextBox("SuccessUrl", (string)objPaymentSettings.SuccessUrl, new { @class = "form-control", @onchange = "ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="CancelUrlhide">
+                                <div class="input-box">
+                                    <label id="pay3" class="form-label">Cancel Url  :<span class="text-danger"></span></label>
+                                    <label id="cc3" style="display:none;">VENDOR :<span class="text-danger"></span></label>
+                                    @Html.TextBox("CancelUrl", (string)objPaymentSettings.CancelUrl, new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="NotifyUrlhide">
+                                <div class="input-box">
+                                    <label id="pay4" class="form-label">Notify Url  :<span class="text-danger">*</span></label>
+                                    <label id="cc4" style="display:none;">PARTNER :</label>
+                                    @Html.TextBox("NotifyUrl", (string)objPaymentSettings.NotifyUrl, new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-6" id="TokenNohide">
+                                <div class="input-box">
+                                    <label id="pay5" class="form-label">Token No  :<span class="text-danger">*</span></label>
+                                    <label id="cc5" style="display:none;">PWD :</label>
+                                    @Html.TextBox("TokenNo", (string)objPaymentSettings.TokenNo, new { @class = "form-control", @onchange = "return ValidateApplication();" })
+                                </div>
+                            </div>
+                            <script type="text/javascript">
+                              $(document).ready(function () {
+                                  $('#ddlCurrencyCode').val('@objPaymentSettings.CurrencyCodeId');
+                                                        $('#ddlPaymentMethod').val('@objPaymentSettings.PaymentMethodId');
+                                                        $('#AccountType').val('@objPaymentSettings.AccountType');
+                             });
+                            </script>
+
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 col-3 text-end ms-auto">
+            <input type="submit" class="btn btn-success px-3 " value="Submit" />
+            <a class="btn btn-primary px-3" href="@Url.Action("Index", "PaymentSettings", new { mid = ViewBag.mid })">Cancel</a>
+
+        </div>
+    </div>
+}
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        Methodbind();
+        $('#wSettings').addClass('active');
+        $('#wPaymentSettings').addClass('active');
+    });
+
+    function Methodbind() {
+        var ptype = $('#ddlPaymentMethod').val();
+        if (ptype == 1) {
+
+            $('#PaymentUrlhide').show();
+            $('#SuccessUrlhide').show();
+            $('#CancelUrlhide').show();
+            $('#pay1').html('Client Id :<span style="color: red;">*</span>');
+            $('#pay2').html('Client Secret :<span style="color: red;">*</span>');
+            $('#pay3').html('Pay Pal Mode :<span style="color: red;">*</span>');
+            $('#SuccessEmailhide').hide();
+            $('#FailureEmailhide').hide();
+            $('#CurrencyCodehide').hide();
+            $('#NotifyUrlhide').hide();
+            $('#TokenNohide').hide();
+
+
+        }
+        else if (ptype == 11) {
+            $('#PaymentUrlhide').show();
+            $('#SuccessUrlhide').hide();
+            $('#CancelUrlhide').hide();
+            $('#pay1').html('Swire Pay Apikey :<span style="color: red;">*</span>');
+            $('#SuccessEmailhide').hide();
+            $('#FailureEmailhide').hide();
+            $('#CurrencyCodehide').hide();
+            $('#NotifyUrlhide').hide();
+            $('#TokenNohide').hide();
+        }
+        else if (ptype == 12) {
+            $('#PaymentUrlhide').show();
+            $('#SuccessUrlhide').hide();
+            $('#CancelUrlhide').hide();
+            $('#pay1').html('Stripe Apikey :<span style="color: red;">*</span>');
+            $('#SuccessEmailhide').hide();
+            $('#FailureEmailhide').hide();
+            $('#CurrencyCodehide').hide();
+            $('#NotifyUrlhide').hide();
+            $('#TokenNohide').hide();
+        }
+        else if (ptype == 7) {
+
+            $('#PaymentUrlhide').show();
+            $('#SuccessUrlhide').show();
+            $('#CancelUrlhide').hide();
+            $('#pay1').html('Client Id :<span style="color: red;">*</span>');
+            $('#pay2').html('Client Secret Key: <span style="color: red;">*</span>');
+
+           // $('#pay3').html('Pay Pal Mode :');
+            $('#SuccessEmailhide').hide();
+            $('#FailureEmailhide').hide();
+            $('#CurrencyCodehide').hide();
+            $('#NotifyUrlhide').hide();
+            $('#TokenNohide').hide();
+
+
+        }
+        else {
+            $('#PaymentUrlhide').show();
+            $('#SuccessUrlhide').show();
+            $('#CancelUrlhide').show();
+            $('#pay1').html('Payment Url :<span style="color: red;"></span>');
+            $('#pay2').html('Success Url :<span style="color: red;"></span>');
+            $('#pay3').html('Cancel Url  :<span style="color: red;"></span>');
+            $('#SuccessEmailhide').hide();
+            $('#FailureEmailhide').hide();
+            $('#CurrencyCodehide').show();
+            $('#NotifyUrlhide').hide();
+            $('#TokenNohide').hide();
+        }
+    }
+
+    function labelbind() {
+        var ptype = $('#ddlPaymentMethod').val();
+        if (ptype == 1) {
+            $('#pay1').show();
+            $('#cc1').hide();
+            $('#pay2').show();
+            $('#cc2').hide();
+            $('#pay3').show();
+            $('#cc3').hide();
+            $('#pay4').show();
+            $('#cc4').hide();
+            $('#pay5').show();
+            $('#cc5').hide();
+        }
+        else if (ptype == 7) {
+            $('#pay1').hide();
+            $('#cc1').show();
+            $('#pay2').hide();
+            $('#cc2').show();
+            $('#pay3').hide();
+            $('#cc3').show();
+            $('#pay4').hide();
+            $('#cc4').show();
+            $('#pay5').hide();
+            $('#cc5').show();
+        }
+    }
+
+</script>
+
+<script>
+    $(document).ready(function () {
+        $("#SponsorForm").validate({
+            rules: {
+                PaymentMethodId: "required",
+                AccountType: "required",
+
+                SuccessUrl: {
+
+                    required: {
+                        depends: function (element) {
+                            if ($('#ddlPaymentMethod').val() == 1 || $('#ddlPaymentMethod').val() == 7) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    }
+                },
+                CancelUrl: {
+
+                    required: {
+                        depends: function (element) {
+                            if ($('#ddlPaymentMethod').val() == 1 || $('#ddlPaymentMethod').val() == 7) {
+                                return true;
+                            } else {
+                                return false;
+                            }
+                        }
+                    }
+                },
+                PaymentUrl: "required",
+                //PaymentEmail: "required",
+                //CurrencyCodeId: "required",
+              //  SuccessUrl: "required",
+                //CancelUrl: "required",
+                //PaymentPassword: "required",
+                //PaymentEmail: {
+                //    required: true,
+                //    email: true
+                //}
+
+            },
+            messages: {
+                PaymentMethodId: "Please Select Payment Type",
+                AccountType: "Please Select Account Type",
+                //PaymentUrl: "Please Enter Payment Url",
+                ////PaymentEmail: "Please Enter Payment Email",
+                //CurrencyCodeId: "Please Select Currency Code ",
+                //SuccessUrl: "Please Enter Success Url",
+               // CancelUrl: "Please Enter Cancel Url",
+                PaymentPassword: "Please Enter Payment Password",
+                PaymentEmail: {
+                    required: "Enter Email Address",
+                    email: "Enter a valid email"
+                }
+
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+</script>

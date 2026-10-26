@@ -1,0 +1,136 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    var filename = (string)ViewBag.filename;
+    var imgheight = (int)ViewBag.imgheight;
+    var imgwidth = (int)ViewBag.imgwidth;
+
+    // ✅ Use AppInfo.BaseUrl instead of Session["AdminSiteUrl"]
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status);
+
+    var location = objAppInfo.BaseUrl + "Content/Admin/WebsiteBanners/NormalImages/";
+    var location1 = objAppInfo.BaseUrl + "Content/Admin/WebsiteBanners/ThumbImages/";
+    var baseurl = objAppInfo.BaseUrl;
+}
+<base href="@baseurl" />
+<link rel="stylesheet" href="http://jcrop-cdn.tapmodo.com/v0.9.12/css/jquery.Jcrop.min.css"
+    type="text/css" />
+<script type="text/javascript" src="Scripts/Admin/jquery-1.8.3.js"></script>
+<script src="Scripts/Admin/jquery-ui-1.9.2.custom.min.js"></script>
+<script src="http://jcrop-cdn.tapmodo.com/v0.9.12/js/jquery.Jcrop.min.js"></script>
+<style>
+    #cropPreview {
+        float: left;
+        overflow: hidden;
+        width: 100px;
+        height: 100px;
+    }
+
+    #cropDisplay {
+        float: left;
+        clear: right;
+    }
+</style>
+@if (filename != "")
+{
+
+    <script language="Javascript">
+
+        // Remember to invoke within jQuery(window).load(...)
+        // If you don't, Jcrop may not initialize properly
+        $(function () {
+
+            $('#jcrop_target').Jcrop({
+                onChange: showPreview,
+                onSelect: showPreview,
+                onRelease: hidePreview,
+                aspectRatio: 1
+            });
+
+            var $preview = $('#preview');
+            // Our simple event handler, called from onChange and onSelect
+            // event handlers, as per the Jcrop invocation above
+            function showPreview(coords) {
+                if (parseInt(coords.w) > 0) {
+                    var rx = 100 / coords.w;
+                    var ry = 100 / coords.h;
+                    
+                    $('#top').val(coords.y);
+                    $('#left').val(coords.x);
+                    $('#bottom').val(@(imgheight) - (coords.y + coords.h));
+                    $('#right').val(@(imgwidth) - (coords.x + coords.w));
+
+
+                    $preview.css({
+                        width: Math.round(rx * @(imgwidth)) + 'px',
+                        height: Math.round(ry * @(imgheight)) + 'px',
+                        marginLeft: '-' + Math.round(rx * coords.x) + 'px',
+                        marginTop: '-' + Math.round(ry * coords.y) + 'px'
+                    }).show();
+                }
+            }
+
+            function hidePreview() {
+                $preview.stop().fadeOut('fast');
+                alert('top = ' + $('#top').val());
+                alert('left = ' + $('#left').val());
+                alert('bottom = ' + $('#bottom').val());
+                alert('right = ' + $('#right').val());
+            }
+        });
+
+    </script>
+    <!-- This is the image we're attaching Jcrop to -->
+    <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+            <td colspan="2">
+                <div class="">&nbsp;</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div class="">Crop applying only for Thumb Images</div>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <div class="">&nbsp;</div>
+            </td>
+        </tr>
+        <tr>
+            <td><span>Normal Image</span>
+                <img src="@location@(filename)" id="jcrop_target" />
+            </td>
+            <td>
+                <span>Thumb Image</span>
+                <div style="width: 140px; height: 80px; overflow: hidden; margin-left: 5px;">
+
+                    <img src="@location@(filename)" id="preview" />
+                </div>
+            </td>
+            <td>
+                <span>Actual Thumb Image</span>
+                <div style="width: 140px; height: 80px; overflow: hidden; margin-left: 5px;">
+                    <img src="@location1@(filename)" id="preview1" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @using (Html.BeginForm("Crop", "WebsiteBanners", FormMethod.Post))
+                { 
+        
+                    <input type="hidden" id="filename" name="filename" value="@(filename)" />        
+                    <input type="hidden" id="top" name="top" />
+                    <input type="hidden" id="left" name="left" />
+                    <input type="hidden" id="bottom" name="bottom" />
+                    <input type="hidden" id="right" name="right" />
+            
+                    <input type="submit" name="submit" value="Crop" />
+            
+                }
+            </td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,87 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<MvcRazorCompileOnPublish>true</MvcRazorCompileOnPublish>
+		<RazorCompileOnBuild>true</RazorCompileOnBuild>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>AWS_AssociationToolCore</RootNamespace>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+		<NoWarn>CS0579</NoWarn>
+		<PreserveCompilationReferences>true</PreserveCompilationReferences>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<StaticWebAssetsCacheDefineStaticWebAssetsEnabled>false</StaticWebAssetsCacheDefineStaticWebAssetsEnabled>
+		<UseAppHost>false</UseAppHost>
+	</PropertyGroup>
+	
+	<!-- ✅ This is for copying views -->
+	<ItemGroup>
+		<Compile Remove="$(IntermediateOutputPath)**\*.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Remove="Areas\User\Views\Gallery\Photos - Copy.cshtml" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Areas\User\Views\Services\4hjbpf3b.rcl~" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Update="Views\**\*" CopyToPublishDirectory="Always" />
+		<Content Update="Areas\**\*" CopyToPublishDirectory="Always" />
+	</ItemGroup>
+	<ItemGroup>
+		<!-- ✅ 		<PackageReference Include="itext7.bouncy-castle-adapter" Version="9.6.0" />
+		<PackageReference Include="itext7" Version="9.5.0" />
+		<PackageReference Include="itext7.pdfhtml" Version="6.3.1" />-->
+		<PackageReference Include="Braintree" Version="5.39.0" />
+		<PackageReference Include="ClosedXML" Version="0.105.1" />
+		<PackageReference Include="itext7" Version="8.0.5" />
+		<PackageReference Include="itext7.bouncy-castle-adapter" Version="8.0.5" />
+		<PackageReference Include="itext7.pdfhtml" Version="5.0.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="10.0.13" />
+		<PackageReference Include="Duende.IdentityServer.Storage" Version="7.4.7" />
+		<PackageReference Include="EPPlus.Core" Version="1.5.4" NoWarn="NU1701" />
+		<PackageReference Include="ExcelDataReader" Version="3.8.0" />
+		<PackageReference Include="ExcelDataReader.DataSet" Version="3.8.0" />
+		<PackageReference Include="Grpc.Core" Version="2.46.6" />
+		<PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
+		<PackageReference Include="MySql.Data" Version="9.6.0" />
+		<PackageReference Include="Nancy" Version="2.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="NPOI" Version="2.8.1" />
+		<PackageReference Include="OpenXmlPowerToolsStandard" Version="5.0.145" />
+		<PackageReference Include="PayPal.MultiTarget" Version="1.0.1" />
+		<PackageReference Include="PayPalCheckoutSdk" Version="1.0.4" />
+		<PackageReference Include="QRCoder" Version="1.7.0" />
+		<PackageReference Include="QRCoder.Core" Version="1.0.8" />
+		<PackageReference Include="RestSharp" Version="114.0.0" />
+		<PackageReference Include="SendGrid" Version="9.29.3" />
+		<PackageReference Include="Square" Version="20.0.0" />
+		<PackageReference Include="Stripe.net" Version="51.1.0-beta.1" />
+		<PackageReference Include="System.Data.OleDb" Version="10.0.5" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.5" />
+
+		<PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Areas\Admin\Data\" />
+		<Folder Include="Areas\User\Data\" />
+		<Folder Include="Areas\User\Models\" />
+		<Folder Include="wwwroot\uploads\" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\AWS-AssociationToolCore.BLL\AWS-AssociationToolCore.BLL.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Reference Include="CKFinder">
+			<HintPath>C:\Users\mahipal\Downloads\association-bin\association-bin\bin\CKFinder.dll</HintPath>
+		</Reference>
+		<Reference Include="ClosedXML">
+			<HintPath>C:\Users\mahipal\Downloads\association-bin\association-bin\bin\ClosedXML.dll</HintPath>
+		</Reference>
+	</ItemGroup>
+
+</Project>

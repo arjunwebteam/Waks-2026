@@ -1,0 +1,74 @@
+<!-- Row 1: President, Vice President, Secretary -->
+<div class="row g-3 justify-content-center">
+	<div class="col-sm-6 col-lg-4">
+		<div class="aws_contact_de_set">
+			<div class="aws_contact_icon_set">
+				<img alt="President" height="24" src="content/user/images/icon-user.png" width="24" /></div>
+			<div class="ps-2">
+				<div class="aws_adds_set">
+					President</div>
+				<p class="mb-1 fw-bold">
+					Mr. Shankar Alepadi</p>
+				<p class="mb-0">
+					<a href="tel:+61405967059" style="color:inherit;">+61 405 967 059</a></p>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-6 col-lg-4">
+		<div class="aws_contact_de_set">
+			<div class="aws_contact_icon_set">
+				<img alt="Vice President" height="24" src="content/user/images/icon-user.png" width="24" /></div>
+			<div class="ps-2">
+				<div class="aws_adds_set">
+					Vice President</div>
+				<p class="mb-1 fw-bold">
+					Mr. Devaraj Gowda</p>
+				<p class="mb-0">
+					<a href="tel:+61401184088" style="color:inherit;">+61 401 184 088</a></p>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-6 col-lg-4">
+		<div class="aws_contact_de_set">
+			<div class="aws_contact_icon_set">
+				<img alt="Secretary" height="24" src="content/user/images/icon-user.png" width="24" /></div>
+			<div class="ps-2">
+				<div class="aws_adds_set">
+					Secretary</div>
+				<p class="mb-1 fw-bold">
+					Mr. Guru Gupta</p>
+				<p class="mb-0">
+					<a href="tel:+61421151439" style="color:inherit;">+61 421 151 439</a></p>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- Row 2: Location & Email Side by Side -->
+<div class="row g-3 mt-1 justify-content-center">
+	<div class="col-sm-6 col-lg-4">
+		<div class="aws_contact_de_set">
+			<div class="aws_contact_icon_set">
+				<img alt="Location" height="24" src="content/user/images/icon-location.png" width="24" /></div>
+			<div class="ps-2">
+				<div class="aws_adds_set">
+					Location</div>
+				<p class="mb-0">
+					P.O. Box 600 Maylands WA, 6931 Australia</p>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-6 col-lg-4">
+		<div class="aws_contact_de_set">
+			<div class="aws_contact_icon_set">
+				<img alt="Email Us" height="24" src="content/user/images/icon-email.png" width="24" /></div>
+			<div class="ps-2">
+				<div class="aws_adds_set">
+					Email Us</div>
+				<p class="mb-0">
+					<a href="mailto:info@waks.org.au" style="color:inherit;">info@waks.org.au</a></p>
+			</div>
+		</div>
+	</div>
+</div>
+<p>
+	&nbsp;</p>

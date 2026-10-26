@@ -1,0 +1,53 @@
+﻿@{
+    Layout = null;
+
+    var lstEventUserInfo = (List<AWS_AssociationToolCore.Entities.EventUserInfo>)ViewBag.lstEventUserInfo;
+
+    Int64 MemberId = ViewBag.MemberId;
+}
+
+
+<table class="table table-bordered">
+    <tbody>
+        <tr class="t-l yello-bg">
+            <th>S.No</th>
+            <th>Event </th>
+            <th>Amount</th>
+            <th>Trans.Id</th>
+            <th>Pay.Method</th>
+            <th>Pay.Status</th>
+            <th>Pay.Date</th>
+        </tr>
+        @if (lstEventUserInfo != null && lstEventUserInfo.Count != 0)
+        {
+            Int64 i = 1;
+            foreach (var item in lstEventUserInfo)
+            {
+                <tr>
+                    <td align="left" style="text-align: center;">@i</td>
+                    <td align="left" valign="middle">@item.EventName</td>
+                    <td align="left" valign="middle">@item.AmountPaid</td>
+                    <td align="left" valign="middle">@item.TransactionId</td>
+                    <td align="left" valign="middle">@item.PaymentMethod</td>
+
+                    <td align="left" valign="middle">@item.PaymentStatus</td>
+                    <td align="left" valign="middle">@(item.PaymentDate == DateTime.MinValue ? "N/A" : item.PaymentDate.ToString("MM/dd/yyyy"))</td>
+
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td class="norecords" colspan="7">No Event Registration Found.</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+
+
+

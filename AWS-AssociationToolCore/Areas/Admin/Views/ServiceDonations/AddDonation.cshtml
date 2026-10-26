@@ -1,0 +1,826 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@{
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var objMemberDetails = (AWS_AssociationToolCore.Entities.Members)ViewBag.Memberdetails;
+
+    Int64 ServiceCategoryId = ViewBag.ServiceCategoryId;
+
+    Int64 ChapterId = ViewBag.ChapterId;
+    Int64 ServiceId = ViewBag.ServiceId;
+    Int64 MemberId = ViewBag.MemberId;
+
+    var objServices = (AWS_AssociationToolCore.Entities.Services)ViewBag.objServices;
+    List<AWS_AssociationToolCore.Entities.ServiceImages> lstServiceImages = ViewBag.lstServiceImages;
+
+    List<AWS_AssociationToolCore.Entities.Services> lstServices = ViewBag.lstServices;
+    var adminImageUrl = HttpContextAccessor.HttpContext?.Session.GetString("AdminImageUrl") ?? "";
+    var ServiceimglocNormal = adminImageUrl + "ServiceImages/Images/";
+    Int64 ServiceDonationId = ViewBag.ServiceDonationId;
+
+    var cname = ViewBag.cname;
+
+    Int64 TotalServices = lstServices.Count();
+
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+}
+
+
+<script type="text/javascript" src="Scripts/User/jquery.validate.js"></script>
+<script type="text/javascript" src="Scripts/User/countries.js"></script>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#Field2").datepicker({ changeMonth: true, changeYear: true, yearRange: "-0:+20", minDate: new Date(), altField: '.date', altFormat: 'mm/dd/yy' });
+        $("#OrderDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-0:+20", minDate: new Date(), altField: '.date', altFormat: 'mm/dd/yy' });
+        if ('@objServices.ServiceTitle' == 'General Donation') {
+            addCauseRow();
+        }
+        print_state('State', 'USA');
+    });
+
+    function addCauseRow() {
+        var table = document.getElementById("contributionfo");
+
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+        row.id = rowCount;
+
+        var cell1 = row.insertCell(0);
+        var element1 = document.createElement("div");
+        element1.className = "clearfix ";
+        element1.innerHTML = " <select class=\"form-control\" id=\"ServiceId-" + (rowCount - 1) + "\" name=\"[" + (rowCount - 1) + "].ServiceId\" style=\"min-height:40px; background-color:#fff;\" onchange=\"contributionupdate();\" ></select>";
+        element1.style = ""
+        cell1.appendChild(element1);
+
+        var cell2 = row.insertCell(1);
+        var element2 = document.createElement("input");
+        element2.type = "text";
+        element2.name = "[" + (rowCount - 1) + "].Percentage";
+        element2.id = "Percentage-" + (rowCount - 1);
+        element2.className = "form-control dis-in per_class";
+        element2.style = "min-height:40px; background-color:#fff";
+        cell2.appendChild(element2);
+
+
+        var cell3 = row.insertCell(2);
+        cell3.align = 'center';
+        cell3.innerHTML = '<span id="del-' + (rowCount - 1)+'"><a onclick="javascript:deleteRow(' + rowCount + ')" class="darkgray-text"><img alt="Delete" title="Delete" src="Content/User/images/delete.gif" class="margin-top-5" /></a></span>';
+        $('#hdnRowCount').val(rowCount);
+
+        $("#Percentage-" + (rowCount - 1)).attr('onchange', 'sumpercentage()').attr('onkeypress', 'return Common.isNumberKey(event)');
+
+        ServicesList(rowCount - 1);
+        $('#del-' + (rowCount - 2)).html('');
+        if ((rowCount) == @TotalServices) {
+            $('#spp2').hide();
+        }
+    }
+
+    function deleteRow(i) {
+        try {
+            var row = document.getElementById(i);
+            row.parentNode.removeChild(row);
+            contributionupdate();
+            $('#del-' + (i - 2)).html('<a onclick="javascript:deleteRow(' + (i-1) + ')" class="darkgray-text"><img alt="Delete" title="Delete" src="Content/User/images/delete.gif" class="margin-top-5" /></a>');
+            var table = document.getElementById("contributionfo");
+            var rowCount = table.rows.length;
+            if ((rowCount - 2) < 4) {
+                $('#spp2').show();
+            }
+
+        } catch (e) {
+            alert(e);
+        }
+    }
+
+    function round_off(mystring) {
+        //alert(mystring);
+        mystring = mystring.replace(/\./g, '');
+        mystring = mystring.substring(0, 10);
+
+        mystring1 = mystring.substring(0, mystring.length - 2);
+        mystring2 = mystring.substring(mystring.length, mystring.length - 2);
+
+        mystring2 = "" + mystring1 + "." + mystring2 + "";
+        //alert(mystring2);
+        if (mystring != "" && mystring.length > 2) {
+            document.getElementById("round_no").value = mystring2;
+        }
+    }
+
+    function RECAMTBIND() {
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            $('#Field1').val($('#round_no').val());
+        }
+    }
+    function RecurrDivFunction() {
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            $('#Field1').val($('#round_no').val());
+            $('#RecurrDiv').show('slow');
+        }
+        else {
+            $('#RecurringAmount').val('');
+            $('#RecurringType').val('');
+            $('#RecurringStartTime').val('');
+            $('#RECDate').val('');
+            $('#RType').val('');
+            $('#ReccurId').val('');
+            $('#RecurrDiv').hide('slow');
+        }
+    }
+
+    function contributionupdate() {
+        var table = document.getElementById("contributionfo");
+        var rowCount = table.rows.length;
+        var rows = rowCount - 1;
+        var per = (100 / rows).toFixed(2);
+        $('.per_class').val(per);
+        sumpercentage();
+        //for (var i = 0; i <= rows; i++) {
+
+        //    $("#Percentage-" + i).val(per);
+        //}
+    }
+
+    function sumpercentage() {
+        var sum = 0;
+        $(".per_class").each(function () {
+            sum += +$(this).val();
+        });
+        $("#TotalPercent").val(sum);
+    }
+
+    function ServicesList(rowid) {
+        $.ajax({
+            url: '@Url.Action("ServicesGetListByChapterId", "ServiceDonations")',
+            type: 'POST',
+            cache: false,
+            success: function (result) {
+                if (result.ok) {
+                    var lstServices = result.data;
+                    var sb1 = "";
+                    if (lstServices != null) {
+                        var table = document.getElementById("contributionfo");
+                        var rowCount = table.rows.length;
+                        var rows = rowCount - 1;
+
+                        for (var k = 0; k < lstServices.length; k++) {
+                            var x = 0;
+                            for (var i = 0; i <= rows; i++) {
+                                if (lstServices[k].ServiceId == $('#ServiceId-' + i).val()) {
+                                    x = 1;
+                                }
+                            }
+                            if (x == 0) {
+                                sb1 = sb1 + "<option value=\"" + lstServices[k].ServiceId + "\">" + lstServices[k].ServiceTitle + "</option>";
+                            }
+                        }
+                    }
+                    $('#ServiceId-' + rowid).append(sb1);
+                    //if (rowid == 0) {
+                    //    $('#ServiceId-' + rowid).val(10);
+                    //    contributionupdate();
+                    //}
+                    contributionupdate();
+                }
+            }
+        });
+    }
+
+    @*function Validate() {
+
+        if ($('#TotalPercent').val() > 100 || $('#TotalPercent').val() < 99) { alert('Total contributions % is Invalid'); return false; }-->-->
+
+        var amt = $('#round_no').val();
+        var needamt = Math.round((500000), 0);
+        if (amt == 0) { alert('Please enter donation amount.'); $('#round_no').focus(); returnval = false; }
+        else {
+            $('#spanAmount').html('');
+            if (amt < 5) { alert('Please enter amount atleast $ 5.'); $('#round_no').focus(); returnval = false; }
+            else if(amt > needamt && '@objServices.ServiceId' != 0){alert('Entered amount is exceeded.'); $('#round_no').focus(); returnval = false;}
+            else { $('#spanAmount').html(''); }
+
+        }
+
+        <!--<!--//var needamt = Math.round(100000, 0);
+        //if (amt == 0) { alert('Please enter donation amount.'); $('#round_no').focus(); returnval = false; }
+        //else {
+        //    $('#spanAmount').html('');
+        //    if (amt < 5) { alert('Please enter amount atleast $ 5.'); $('#round_no').focus(); returnval = false; }
+        //    else if (amt > needamt && '10070' != 0) { alert('Entered amount is exceeded.'); $('#round_no').focus(); returnval = false; }
+        //    else { $('#spanAmount').html(''); }
+
+        //}
+        if ($('#FirstName').val() == "") { $('#FirstName').focus().addClass("validate"); $('#spanFirstName').show().html('Please enter first name.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanFirstName').hide().html(''); $('#FirstName').focus().removeClass("validate"); }
+        if ($('#LastName').val() == "") { $('#LastName').focus().addClass("validate"); $('#spanLastName').show().html('Please enter last name.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanLastName').hide().html(''); $('#LastName').focus().removeClass("validate"); }
+        if ($.trim($('#Email').val()) == '') { $('#Email').focus().addClass('redborder'); $('#spanEmail').show().html('Email Id Required <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanEmail').hide().html(''); $('#Email').removeClass("redborder"); }
+        if (!Common.CheckEmail($.trim($('#Email').val()))) { $('#spanEmail').show().html('Please enter valid email address.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#Email').focus().addClass("red-border"); return false; } else { $('#spanEmail').html(''); }
+        if ($('#PhoneNo').val() == "") { $('#PhoneNo').focus().addClass("validate"); $('#spanPhoneNo').show().html('Please enter Phone No.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanPhoneNo').hide().html(''); $('#PhoneNo').focus().removeClass("validate"); }
+
+        if ($('#Country').val() == "") { $('#Country').focus().addClass("validate"); $('#spanCountry').show().html('Please enter Country.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanCountry').hide().html(''); $('#Country').focus().removeClass("validate"); }
+        //if ($('#State').val() == "") { $('#State').focus().addClass("validate"); $('#spanState').show().html('Please enter State.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanState').hide().html(''); $('#State').focus().removeClass("validate"); }
+        //if ($('#City').val() == "") { $('#City').focus().addClass("validate"); $('#spanCity').show().html('Please enter City.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanCity').hide().html(''); $('#City').focus().removeClass("validate"); }
+        if ($('#ZipCode').val() == "") { $('#ZipCode').focus().addClass("validate"); $('#spanZipCode').show().html('Please enter ZipCode.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanZipCode').hide().html(''); $('#ZipCode').focus().removeClass("validate"); }
+        //if ($('#Address').val() == "") { $('#Address').focus().addClass("validate"); $('#spanAddress').show().html('Please enter Address.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanAddress').hide().html(''); $('#Address').focus().removeClass("validate"); }
+
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            if ($('#FrequencyofDonation').val() == "") { $('#FrequencyofDonation').focus().addClass("validate"); $('#spanFrequencyofDonation').show().html('Required.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanFrequencyofDonation').hide().html(''); $('#FrequencyofDonation').focus().removeClass("validate"); }
+            if ($('#Field2').val() == "") { $('#Field2').focus().addClass("validate"); $('#spanField2').show().html('Required.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanField2').hide().html(''); $('#Field2').focus().removeClass("validate"); }
+            if ($('#NoofPayments').val() == "") { $('#NoofPayments').focus().addClass("validate"); $('#spanNoofPayments').show().html('Required.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanNoofPayments').hide().html(''); $('#NoofPayments').focus().removeClass("validate"); }
+            if ($('#Field1').val() == "") { $('#Field1').focus().addClass("validate"); $('#spanField1').show().html('Required.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanField1').hide().html(''); $('#Field1').focus().removeClass("validate"); }
+        }
+        else {
+            $('#FrequencyofDonation').val('');
+            $('#Field2').val('');
+            $('#NoofPayments').val('');
+            $('#Field1').val('');
+        }
+
+        //if ($('#CardNumber').val() == "") { $('#CardNumber').focus().addClass("validate"); $('#spanCardNumber').show().html('Please enter CardNumber.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanCardNumber').hide().html(''); $('#CardNumber').focus().removeClass("validate"); }
+        //if ($('#CSVMonth').val() == "") { $('#CSVMonth').focus().addClass("validate"); $('#spanCSVMonth').show().html('Please enter Exipry Month.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanCSVMonth').hide().html(''); $('#CSVMonth').focus().removeClass("validate"); }
+        //if ($('#CSVYear').val() == "") { $('#CSVYear').focus().addClass("validate"); $('#spanCSVYear').show().html('Please enter Exipry Year.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanCSVYear').hide().html(''); $('#CSVYear').focus().removeClass("validate"); }
+        //  if ($('#Cvv').val() == "") { $('#Cvv').focus().addClass("validate"); $('#spanCvv').show().html('Please enter Cvv.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanCvv').hide().html(''); $('#Cvv').focus().removeClass("validate"); }
+
+        //   var BillingNo = Common.getCheckedRadio('BillingNo');
+        // alert($('#BillingNo').val());
+        //if ($('#SameBilling').val() == 1) {
+
+        //}
+
+        //else {
+        //    if ($('#BillingAdress').val() == "") { $('#BillingAdress').focus().addClass("validate"); $('#spanBillingAdress').show().html('Please enter Billing Adress.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanBillingAdress').hide().html(''); $('#BillingAdress').focus().removeClass("validate"); }
+        //    if ($('#BillingCountry').val() == "") { $('#BillingCountry').focus().addClass("validate"); $('#spanBillingCountry').show().html('Please enter Billing Country.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanBillingCountry').hide().html(''); $('#BillingCountry').focus().removeClass("validate"); }
+        //    if ($('#BillingCity').val() == "") { $('#BillingCity').focus().addClass("validate"); $('#spanBillingCity').show().html('Please enter Billing City.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanBillingCity').hide().html(''); $('#BillingCity').focus().removeClass("validate"); }
+        //    if ($('#BillingState').val() == "") { $('#BillingState').focus().addClass("validate"); $('#spanBillingState').show().html('Please enter Billing State.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanBillingState').hide().html(''); $('#BillingState').focus().removeClass("validate"); }
+        //    if ($('#BillingZipCode').val() == "") { $('#BillingZipCode').focus().addClass("validate"); $('#spanBillingZipCode').show().html('Please enter Billing ZipCode.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanBillingZipCode').hide().html(''); $('#BillingZipCode').focus().removeClass("validate"); }
+
+        //}
+
+        //  if ($('#DonationProgram').val() == "") { $('#DonationProgram').focus().addClass("validate"); $('#spanDonationProgram').show().html('Please enter Donation Program.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanDonationProgram').hide().html(''); $('#DonationProgram').focus().removeClass("validate"); }
+
+
+        //  if ($('#Address').val() == "") { $('#Address').focus().addClass("validate"); $('#spanAddress').show().html('Please enter Address.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanAddress').hide().html(''); $('#Address').focus().removeClass("validate"); }
+
+        //if ($.trim($('#AAmount').val()) == '') { $('#AAmount').focus().addClass('redborder'); $('#spanAAmount').show().html('AAmount Required <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanAAmount').hide().html(''); $('#AAmount').removeClass("redborder"); }
+        //if (!IsNumeric($.trim($('#AAmount').val()))) { $('#spanAAmount').show().html('Please enter valid  Amount.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#AAmount').focus().addClass("red-border"); return false; } else { $('#spanAAmount').html(''); }
+        //if ($('#AAmount').val() <= 0) { $('#AAmount').focus().addClass('redborder'); $('#spanAAmount').show().html('Please enter valid amount.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanAAmount').hide().html(''); $('#AAmount').removeClass('redborder'); }
+
+        //if ($.trim($('#txtCaptcha').val()) == '') { $('#txtCaptcha').focus().addClass('redborder'); $('#spantxtCaptcha').show().html('Captcha Required <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spantxtCaptcha').hide().html(''); $('#txtCaptcha').removeClass('redborder'); }
+        //var str = Common.GetCaptcha();
+        //if ($('#txtCaptcha').val() != str) { $('#txtCaptcha').val(''); document.getElementsByName('DCaptcha')[0].placeholder = 'wrong captcha.'; $('#txtCaptcha').focus().addClass("validate"); return false; } else { $('#txtCaptcha').focus().removeClass("validate"); }
+
+
+
+        return true;
+    }*@
+
+    function BindState() {
+        print_state('State', $("#Country").val());
+    }
+
+    function CreloadCaptcha() {
+        document.getElementById('CUcaptcha').src = document.getElementById('CUcaptcha').src + '/';
+    }
+
+    function BillingNo1() {
+        var type = $('#BillingNo').val();
+
+        alert(type);
+        if (type == 0) {
+            // $('#EmployeeNumberShow').hide();
+            $('#film').show();
+
+
+            //alert(type);
+        }
+    }
+
+    function BillingYes1() {
+        var type = $('#SameBilling').val();
+        alert(type);
+        if (type == 1) {
+
+            $('#film').hide();
+            // alert(type);
+        }
+    }
+
+    function NoofPay1() {
+        var type = $('#FrequencyofDonation').val();
+        if (type == 'oneTimeDonation') {
+            $('#NoofPay').show();
+        }
+        else {
+            $('#NoofPay').show();
+
+        }
+
+    }
+
+    function PhoneNochange(event) {
+        if (event.keyCode == 8 || event.keyCode == 46) {
+        }
+        else {
+            var ph = $('#PhoneNo').val();
+            if (ph.length == 3) { $('#PhoneNo').val(ph + '-'); }
+            if (ph.length == 7) { $('#PhoneNo').val(ph + '-'); }
+        }
+    }
+
+    function RECAMTBIND() {
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            $('#RecurringAmount').val($('#round_no').val());
+        }
+    }
+
+    function AmountChange(AAmount) {
+        $('#OtherAmount').attr('readonly', 'readonly');
+        if (AAmount == '25') {
+            $('#Amount').val('25');
+            $('#Amount').html('25');
+        }
+        else if (AAmount == '50') {
+            $('#Amount').val('50');
+            $('#Amount').html('50');
+        }
+        else if (AAmount == '100') {
+            $('#Amount').val('100');
+            $('#Amount').html('100');
+        }
+        else if (AAmount == '250') {
+            $('#Amount').val('250');
+            $('#Amount').html('250');
+        }
+        else if (AAmount == '500') {
+            $('#Amount').val('500');
+            $('#Amount').html('500');
+        }
+        else if (AAmount == 'Other') {
+            $('#Amount').val('');
+            $('#Amount').html('0');
+            $('#OtherAmount').removeAttr('readonly');
+        }
+    }
+
+    function OtherNewAmount() {
+        alert(1);
+        var OtherAmount = $('#OtherAmount').val();
+
+        if (OtherAmount != '') {
+            $('#Amount').val(OtherAmount);
+            $('#Amount').html(OtherAmount);
+        }
+    }
+</script>
+<script type="text/javascript">
+
+    var specialKeys = new Array();
+    specialKeys.push(8); //Backspace
+    specialKeys.push(9); //Tab
+    specialKeys.push(32); //Space
+    specialKeys.push(46); //Delete
+    specialKeys.push(36); //Home
+    specialKeys.push(35); //End
+    specialKeys.push(37); //Left
+    specialKeys.push(39); //Right
+
+
+    function onlyAlphabets(e, t) {
+        try {
+            if (window.event) {
+                var charCode = window.event.keyCode;
+            }
+            else if (e) {
+                var charCode = e.which;
+            }
+            else { return true; }
+            if ((charCode == 32) || (charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123) || (specialKeys.indexOf(e.keyCode) != -1 && e.charCode != e.keyCode))
+                return true;
+            else
+                return false;
+        }
+        catch (err) {
+            alert(err.Description);
+        }
+    }
+
+    function getDonationamount() {
+
+        var DonationCategoryId = $('#DonationCategoryId').val();
+        $.ajax({
+            url: '@Url.Action("GetDonationAmount", "Donation")',
+            type: 'POST',
+            data: { DonationCategoryId: DonationCategoryId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objDonationCategories = result.data;
+                    $('#payamount').html(objDonationCategories.Price);
+                    $('#Amount').val(objDonationCategories.Price);
+
+                    if (objDonationCategories.Price != 0) {
+                        $('#Amount').attr('readonly', 'readonly');
+                    }
+                    else {
+                        $('#Amount').removeAttr('readonly');
+                    }
+
+                    total5 = 0;
+                    total5 = objDonationCategories.Price;
+                    total5 = parseInt(total5);
+                    $('#totalamount').html("$" + total5);
+                    $('#totalamount2').html("$" + total5);
+                    total5 = parseFloat(total5 + (total5 * parseInt(2) / 100)).toFixed(2);
+                    document.getElementById("total").innerHTML = "$" + (total5);
+                    $('#MemberAmount').val(total5);
+                    if (objDonationCategories.Validity != 0) {
+                        var d = new Date();
+                        d.setMonth((d.getMonth()) + objDonationCategories.Validity);
+                        $('#ExpiryDate').val(d.toDateString("MM/dd/yyyy"));
+                    } else { $('#ExpiryDate').val(0); }
+                }
+            }
+        });
+    }
+
+    function CreloadCaptcha() {
+        document.getElementById('CUcaptcha').src = document.getElementById('CUcaptcha').src + '/';
+    }
+
+</script>
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>Add Service Donations </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li><a href="@Url.Action("Index", "ServiceDonations")"><i class="fa fa-list-alt"></i>Service Donations</a></li>
+        <li class="active">Add Service Donations</li>
+    </ol>
+</div>
+<!--end breadcumb -->
+
+
+<div class="content">
+    <!-- Main content -->
+    <div id="divmessage">
+        @if (TempData["message"] != null)
+        {@Html.Raw(TempData["message"].ToString())}
+
+        @if (ViewBag.message != null)
+        {@Html.Raw(ViewBag.message.ToString())}
+    </div>
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("InsertDonation", "ServiceDonations", FormMethod.Post, new { name = "donateForm", id = "donateForm" }))
+    {
+        <input type="hidden" id="TotalPercent" value="100" />
+
+        <input type="hidden" id="ChapterId" name="ChapterId" value="@ChapterId" />
+        <input type="hidden" id="ServiceId" name="ServiceId" value="@ServiceId" />
+        <input type="hidden" id="MemberId" name="MemberId" value="@MemberId" />
+        <input type="hidden" id="DonationCause" name="DonationCause" value="@objServices.ServiceTitle" />
+        <input type="hidden" id="ServiceDonationId" name="ServiceDonationId" value="@ServiceDonationId" />
+
+        <!-------------------------------------------------------------------------------------------------->
+        <div class="clearfix l-r-m-auto">
+            <!------------------------------->
+            <div class="box validation">
+                <div class="box-body">
+                    @if (objServices.ServiceTitle == "General Donation")
+                    {
+                        <div class="clearfix t-b-p20 mobile-t-b-p10">
+                            <div class="clearfix lates-gray-bg p15" style="width:850px;">
+                                <table id="contributionfo" name="contributionfo" class="table table-bordered poppins-regular" cellspacing="0" cellpadding="0" border="1px;" width="100%">
+                                    <tbody>
+                                        <tr height="20">
+                                            <th height="25" width="65%" style="background-color:#06a14e;" align="left"><span class="white-t"> Active Cause </span></th>
+                                            <th width="25%" style="background-color:#06a14e;" align="left"><span class="white-t"> % Contribution </span></th>
+                                            <th width="10%" style="background-color:#06a14e;" align="center">#</th>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <button type="button" id="spp2" class="btn btn-danger Roboto-Regular t-t-u dis-in border-radius m5 l-r-p15 t-b-p5" style="float:right;" onClick="addCauseRow('tr2a','spp2','spp3','cass3','cass2','cause2')">+Add Cause...</button>
+
+                            </div>
+                        </div>
+
+                    }
+                </div>
+            </div>
+
+            <div class="box validation">
+                <div class="box-header" style="cursor: move;">
+                    <h3 class="box-title dis-in">Personal Details </h3>
+                </div>
+                <div class="box-body">
+                    <div class="clearfix  tabhorizontal-p10 validation">
+                        <div class="clearfix row">
+                            <div class="col-xs-12 col-lg-3 col-sm-6 position-r">
+                                <div class="clearfix r-p10 tabhorizontal-r-p5 mobile-r-p0">
+                                    <div class="clearfix">
+                                        <label class="Roboto-Regular font14">First Name <span class="red-t">*</span></label>
+
+                                        <input class="form-control" onchange="Validate();" name="FirstName" id="FirstName" placeholder="First Name *" onkeypress="return onlyAlphabets(event,this);" onclick="ResetValidateClass();" value="" type="text">
+                                        <span class="errormsg" id="spanFirstName"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6 position-r">
+                                <div class="clearfix l-p10 tabhorizontal-l-p5 mobile-l-p0">
+                                    <div class="clearfix">
+                                        <label class="Roboto-Regular font14">Last Name <span class="red-t">*</span></label>
+                                        <input class="form-control" onchange="Validate();" placeholder="Last Name" id="LastName" name="LastName" value="" type="text">
+                                        <span class="errormsg" id="spanLastName"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6 position-r">
+                                <div class="clearfix r-p10 tabhorizontal-r-p5 mobile-r-p0">
+                                    <div class="clearfix">
+                                        <label class="Roboto-Regular font14">Email Address<span class="red-t">*</span></label>
+                                        <input class="form-control" onchange="Validate();" placeholder="Email Address" id="Email" name="Email" value="" type="text">
+                                        <span class="errormsg" id="spanEmail"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6 position-r">
+                                <div class="clearfix l-p10 tabhorizontal-l-p5 mobile-l-p0">
+                                    <div class="clearfix">
+                                        <label class="Roboto-Regular font14">Phone Number <span class="red-t">*</span></label>
+                                        <input class="form-control"  onkeypress="PhoneNochange(event); return Common.isNumberKey(event);" maxlength="12" placeholder="PhoneNo" id="PhoneNo1" name="PhoneNo" type="text">
+                                        <span class="errormsg" id="spanPhoneNo"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="clearfix row mobile-b-p0 effectpart effecthidden effectvisible animated2 fadeIn">
+                            <div class="col-xs-12 col-lg-3 col-sm-6 position-r">
+                                <div class="clearfix r-p10 tablet-r-p5 mobile-r-p0">
+                                    <label class="Roboto-Regular font14">Country<span class="red-t"> *</span></label>
+                                    <div class="clearfix ">
+                                        <select class="form-control" id="Country" placeholder="Country" name="Country" onchange="BindState();">
+                                            <option value="">Select </option>
+                                            <option selected="selected" value="USA">USA </option>
+                                            <option value="India">India</option>
+                                            <option value="Canada">Canada</option>
+                                        </select>
+                                        <span class="errormsg" id="spanCountry"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6 position-r">
+                                <div class="clearfix l-p10 tabhorizontal-l-p5 mobile-l-p0">
+                                    <div class="clearfix">
+                                        <label class="Roboto-Regular font14">Zip Code<span class="red-t">*</span></label>
+                                        <input class="form-control" onchange="Validate();" placeholder="ZipCode" id="ZipCode" value="" maxlength="6" name="ZipCode" type="text">
+                                        <span class="errormsg" id="spanZipCode"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label> Is Ananymous: </label>
+                                <select class="form-control" name="Field3" id="Field3">
+                                    <option value="">Select</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+
+            <!---------->
+
+            <div class="box validation">
+                <div class="box-header" style="cursor: move;">
+                    <h3 class="box-title dis-in">Payment Info </h3>
+                </div>
+                <div class="box-body">
+
+                    <div class="clearfix t-p10">
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <div class="clearfix r-p10 tablet-r-p5 mobile-r-p0 position-r">
+                                    <label> Transaction Id </label>
+                                    <input type="text" class="form-control" placeholder="Transaction Id *" style="min-height: 40px;" name="TransactionId" id="TransactionId">
+                                    <span id="spanCardNumber" class="errormsg"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <div class="clearfix l-p10 tablet-l-p5 mobile-l-p0">
+                                    <label> Cheque No </label>
+                                    <input type="text" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" class="form-control" placeholder="Cheque No" style="min-height: 40px;" name="Cheque No" id="Cheque No">
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <div class="clearfix r-p10 tablet-r-p5 mobile-r-p0 position-r">
+                                    <label> Bank Name </label>
+                                    <input type="text" class="form-control" placeholder="Bank Name *" style="min-height: 40px;" name="KnowledgeAcurate" id="KnowledgeAcurate">
+                                    <span id="spanCardNumber" class="errormsg"></span>
+                                </div>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <div class="clearfix l-p10 tablet-l-p5 mobile-l-p0">
+                                    <label> Payment By </label>
+                                    <input type="text" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" class="form-control" placeholder="Payment By" style="min-height: 40px;" name="PaymentBy" id="PaymentBy">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row clearfix">
+                            <div class="col-xs-12 col-lg-12 col-sm-6">
+                                <div class="clearfix r-p10 tablet-r-p5 mobile-r-p0">
+                                    <div class="row clearfix">
+                                        <div class="col-xs-12 col-lg-3 col-sm-6">
+                                            <label>Amount  </label>
+                                            <input type="text" name="Amount" id="round_no" value="" onkeypress="return Common.isNumberKey(event);" onchange="RECAMTBIND();" onkeyup="round_off(this.value)" class="form-control" maxlength="9" style="">
+                                        </div>
+
+
+                                        <div class="col-xs-12 col-lg-3 col-sm-6">
+                                            <div class="clearfix r-p10 tablet-r-p5 mobile-r-p0 position-r">
+                                                <label>Payment Method  </label>
+                                                <div class="clearfix ">
+                                                    <select class="form-control" name="PaymentMethodId" id="PaymentMethodId">
+                                                        @if (lstPaymentMethod != null)
+                                                        {
+                                                            <option value="">Select</option>
+                                                            foreach (var item in lstPaymentMethod)
+                                                            {
+                                                                <option value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <span id="spanPaymentMethodId" class="errormsg"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-lg-3 col-sm-6 mobile-t-p10">
+                                            <div class="clearfix l-p10 tablet-l-p5 mobile-l-p0 position-r">
+                                                <label>Payment Status  </label>
+                                                <div class="clearfix ">
+                                                    <select class="form-control" name="PaymentStatusId" id="PaymentStatusId">
+                                                        @if (lstPaymentStatus != null)
+                                                        {
+                                                            <option value="">Select</option>
+                                                            foreach (var item in lstPaymentStatus)
+                                                            {
+                                                                <option value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                                                            }
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <span id="spanPaymentStatusId" class="errormsg"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-xs-12 col-lg-3 col-sm-6">
+                                            <div class="clearfix l-p10 tablet-l-p5 mobile-l-p0 position-r">
+                                                <label>Cheque Date  </label>
+                                                <input type="text" class="form-control" placeholder="Cheque Date " style="min-height: 40px;" name="OrderDate" id="OrderDate">
+                                                <span id="spanOrderDate" class="errormsg"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="box">
+                <!-- /.box-header -->
+                <div class="box-body text-right">
+                    <input type="submit" value="Submit" class="btn btn-primary" />
+                    <a class="btn btn-info" href="@Url.Action("Index", "ServiceDonations")">Cancel</a>
+                </div>
+                <!-- /.box-body -->
+            </div>
+
+            <!-------------------------------------------------------------------------------------------------->
+        </div>
+    }
+</div>
+<script>
+
+
+    $(document).ready(function () {
+        $.validator.addMethod("phoneFormat", function (value, element) {
+            if (value === "") {
+                return true;
+            }
+            var phoneNumber = value.replace(/\D/g, '');
+            var phoneNumberLength = phoneNumber.length;
+            if (phoneNumberLength >= 3 && phoneNumberLength <= 6) {
+                phoneNumber = phoneNumber.replace(/^(\d{3})(\d+)/, '$1-$2');
+            } else if (phoneNumberLength > 6) {
+                phoneNumber = phoneNumber.replace(/^(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+            }
+            $(element).val(phoneNumber);
+            var pattern = /^\d{3}-\d{3}-\d{4}$/;
+            return pattern.test(phoneNumber);
+        }, "Please enter format xxx-xxx-xxxx.");
+        var validateForm = $("#donateForm").validate({
+            rules: {
+                FirstName: "required",
+                LastName: "required",
+                Email: {
+                    required: true,
+                    email: {
+                        depends: function (element) {
+                            // Only validate if SpouseEmail is not null
+                            return $(element).val() !== null;
+                        },
+                        messages: "Please Enter Valid Email Address"
+                    }
+                },
+            
+                PhoneNo1: {
+                    required: true,
+                    phoneFormat: true
+                },
+                ServiceId: "required",
+
+            },
+            messages: {
+                FirstName: "Category Name is required",
+                LastName: "required",
+                Email: {
+                    required: "Please enter your event contact email",
+                    validate_email: "Please Enter Valid Email Address",
+
+                },
+                PhoneNo1: {
+                    required: "Please Enter Phone Number",
+                    phoneFormat: "Please Enter Valid Phone Number",
+                },
+                ServiceId: "Please Select Donation Cause",
+
+                
+            },
+          
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormWebBanners')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+    });
+
+
+</script>

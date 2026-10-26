@@ -1,0 +1,652 @@
+﻿@{
+
+
+    ViewBag.Pageheading = "Sponsors";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    List<AWS_AssociationToolCore.Entities.SponsorCategories> lstSponsorCategories = ViewBag.lstSponsorCategories;
+
+    var SponsorCategoryId = ViewBag.SponsorCategoryId;
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status1);
+    int status = 0;
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+    var imgloc = objAppInfo.BaseUrl + "Content/Sponsors/thumb/";
+
+
+
+
+    var Test = objPhotosImageSettings.Sponsorsize; // Assuming objPhotosImageSettings.Eventsize is a string
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+
+        // Now you can use value1 and value2 as integers
+    }
+    else
+    {
+        // Handle the case where the split didn't produce two parts
+        // This could happen if the input string doesn't contain '*'
+        // or if there are more than one '*' characters in the string
+    }
+
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+
+    
+}
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("SponsorsList", "Sponsors")',
+            data: {
+                IsEdit    : '@ViewBag.IsEdit',
+                IsView    : '@ViewBag.IsView',
+                IsDelete  : '@ViewBag.IsDelete',
+                IsExport  : '@ViewBag.IsExport',
+                IsAdd     : '@ViewBag.IsAdd',
+                Mid       : '@ViewBag.mid',
+                                SponsorCategoryId       : '@SponsorCategoryId',
+
+                ChapterId : '@(ViewBag.ChapterId == null || ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId)'
+            },
+            success: function (data) {
+                $("#divSponsors").html(data);
+            },
+            error: function () {
+                $("#divSponsors").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+
+<link href="Content/Admin/Css/cropper-styles.min.css" rel="stylesheet" />
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wGallery, #wMedia').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        PagerClickBind();
+        //$('#CropImage').dialog({
+        //    autoOpen: false,
+        //    width: 600,
+        //    modal: true
+        //});
+    });
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1);
+    }
+
+
+    function Onload(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = ($.trim($('#txtsearch').val()));
+        var SponsorCategoryId = $('#SponsorCategoryId1').val();
+
+        $.ajax({
+            url: '@Url.Action("SponsorsList", "Sponsors")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, SponsorCategoryId: SponsorCategoryId, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid' },
+            success: function (result) {
+                $('#divSponsors').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Onload($(this).text());
+        });
+    }
+
+    function EditSponsor(Id) {
+        var imgloc = $('#imgloc').val();
+        $.ajax({
+            url: '@Url.Action("EditSponsor", "Sponsors")',
+            type: 'POST',
+            data: { SponsorId: Id },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objSponsor = result.data;
+                    $('#RedirectUrl').val(objSponsor.RedirectUrl);
+                    $('#DisplayOrder').val(objSponsor.DisplayOrder);
+                    $('#SponsorCategoryId').val(objSponsor.SponsorCategoryId);
+                    $('#Target').val(objSponsor.Target);
+                    $('#SponsorId').val(objSponsor.SponsorId);
+                      $('#img-tag').css('display','block');
+                   // $('#WebsiteBannerId').val(objWebsiteBanners.WebsiteBannerId);
+
+                     // Call the ValidateImage function with imgloc and BannerUrl
+                    // var imageUrl = '@AWS_AssociationToolCore.BLL.Common.ValidateImage("' + imgloc + '", " objSponsor.LogoUrl + ")';
+                     if (objSponsor.LogoUrl && objSponsor.LogoUrl !== "") {
+                        var imageUrl = imgloc + objSponsor.LogoUrl;
+
+                        $('#test1').attr('src', imageUrl);
+                        $('#img-tag').show();
+
+                        // ✅ Remove validation error for file input
+                        $("#file").removeClass("is-invalid");
+                        $("#file-error").remove();
+                    }
+                    else {
+                        $('#test1').attr('src', '');
+                        $('#img-tag').hide();
+                    }
+                    // var imageUrl = imgloc + objSponsor.LogoUrl;
+
+
+                       // Set the src attribute of the img element with id 'test1'
+                     // $('#test1').attr('src', imageUrl);
+
+                    $('#AddSponsors').modal("show");
+                    $('#lbltitle').html('Edit Sponsor');
+
+                    $('#spanTarget').html('');
+                    $('#spanAspanfile').html('');
+                    $('#spanLogoUrl').html('');
+                    $('#spanDisplayOrder').html('');
+                    $('#spanSponsorCategoryId').html('');
+                    $('#spanRedirectUrl').html('');
+                    // Remove validation error in edit mode
+$('#file').removeClass('is-invalid');
+$('#file-error').remove();
+                    $('#DisplayOrder').focus().removeClass("red-border");
+                   /* $('#RedirectUrl').focus().removeClass("red-border");*/
+                    $('#Target').focus().removeClass("red-border");
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                }
+            }
+        });
+    }
+
+
+
+    $(document).ready(function () {
+
+        $("#BannerUrl").change(function () {
+            validateBannerUrl();
+        });
+
+        function validateBannerUrl() {
+            $("#FormWebBanners").validate().resetForm();
+            $("#FormWebBanners").validate().element("#BannerUrl");
+        }
+
+        $.validator.addMethod("validImageExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                var allowedExtensions = ["jpg", "png", "gif", "jpeg"];
+                var fileName = element.files[0].name;
+                var extension = fileName.split('.').pop().toLowerCase();
+                return $.inArray(extension, allowedExtensions) !== -1;
+            }
+            return true;
+        }, "Only allowed extensions are: jpg, png, gif, jpeg");
+
+
+        var validateForm = $("#FormWebBanners").validate({
+
+            rules: {
+                LogoUrl: "required",
+                SponsorCategoryId: "required",
+                file: {
+            required: function () {
+                return $('#SponsorId').val() == "0";
+            },
+            validImageExtension: true
+        },
+            },
+            messages: {
+                LogoUrl: "required",
+                SponsorCategoryId: "Category is required",
+               file: {
+            required: "Please Select An Image File",
+            validImageExtension: "Invalid file type. Only jpg, png, gif, jpeg files are allowed."
+        }
+            },
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormWebBanners')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+    });
+
+
+
+    function Add() {
+        clearInnerPageCategory();
+        $("#AddSponsors").modal("show");
+        $('#lbltitle').html('Add Sponsor');
+    }
+
+    function clearInnerPageCategory() {
+        $('#SponsorId').val('0');
+        $('#LogoUrl').val('');
+        $('#DisplayOrder').val('');
+        $('#RedirectUrl').val('');
+        $('#Target').val('');
+        $('#spanTarget').html('');
+        $('#spanAspanfile').html('');
+        $('#spanLogoUrl').html('');
+        $('#spanSponsorCategoryId').html('');
+        $('#spanDisplayOrder').html('');
+        $('#spanRedirectUrl').html('');
+        $('#Aspanfile').focus().removeClass("red-border");
+        $('#DisplayOrder').focus().removeClass("red-border");
+        $('#RedirectUrl').focus().removeClass("red-border");
+        $('#Target').focus().removeClass("red-border");
+
+    }
+ 
+    function ClearSearch() {
+       
+        $('#txtsearch').val('');
+       // $('#SponsorCategoryId1').val('');
+        Onload(1);
+    }
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#blah')
+                    .attr('src', e.target.result)
+                    .width(@value1)
+                    .height(@value2);
+                $('#image').attr('src', e.target.result);
+                $('#divimage').show();
+                $('#noimagetext').hide();
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+
+</script>
+<style>
+    #file-error {
+        margin: 0;
+    }
+
+    #SponsorCategoryId-error {
+        margin: 0;
+        margin-bottom: 0px;
+        padding: 0;
+        margin-bottom: 5px;
+    }
+</style>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="SponsorId" />
+<input id="hdnsortcolumn" type="hidden" value="SponsorCategoryId" />
+<input id="hdnsortorder" type="hidden" value="ASC" />
+<input type="hidden" id="hdnimgvalidate" value="0" />
+
+<!--<div class="modal fade" id="CropImage" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crop Thumb Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <article class="result"></article>
+                <article class="options">
+                    <input type="hidden" class="img-w" value="@value1" />
+                    <input type="hidden" class="img-h" value="@value1" />
+                </article>
+                <article class="clearfix t-c t-b-m15 l-r-m-auto" style="text-align:center;">-->
+                    <!-- Here 'save' class should use for button -->
+                    <!--<a class="white-t border0 shadow t-b-p15 l-r-p20 t-t-u Poppins-SemiBold font18 border-radius25 save" style="background-color: #e35558;">Save Thumb</a>
+                </article>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary save">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>-->
+
+<!--<section id="CropImage" style="display: none; overflow: visible; padding: 0; border: none!important;">
+    <article class="clearfix dialog-title">
+        <article class="clearfix white-bg" style="border: 0!important;">
+            <span class="pull-right r-p10 t-p10">
+                <a class="cursor-p dk1-t" onclick=" $('#CropImage').dialog('close')">
+                    <img class="red-t" src="Content/User/images/popup-close.png" width="12" height="12" alt="" />
+                </a>
+            </span>
+            <article class="clearfix l-r-p50 mobile-l-r-p20 t-b-p15">
+                <article class="clearfix dialog-title t-c white-bg t-p25">
+                    <h2 class="clearfix t-b-m0 vi-t  Montserrat-Regular font24 mobile-font22 t-t-u">Crop Thumb Image </h2>
+                </article>
+                <article class="clearfix dialog-content  t-b-m10">-->
+                    <!-- This section will use only for Image Dimentions to crop [Start]-->
+                    <!--<article class="result"></article>
+                    <article class="options">
+                        <input type="hidden" class="img-w" value="@value1" />
+                        <input type="hidden" class="img-h" value="@value1" />
+                    </article>
+                    <article class="clearfix t-c t-b-m15 l-r-m-auto" style="text-align:center;">-->
+                        <!-- Here 'save' class should use for button -->
+                        <!--<a class="white-t border0 shadow t-b-p15 l-r-p20 t-t-u Poppins-SemiBold font18 border-radius25 save" style="background-color: #e35558;">Save Thumb</a>
+                    </article>-->
+                    <!-- This section will use only for Image Dimentions to crop [End]-->
+                <!--</article>
+            </article>
+        </article>
+    </article>
+</section>-->
+
+
+
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+            @*<div class="d-flex flex-wrap cmn-btn-group-hover  cmn-btn-group tabs-btn" style="gap:10px">
+
+
+                <a class="cmn-btn bdr-btn1 " href="@Url.Action("Index", "Sponsors", new { mid = Mid})">Sponsors</a>
+                <a class="cmn-btn bdr-btn1 " href="@Url.Action("SponsorCategory", "Sponsors", new { mid = Mid })">Sponsor Categories</a>
+
+
+            </div>*@
+
+            <div class="col-lg-3 col-md-3 col-6">
+                <div class="input-box">
+                    <label class="form-label">Category</label>
+                    <select class="single-select" id="SponsorCategoryId1" name="SponsorCategoryId1">
+                        <option value="">Select Category</option>
+                        @if (lstSponsorCategories != null)
+                        {
+                            <option value="">-- Select --</option>
+                            foreach (var item in lstSponsorCategories)
+                            {
+                                <option @(item.SponsorCategoryId == SponsorCategoryId ? "selected='selected'" : "") value="@item.SponsorCategoryId">@item.CategoryName</option>
+                            
+                                
+                                }
+                        }
+
+                    </select>
+                </div>
+            </div>
+
+            <div class="ol-lg-3 col-md-3 col-6">
+                <div>
+                    <label>&nbsp;</label>
+                </div>
+
+               
+                <button type="button" class="btn btn-primary px-3" onclick="Onload(1)">Search</button>
+                <button type="submit" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+            </div>
+            <div class="col-lg-2 col-4 text-end ms-auto">
+                <div class="btn-align">
+                    @if (IsAdd == true )
+                    {
+                        <button type="button" class="btn btn-primary" onclick="Add();">Add Sponsor</button>
+                        @*<a href="create-menu-item.html" class="btn btn-success px-3   "><i class="bi bi-plus-circle m-0"></i> Add Menu Item</a>*@
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end breadcrumb-->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+    <div class="modal fade" id="AddSponsors" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("AddSponsors", "Sponsors", FormMethod.Post, new { enctype = "multipart/form-data", style = "margin-bottom:0", @id = "FormWebBanners", @name = "FormWebBanners" }))
+            {
+
+                <input type="hidden" id="imgloc" value="@objAppInfo.AdminImageUrl/Sponsors/thumb/" />
+
+                <input type="hidden" id="SponsorId" name="SponsorId" value="0" />
+
+                <input type="hidden" id="mid" name="mid" value="@Mid" />
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-2">
+                            <div class="col-lg-12">
+                                <div class="input-box">
+                                    <label class="form-label">Image<span class="text-danger">*</span></label>
+                                   
+                                    <div class="position-relative">
+                                        <input type="file" id="file" class="item-img file center-block browse form-control" name="file" />
+                                    </div>
+
+                                    <div class="alert bg-light my-2 p-2" style="font-size:12px">
+                                        <span class="text-center" style="color: #f00; font-size: 15px; display:inline-block;font-weight:600">Note :</span> Image size should be maintained width * height (482 * 932)
+                                    </div>
+
+                                    <!--<div style="font-size:13px; line-height:26px;">
+        <span style="color:#ff0000; text-decoration:underline; font-weight:600">Note :</span> <b style="color: #f00; font-size: 15px"></b> Image size should be maintained width * height (@objPhotosImageSettings.Sponsorsize)<br>
+
+        <span><b>1)</b>&nbsp;To resize Banners width &amp; height, please use <a href="https://picresize.com/" target="_blank">picresize.com</a>. </span><br>
+        <span><b>2)</b>&nbsp;To Optimize Banners width &amp; height, please use <a href="https://imagecompressor.com/" target="_blank">imagecompressor.com</a>. </span>
+    </div>-->
+                                    <div class="confirm-identity">
+                                        <div class="ci-user d-flex align-items-center justify-content-center">
+                                            <div class="ci-user-picture" style="display: none;">
+                                                <input type="hidden" id="Thumbimage" name="Thumbimage">
+                                                <img src=""  id="item-img-output" class="imgpreviewPrf img-fluid" alt="">
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+                                <div class="mt-3" id="img-tag" style="display:none">
+                                    <label>Banner Image</label>
+                                    <img src="" style="width:100px;"  id="test1" />
+                                </div>
+                            </div>
+
+
+
+                            <div class="col-lg-6 ">
+                                <div class="input-box">
+                                    <label class="form-label">Category</label>
+                                    <select class="form-control" id="SponsorCategoryId" name="SponsorCategoryId">
+                                        <option value="">Select Category</option>
+                                        @if (lstSponsorCategories != null)
+                                        {
+                                            <option value="">-- Select --</option>
+                                            foreach (var item in lstSponsorCategories)
+                                            {
+                                                <option @(item.SponsorCategoryId == SponsorCategoryId ? "selected='selected'" : "") value="@item.SponsorCategoryId">@item.CategoryName</option>
+
+                                            }
+                                        }
+
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Display Order</label>
+                                    <input type="text" class="form-control" onkeypress="return Common.isNumberKey(event)" id="DisplayOrder" name="DisplayOrder" placeholder="Display Order">
+                                </div>
+                            </div>
+
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Link Target</label>
+                                    <select class="form-control" id="Target" name="Target">
+                                        <option value="">Select Target Link</option>
+                                        <option value="">--Select--</option>
+                                        <option value="_blank">Blank</option>
+                                        <option value="_parent">Parent</option>
+
+                                    </select>
+                                </div>
+                            </div>
+
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Redirect Url</label>
+                                    <input type="text" class="form-control" id="RedirectUrl" name="RedirectUrl" placeholder="Redirect Url">
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>}
+        </div>
+    </div>
+
+
+
+
+    <div id="divSponsors" class="clearfix">
+
+    </div>
+</div>
+
+
+
+<script>
+    var _URL = window.URL || window.webkitURL;
+    $("#LogoUrl").change(function (e) {
+        var file, img;
+        if ((file = this.files[0])) {
+            img = new Image();
+            img.onload = function () {
+                if (this.width == 950 && this.height == 450) {
+                    $('#hdnimgvalidate').val('1');
+                }
+                else {
+                    $('#hdnimgvalidate').val('0');
+                }
+            };
+            img.src = _URL.createObjectURL(file);
+        }
+    });
+
+</script>
+
+<script src="Scripts/Admin/cropper-js-min.js" type="text/javascript"></script>
+
+
+
+
+
+
+
+
+
+
+
+

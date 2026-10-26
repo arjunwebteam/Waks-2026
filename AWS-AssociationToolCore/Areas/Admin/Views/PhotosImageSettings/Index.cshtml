@@ -1,0 +1,284 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = ViewBag.objPhotosImageSettings;
+
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wOthers').addClass('active');
+        $('#wPhotosImageSettings').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+    function ValidateApplication() {
+
+        var returnval = true;
+
+        if ($('#SiteName').val() == '') { $('#SiteName').focus().addClass("validate"); returnval = false; } else { $('#SiteName').focus().removeClass("validate"); }
+        if ($('#CompanyAddress').val() == '') { $('#CompanyAddress').focus().addClass("validate"); returnval = false; } else { $('#CompanyAddress').focus().removeClass("validate"); }
+        if ($('#CompanyWebSite').val() == '') { $('#CompanyWebSite').focus().addClass("validate"); returnval = false; } else { $('#CompanyWebSite').focus().removeClass("validate"); }
+        if ($('#CompanyEmail').val() == '') { $('#CompanyEmail').focus().addClass("validate"); returnval = false; }
+        else {
+            $('#CompanyEmail').focus().removeClass("validate");
+            if (!Common.CheckEmail($('#CompanyEmail').val())) { $('#CompanyEmail').val(''); document.getElementsByName('CompanyEmail')[0].placeholder = 'Please enter valid email.'; $('#CompanyEmail').focus().addClass("validate"); returnval = false; } else { $('#CompanyEmail').focus().removeClass("validate"); }
+        }
+        //if ($('#CompanyPhone').val() == '') { $('#CompanyPhone').focus().addClass("validate"); returnval = false; } else { $('#CompanyPhone').focus().removeClass("validate"); }
+        //if ($('#CustomerCareNumber').val() == '') { $('#CustomerCareNumber').focus().addClass("validate"); returnval = false; } else { $('#CustomerCareNumber').focus().removeClass("validate"); }
+
+        return returnval;
+    }
+
+    function ResetValidateClass() {
+        $('#SiteName').removeClass("validate");
+        $('#CompanyAddress').removeClass("validate");
+        $('#CompanyWebSite').removeClass("validate");
+        $('#CompanyEmail').removeClass("validate");
+        $('#CompanyPhone').removeClass("validate");
+    }
+
+    function phonenochange(event) {
+        if (event.keyCode == 8 || event.keyCode == 46) {
+        }
+        else {
+            var ph = $('#CompanyPhone').val();
+            if (ph.length == 3) { $('#CompanyPhone').val(ph + '-'); }
+            if (ph.length == 7) { $('#CompanyPhone').val(ph + '-'); }
+        }
+    }
+</script>
+@using (Html.BeginForm("UpdatePhotosImageSettings", "PhotosImageSettings", FormMethod.Post, new { enctype = "multipart/form-data", @id = "PhotosImageForm", @name = "PhotosImageForm" }))
+{
+
+<input type="hidden" name="PhotosSettingsid" id="PhotosSettingsid" value="@(objPhotosImageSettings.PhotosSettingsid)" />
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in">Photos Image Settings</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Event Image Size: </label>
+                                <input type="text" placeholder="Event Image Size" class="form-control" value="@objPhotosImageSettings.Eventsize" name="Eventsize" id="Eventsize" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Photo Image Size :</label>
+                                <input type="text" placeholder="Photo Image Size" class="form-control" value="@objPhotosImageSettings.Photosize" name="Photosize" id="Photosize" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Sponsor Image size :</label>
+                                <input type="text" placeholder="Sponsor Image size" class="form-control" value="@objPhotosImageSettings.Sponsorsize" name="Sponsorsize" id="Sponsorsize" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();">
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Banner Image size: </label>
+                                <input type="text" placeholder="Banner Image size" class="form-control" value="@objPhotosImageSettings.Bannersize" name="Bannersize" id="Bannersize" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">News Image size :</label>
+                                <input type="text" placeholder="News Image size" class="form-control" value="@objPhotosImageSettings.Newssize" name="Newssize" id="Newssize" onclick="ResetValidateClass();">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">committee Image size :</label>
+                                <input type="text" placeholder="committee Image size" class="form-control" value="@objPhotosImageSettings.committeesize" name="committeesize" id="committeesize" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in">Additional Settings </h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Is QRCode enable?:</label>
+                                <select id="Field1" class="form-control" name="Field1" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.Field1 == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.Field1 == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Add Emails to Brevo : :</label>
+                                <select id="Field2" class="form-control" name="Field2" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.Field2 == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.Field2 == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Is Promo Code enable?:</label>
+                                <select id="Field3" class="form-control" name="Field3" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.Field3 == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.Field3 == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Is Cultural enable? :</label>
+                                <select id="IsCultural" class="form-control" name="IsCultural" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.IsCultural == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.IsCultural == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Is Sports enable? :</label>
+                                <select id="IsSports" class="form-control" name="IsSports" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.IsSports == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.IsSports == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Is Help document?:</label>
+                                <select id="IsHelpDocument" class="form-control" name="IsHelpDocument" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.IsHelpDocument == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.IsHelpDocument == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Is Sports enable? :</label>
+                                <select id="IsSports" class="form-control" name="IsSports" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.IsSports == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.IsSports == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Is Features document? :</label>
+                                <select id="IsFeaturesDocument" class="form-control" name="IsFeaturesDocument" onclick="ResetValidateClass();">
+                                    <option value="">- Select -</option>
+                                    <option @(objPhotosImageSettings.IsFeaturesDocument == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objPhotosImageSettings.IsFeaturesDocument == "No" ? "selected=selected" : "") value="No">No</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                             
+                                <label class="form-label">Time Zone : (Enter time zones in comma(,) seperated):</label>
+                                <input type="text" placeholder="TimeZone" class="form-control" value="@objPhotosImageSettings.TimeZone" name="TimeZone" id="TimeZone" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+   
+
+    <div class="row">
+        <div class="col-lg-2 col-3 text-end ms-auto">
+            <button type="submit" class="btn btn-success px-3">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+        </div>
+    </div>
+}
+
+<script>
+
+    $(document).ready(function () {
+
+        $("#PhotosImageForm").validate({
+            
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+</script>

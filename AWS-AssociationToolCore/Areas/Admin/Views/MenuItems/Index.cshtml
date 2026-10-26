@@ -1,0 +1,234 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewBag.Pageheading = "Menu Items";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var lstChapters = ViewBag.lstChapters as List<AWS_AssociationToolCore.Entities.Chapters>;
+    var lstPageDetails = ViewBag.lstPageDetails as List<AWS_AssociationToolCore.Entities.PageDetails>;
+
+    long ChapterId = ViewBag.ChapterId ?? 0;
+    long Mid = ViewBag.mid ?? 0;
+
+    // ✅ Session handling (SAFE)
+    bool IsEdit = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsEdit") ?? "false");
+    bool IsView = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsView") ?? "false");
+    bool IsDelete = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsDelete") ?? "false");
+    bool IsExport = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsExport") ?? "false");
+    bool IsAdd = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsAdd") ?? "false");
+
+    string userRole = HttpContextAccessor.HttpContext.Session.GetString("userrole") ?? "";
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+}
+
+<script>
+    $(document).ready(function () {
+
+        $('#wWebPages, #wMenuItems').addClass('active');
+
+        loadMenuItems(); // ✅ load data on page load
+
+        $('.alert-danger').append('<button class="close" data-dismiss="alert">×</button>');
+        $('.alert-success').append('<button class="close" data-dismiss="alert">×</button>');
+    });
+
+    function loadMenuItems() {
+
+        var ChapterId = $('#ChapterId').val();
+
+        $.get('@Url.Action("MenuItemsList", "MenuItems")', {
+            IsEdit: '@IsEdit',
+            IsView: '@IsView',
+            IsDelete: '@IsDelete',
+            IsExport: '@IsExport',
+            IsAdd: '@IsAdd',
+            Mid: '@Mid',
+          ChapterId : '@(ChapterId == 0 ? 1 : ChapterId)'
+
+        }, function (data) {
+            $('#divMenuItemsList').html(data);
+        });
+    }
+
+    function ClearSearch() {
+    $('#ChapterId').val('1').trigger('change');
+    MenuItemsBind(1);
+    }
+</script>
+
+<div class="card">
+    <div class="card-header">
+        
+        <div class="row">
+            @if (objAppInfo.chapterStatus == "Yes")
+            {
+            <div class="col-lg-3">
+                <label>Search by Chapter</label>
+                <select class="form-control" id="ChapterId">
+                    @if (lstChapters != null)
+                    {
+                        foreach (var item in lstChapters)
+                        {
+                            <option value="@item.ChapterId"
+                                    selected="@(item.ChapterId == ChapterId)">
+                                @item.ChapterName
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            
+
+            <div class="col-lg-3 mt-4">
+                <button class="btn btn-primary" onclick="MenuItemsBind(1)">Search</button>
+                <button class="btn btn-danger" onclick="ClearSearch()">Clear</button>
+                </div>
+                }
+
+            <div class="col-lg-2 col-4 text-end ms-auto">
+                @if (IsAdd == true)
+                {
+                    <a class="btn btn-primary"
+                       href="@Url.Action("CreateMenuItems", "MenuItems", new { ChapterId = ChapterId, mid = Mid })" style="margin-top: 27px; ">
+                        Add Menu Item
+                    </a>
+                }
+              
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ✅ AJAX LOAD RESULT HERE -->
+    <div id="divMenuItemsList">
+
+    </div>
+</div>
+
+<!-- ✅ MODAL -->
+<div class="modal fade" id="AddMenuPages" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        @using (Html.BeginForm("AddMenuPages", "MenuPages", FormMethod.Post))
+        {
+            <input type="hidden" id="AMenuItemId" name="MenuItemId" value="0" />
+            <input type="hidden" id="AMenuPageId" name="MenuPageId" value="0" />
+            <input type="hidden" id="Mid" name="Mid" value="@Mid" />
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+
+                        <div class="col-lg-12 col-md-6">
+                            <div class="input-box">
+                                <label>Select Page</label>
+                                <select id="APageDetailId" class="m-single-select" name="PageDetailId">
+                                    <option value="">Select</option>
+                                    @if (lstPageDetails != null)
+                                    {
+                                        foreach (var item in lstPageDetails)
+                                        {
+                                            <option value="@item.PageDetailId">@item.Heading</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" onclick="return Validate()" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+}
+    </div>
+</div>
+
+<script>
+            function Validate() {
+
+            if ($('#APageDetailId').val() == '') { $('#spanAPageDetailId').html('Required.'); $('#APageDetailId').focus(); return false; } else { $('#spanAPageDetailId').html(''); $('#APageDetailId').focus(); }
+
+            return true;
+    }
+    function validateForm() {
+
+        if ($('#APageDetailId').val() === '') {
+            $('#spanAPageDetailId').text('Required');
+            return false;
+        }
+
+        return true;
+    }
+
+    function AddPageToItem(itemid, chapterId) {
+        $('#AMenuItemId').val(itemid);
+        $('#APageDetailId').val('');
+        $('#AddMenuPages').modal('show');
+        $('#lbltitle').text('Add Page to Item');
+    }
+        function MenuItemsBind() {
+
+        var Type = $('#Type').val();
+        // FIX: safely read ChapterId, default to 1 if missing/0/empty
+        var ChapterId = $('#ChapterId').val();
+        ChapterId = (!ChapterId || ChapterId == "0" || ChapterId == "") ? 1 : parseInt(ChapterId);
+
+        if (Type == 'IsFooterBar') {
+            var IsFooterBar = true;
+        }
+        else if (Type == 'IsMenuBar') {
+            var IsMenuBar = true;
+        }
+        else if (Type == 'IsQuickLinks') {
+            var IsQuickLinks = true;
+        }
+
+
+        $.ajax({
+            type: "GET",
+            cache: false,
+            url: '@Url.Action("MenuItemsList", "MenuItems")',
+            data: { ChapterId: ChapterId, IsFooterBar: IsFooterBar, IsMenuBar: IsMenuBar, IsQuickLinks:IsQuickLinks , IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid' }, // optional data
+            success: function (result) {
+                $('#divMenuItemsList').html(result);
+                }
+            });
+        }
+
+    function EditMenuPages(MenuPagesId) {
+
+        $.ajax({
+            url: '@Url.Action("EditMenuPages", "MenuPages")',
+            type: 'POST',
+            data: { MenuPagesId: MenuPagesId },
+            datatype: "JSON",
+            success: function (result) {
+                    if (result.ok) {
+                        var objMenuPages = result.data;
+                    $('#AMenuPageId').val(objMenuPages.MenuPageId);
+                    $('#AMenuItemId').val(objMenuPages.MenuItemId);
+                    $('#APageDetailId').val(objMenuPages.PageDetailId);
+                    $('#lbltitle').html('Change Page to Item');
+                    $('#hdnPageDetails').html('Change Page to Item');
+
+                    $("#AddMenuPages").modal("show");
+                    }
+                    else {
+                        alert(result.data);
+                    }
+                }
+            });
+        }
+</script>

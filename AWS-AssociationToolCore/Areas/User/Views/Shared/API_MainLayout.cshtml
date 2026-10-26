@@ -1,0 +1,710 @@
+﻿@using Microsoft.AspNetCore.Http
+@using Microsoft.AspNetCore.Http.Extensions
+@inject IHttpContextAccessor HttpContextAccessor
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var baseurl = objAppInfo.BaseUrl;
+    var adminurl = objAppInfo.BaseUrl;
+
+    // ✅ Fix 1: ConfigurationManager → Configuration
+    var HomeUrl = Configuration["HomeUrl"];
+
+    // ✅ Fix 2: Request.Url.AbsoluteUri → GetDisplayUrl()
+    string refurl = Context.Request.GetDisplayUrl();
+    refurl = refurl.Replace(baseurl, "");
+
+    var location = objAppInfo.AdminImageUrl + "MemberProfileImages/";
+    var objuser = new AWS_AssociationToolCore.Entities.Users();
+
+    AWS_AssociationToolCore.Entities.PageDetails objInnerPages = new AWS_AssociationToolCore.Entities.PageDetails();
+    AWS_AssociationToolCore.Entities.PageDetails objPInnerPages = new AWS_AssociationToolCore.Entities.PageDetails();
+    List<AWS_AssociationToolCore.Entities.News> lstNews = new List<AWS_AssociationToolCore.Entities.News>();
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems = new List<AWS_AssociationToolCore.Entities.MenuItems>();
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems2 = new List<AWS_AssociationToolCore.Entities.MenuItems>();
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems3 = new List<AWS_AssociationToolCore.Entities.MenuItems>();
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems4 = new List<AWS_AssociationToolCore.Entities.MenuItems>();
+    List<AWS_AssociationToolCore.Entities.MenuItems> FooterMenuItems = new List<AWS_AssociationToolCore.Entities.MenuItems>();
+    List<AWS_AssociationToolCore.Entities.MenuItems> MenuItems = new List<AWS_AssociationToolCore.Entities.MenuItems>();
+    List<AWS_AssociationToolCore.Entities.Events> lstEvents = new List<AWS_AssociationToolCore.Entities.Events>();
+    List<AWS_AssociationToolCore.Entities.Photos> lstPhotos = ViewBag.lstPhotos;
+    List<AWS_AssociationToolCore.Entities.Videos> lstVideos = ViewBag.lstVideos;
+    AWS_AssociationToolCore.Entities.PageDetails objChapterInnerPages = new AWS_AssociationToolCore.Entities.PageDetails();
+    AWS_AssociationToolCore.Entities.PageDetails objAksharaInnerPages = new AWS_AssociationToolCore.Entities.PageDetails();
+
+    var imglocEvent = objAppInfo.AdminImageUrl + "events/banners/";
+
+    List<AWS_AssociationToolCore.Entities.Sponsors> lstSponsors = new List<AWS_AssociationToolCore.Entities.Sponsors>();
+    List<AWS_AssociationToolCore.Entities.SponsorCategories> lstSponsorCategories = new List<AWS_AssociationToolCore.Entities.SponsorCategories>();
+    List<AWS_AssociationToolCore.Entities.Sponsors> lstMediaSponsors = new List<AWS_AssociationToolCore.Entities.Sponsors>();
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = new List<AWS_AssociationToolCore.Entities.Chapters>();
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstQuickLinkItems = new List<AWS_AssociationToolCore.Entities.MenuItems>();
+    AWS_AssociationToolCore.Entities.Chapters objcChapters = new AWS_AssociationToolCore.Entities.Chapters();
+    AWS_AssociationToolCore.BLL.Chapters _Chapters = new AWS_AssociationToolCore.BLL.Chapters();
+    AWS_AssociationToolCore.Entities.PageDetails objseodetails = new AWS_AssociationToolCore.Entities.PageDetails();
+
+    int Status = 0;
+    int AStatus = 0;
+    Int64 ChapterId = 0;
+    var cname = "";
+    string ChapterName = "";
+
+    cname = ViewBag.cname;
+
+    int qstatus = 0;
+
+    // ✅ Declare outside if block
+    var userroles = Context.Session.GetString("UserRole") ?? "";
+
+    if (!string.IsNullOrEmpty(cname))
+    {
+        objcChapters = _Chapters.GetChaptersListByName(cname, ref qstatus);
+        ChapterName = cname;
+    }
+
+    ChapterId = objcChapters.ChapterId;
+
+    if (ChapterId == 0)
+    {
+        ChapterId = 1;
+        ChapterName = "global";
+    }
+
+    // ✅ Extract last segment from Request.Path
+    string path = Context.Request.Path;
+    string headingName = "";
+
+    if (path.StartsWith("/api-"))
+    {
+        path = path.Replace("api-", "");
+    }
+
+    if (!string.IsNullOrEmpty(path))
+    {
+        var segments = path.Trim('/').Split('/');
+        if (segments.Length > 2)
+        {
+            headingName = segments[2];
+        }
+        if (segments.Length > 0)
+        {
+            headingName = segments.Last();
+        }
+    }
+
+    objInnerPages = _AppInfo.FEGetListMainLayout(
+        ChapterId,
+        headingName,
+        this.User.Identity.Name,
+        ref lstNews,
+        ref lstSponsors,
+        ref lstSponsorCategories,
+        ref objAppInfo,
+        ref lstMenuItems, ref lstMenuItems2, ref lstMenuItems3, ref lstMenuItems4, ref FooterMenuItems,
+        ref objPInnerPages,
+        ref lstEvents,
+        ref objChapterInnerPages,
+        ref objAksharaInnerPages,
+        ref lstMediaSponsors,
+        ref lstChapters,
+        ref lstQuickLinkItems,
+        ref objseodetails,
+           ref lstPhotos,
+          ref lstVideos,
+        ref Status);
+
+    if (objseodetails.Heading != null && objseodetails.Heading != "")
+    {
+        ViewBag.PageHeading = objseodetails.Heading;
+        ViewBag.MetaDescription = objseodetails.MetaDescription;
+        ViewBag.MetaKeywords = objseodetails.MetaKeywords;
+        ViewBag.Title = objseodetails.PageTitle;
+    }
+
+    lstMenuItems = objInnerPages.lstMenuItems;
+    lstMenuItems2 = objInnerPages.lstMenuItems2;
+    lstMenuItems3 = objInnerPages.lstMenuItems3;
+    lstMenuItems4 = objInnerPages.lstMenuItems4;
+    FooterMenuItems = objInnerPages.FooterMenuItems;
+    lstChapters = objInnerPages.lstChapters;
+    lstNews = objInnerPages.lstNews;
+    lstSponsors = objInnerPages.lstSponsors;
+    lstSponsorCategories = objInnerPages.lstSponsorCategories;
+    objPInnerPages = objInnerPages.objPInnerPages;
+    lstEvents = objInnerPages.lstEvents;
+    lstQuickLinkItems = objInnerPages.lstQuickLinkItems;
+    objseodetails = objInnerPages.objseodetails;
+
+    var imglocsponsor = objAppInfo.AdminImageUrl + "Sponsors/";
+
+    MenuItems = lstMenuItems.Concat(lstMenuItems2).Concat(lstMenuItems3).Concat(lstMenuItems4).ToList();
+
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref AStatus);
+
+    string str = "";
+    if (ViewBag.str != null && ViewBag.str != "")
+    {
+        str = ViewBag.str;
+    }
+
+    AWS_AssociationToolCore.Entities.Chapters objChapters = lstChapters.FirstOrDefault(x => x.ChapterId == (ChapterId == 0 ? 1 : ChapterId));
+
+    // ✅ Fix 3: Request.Browser.IsMobileDevice → User-Agent parsing
+    var userAgent = Context.Request.Headers["User-Agent"].ToString().ToLower();
+    var IsMobile = userAgent.Contains("mobile") ||
+                   userAgent.Contains("android") ||
+                   userAgent.Contains("iphone") ||
+                   userAgent.Contains("ipad");
+
+    AWS_AssociationToolCore.Entities.Members objMember = new AWS_AssociationToolCore.Entities.Members();
+    AWS_AssociationToolCore.BLL.Members _Members = new AWS_AssociationToolCore.BLL.Members();
+    int pcurrentYear = DateTime.Now.Year;
+
+    string Email = "";
+    Email = ViewBag.Email;
+
+    if (!string.IsNullOrEmpty(Email))
+    {
+        int _qstatus = 0;
+        objMember = _Members.GetMemberFullDetailsByEmail(Email, ref _qstatus);
+    }
+
+    // ✅ Fix 4: SetString for writing session
+    Context.Session.SetString("AppName", objAppInfo.SiteName ?? "");
+    Context.Session.SetString("AppEmail", objAppInfo.CompanyEmail ?? "");
+
+    string reneve = "";
+    if (objMember.ExpiryDate != null &&
+        objMember.ExpiryDate != DateTime.MinValue &&
+        objMember.ExpiryDate < DateTime.Now)
+    {
+        reneve = "yes";
+    }
+
+    var lstfChapters = lstChapters.FindAll(ch => !ch.ChapterName.Contains(objChapters.ChapterName));
+
+    // ✅ Fix 5: Current URL for display
+    var chapterName = Context.Session.GetString("ChapterName");
+    var currentUrl = Context.Request.GetDisplayUrl();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <base href="@(baseurl)" />
+    <meta name="description" content="@((string)ViewBag.MetaDescription != "" && (string)ViewBag.MetaDescription != null ? (string)ViewBag.MetaDescription :
+                                     (objAppInfo.MetaDescription != null && objAppInfo.MetaDescription != "" ? objAppInfo.MetaDescription : "Enhance your data management with our advanced Association Tool."))" />
+    <meta name="keywords" content="@((string)ViewBag.MetaKeywords != "" && (string)ViewBag.MetaKeywords != null ? (string)ViewBag.MetaKeywords :
+                                  (objAppInfo.MetaKeywords != null && objAppInfo.MetaKeywords != "" ? objAppInfo.MetaKeywords : "Association tool, data mapping software"))" />
+    <title>
+        @((string)ViewBag.Title != "" && (string)ViewBag.Title != null ? (string)ViewBag.Title :
+                (objAppInfo.PageTitle != null && objAppInfo.PageTitle != "" ? objAppInfo.PageTitle : "Powerful Association Tool"))
+    </title>
+
+    <link rel="shortcut icon" href="Content/User/images/favicon.png" />
+    <meta name="author" content="Your Name or Company" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:title" content="@(objAppInfo.SiteName)" />
+    <meta property="og:description" content="A brief description of your website." />
+    <meta property="og:image" content="@(baseurl)image.jpg" />
+    <meta property="og:url" content="@(baseurl)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:site_name" content="@(objAppInfo.SiteName)" />
+
+    <link rel="icon" href="@(baseurl)favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="@(baseurl)favicon.ico" type="image/x-icon" />
+
+    <link rel="stylesheet" href="Content/User/css/bootstrap.min.css?ver=@objAppInfo.DesktopVersion.ToString()" />
+    <link rel="stylesheet" href="Content/User/css/style.css?ver=@objAppInfo.DesktopVersion.ToString()" />
+    <link rel="stylesheet" href="Content/User/css/responsive.css?ver=@objAppInfo.DesktopVersion.ToString()" />
+    <link rel="stylesheet" href="Content/User/css/external.css?ver=@objAppInfo.DesktopVersion.ToString()" />
+    <link rel="stylesheet" href="Content/User/css/owl.carousel.min.css?ver=@objAppInfo.DesktopVersion.ToString()" />
+    <link rel="stylesheet" href="Content/User/css/owl.theme.default.min.css?ver=@objAppInfo.DesktopVersion.ToString()" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css?ver=@objAppInfo.DesktopVersion.ToString()" />
+
+    <script src="Scripts/User/jquery.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+    <script src="Scripts/User/Common.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+    <script src="Scripts/User/bootstrap.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+    <script src="Scripts/User/jquery-validate.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+
+    <script>
+        $('#ZipCode').on('input', function () {
+            var zip = $(this).val().replace(/\D/g, '');
+            if (zip.length > 3) {
+                zip = zip.slice(0, 3) + '-' + zip.slice(3, 5);
+            }
+            $(this).val(zip);
+        });
+
+        $(document).ready(function () {
+            $.validator.addMethod("phoneUS", function (phone_number, element) {
+                phone_number = phone_number.replace(/\s+/g, "");
+                return this.optional(element) || phone_number.length == 12 && /^\d{3}-\d{3}-\d{4}$/.test(phone_number);
+            }, "Please specify a valid phone number (e.g., 123-456-7890)");
+
+            getamount();
+
+            $('#PhoneNo').on('input', function () {
+                var ph = $(this).val().replace(/\D/g, '');
+                if (ph.length > 3 && ph.length <= 6) {
+                    ph = ph.slice(0, 3) + '-' + ph.slice(3);
+                } else if (ph.length > 6) {
+                    ph = ph.slice(0, 3) + '-' + ph.slice(3, 6) + '-' + ph.slice(6, 10);
+                }
+                $(this).val(ph);
+            });
+        });
+    </script>
+
+    <style>
+        #RenewalAlert {
+            background-color: #000000a1;
+        }
+
+        @@media screen and (max-width: 767px) {
+            .aws-profile-btn-list {
+                display: flex;
+                overflow-x: auto;
+                overflow-y: hidden;
+                white-space: nowrap;
+                gap: 10px;
+            }
+        }
+
+        @@media only screen and (max-width: 768px) {
+            .aws-profile-grid-two {
+                display: block !important;
+            }
+
+            .aws-committee-card.pos-relative.child {
+                border: 1px solid #cfcca2;
+                background-image: none !important;
+            }
+
+            body {
+                padding-bottom: 0;
+            }
+
+            .aws-ad-btn {
+                margin-bottom: 15px;
+            }
+
+            .paypal-sec.paymnet-cmn-sec .col-md-12.mt-4 {
+                justify-content: center;
+                display: flex;
+            }
+
+            .aws-inner-content {
+                padding-bottom: 100px;
+            }
+        }
+
+        @@media only screen and (max-width: 500px) {
+            .g-recaptcha iframe {
+                width: 100%;
+            }
+
+            .paypapn {
+                text-align: center;
+                justify-content: center;
+                display: flex;
+                margin-top: 13px;
+            }
+
+            .cus-tabs-nav {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                gap: 10px;
+                overflow-x: auto;
+                white-space: nowrap;
+                scrollbar-width: none;
+            }
+
+                .cus-tabs-nav::-webkit-scrollbar {
+                    display: none;
+                }
+
+            .cus-tab-label {
+                flex: 0 0 auto;
+            }
+
+            .paypal-sec.paymnet-cmn-sec .col-md-8 {
+                justify-content: center;
+                display: flex;
+            }
+
+            .paypal-sec.paymnet-cmn-sec .col-md-4 {
+                justify-content: center;
+                display: flex;
+                margin-top: 15px;
+            }
+
+            .event-amount-box.ms-auto {
+                margin-left: 0px !important;
+            }
+        }
+
+        @@media only screen and (max-width: 450px) {
+            .paypapn {
+                text-align: center;
+                justify-content: center;
+                display: flex;
+                margin-top: 13px;
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+        function openPopup() {
+            document.getElementById('RenewalAlert').style.display = 'block';
+            document.body.onclick = function (event) {
+                if (!document.getElementById('RenewalAlert').contains(event.target)) {
+                }
+            };
+        }
+
+        $(document).ready(function () {
+            if ('@reneve' == 'yes') {
+                openPopup();
+            }
+            if ('@userroles' != '' && '@userroles' != 'null') {
+                $('#LogoutModel').modal("show");
+            }
+        });
+    </script>
+
+    <script type="text/javascript">
+        function NewletterShow() {
+            $('#NLSubscription').modal('show');
+        }
+    </script>
+
+    <script>
+        function Chapter(ChapterName) {
+            let chapterButton = document.getElementById('chapterButton');
+            if (chapterButton) {
+                chapterButton.innerHTML = '<i class="bi bi-list-ul"></i> ' + ChapterName;
+            } else {
+                console.error("Element with ID 'chapterButton' not found.");
+            }
+            window.location.href = '@baseurl' + ChapterName + '/index';
+        }
+    </script>
+</head>
+
+<body>
+    <div class="modal aws-modal" id="RenewalAlert">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="aws-title2 mb-3">Membership Renewal Alert</div>
+                <div class="col-md-12 px-0">
+                    <p class="mb-0"><b>Dear @objMember.FirstName @objMember.LastName!</b></p>
+                    <p>We hope you've enjoyed the exclusive benefits of being a valued member at <b>@objAppInfo.SiteName</b>. Your membership is due for renewal.</p>
+                    <h4 class="pres-name aws-title2 mb-3 mt-2 text-start">
+                        <span style="color:#1e0002;">Renewal Deadline:</span> @objMember.ExpiryDate.ToString("MM/dd/yyyy")
+                    </h4>
+                    <div class="aws-btn3 dis-in text-center m-2 font16" style="margin-left: 213px !important;">
+                        <a href="@Url.Action("MembershipRenewal", "Members", new { str = "renewal" })" style="font-size: 18px;padding: 10px 28px;font-weight: bold;color:white;">Renew Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade aws-modal" id="loginpop" aria-labelledby="changePasswordLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="aws-title2 mb-3">Login</div>
+                <div class="aws-alert-info mb-3" style="font-size: 12px;">
+                    <span class="text-danger"><i class="bi bi-filetype-key"></i> Note:- </span>
+                    Password format should be like 'Minimum 8 characters (atleast one special character &amp; one numeric character)'
+                </div>
+                <div class="aws-form">
+                    @using (Html.BeginForm("CULLogOn", "Members", FormMethod.Post, new { name = "MLogin", id = "MLogin" }))
+                    {
+                        <input type="hidden" name="ReturnUrl" value="@Context.Request.GetDisplayUrl()" />
+                        <input id="MemberId" name="MemberId" type="hidden" value="@objMember.MemberId" />
+                        <div class="row">
+                            <div class="col-md-12">
+                                <fieldset class="toggle-password">
+                                    <legend class="float-none w-auto px-1">Email <span class="input-imp">*</span></legend>
+                                    <input class="input-box" type="text" id="EmailC1" name="CulturalEmail" placeholder="Email Id" />
+                                    <i class="bi bi-eye-slash"></i>
+                                </fieldset>
+                            </div>
+                            <div class="col-md-12">
+                                <fieldset class="toggle-password">
+                                    <legend class="float-none w-auto px-1">password <span class="input-imp">*</span></legend>
+                                    <input class="input-box" type="password" id="PasswordC1" name="Password" placeholder="password" />
+                                    <i class="bi bi-eye-slash"></i>
+                                </fieldset>
+                            </div>
+                            <div class="col-md-12 text-end">
+                                <div class="d-flex g-2" style="justify-content: end; gap: 10px;">
+                                    <div><button type="button" class="aws-btn3" data-bs-dismiss="modal" aria-label="Close">Close</button></div>
+                                    <div><button type="submit" class="aws-btn3">Submit</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade aws-modal" id="renewalConfirm-popup" aria-labelledby="editProfileLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="aws-title2 mb-3">Change profile picture</div>
+                <div class="cmn-inner-form w-100">
+                    @if (objMember.objMembershipOrder.ExpiryDate != null && objMember.objMembershipOrder.ExpiryDate != DateTime.MinValue)
+                    {
+                        if (ViewBag.daysRemaining <= 60)
+                        {
+                            <h4 class="black-t font18 poppins-medium t-c t-m0" style="font-size: 16px; font-weight: bold; line-height: 30px;">
+                                Dear <span style="color:#ff6a00">@objMember.FirstName @objMember.LastName,</span> Your membership expires on
+                                <span style="color:#ff6a00">(@objMember.objMembershipOrder.ExpiryDate.ToString("MM/dd/yyyy")), </span>
+                                Please <u class="px-2 clr1"><a href="@Url.Action("MembershipRenewal", "Members")" class="clr1 d-inline-block">Click here to Renew.</a></u>
+                            </h4>
+                        }
+                        else if (ViewBag.daysRemaining == 0)
+                        {
+                            <h4 class="black-t font18 poppins-medium t-c t-m0" style="font-size: 16px; font-weight: bold; line-height: 30px;">
+                                Dear <span style="color:#ff6a00">@objMember.FirstName @objMember.LastName,</span> The expiry date has passed,
+                                <u class="px-2 clr1"><a href="@Url.Action("MembershipRenewal", "Members")" class="clr1 d-inline-block">Click here to Renew.</a></u>
+                            </h4>
+                        }
+                        else
+                        {
+                            <h4 class="black-t font18 poppins-medium t-c t-m0" style="font-size: 16px; font-weight: bold; line-height: 30px;">
+                                Dear <span style="color:#ff6a00">@objMember.FirstName @objMember.LastName,</span> Your membership expires on
+                                <span style="color:#ff6a00">(@objMember.objMembershipOrder.ExpiryDate.ToString("MM/dd/yyyy")),</span>
+                                Please <a href="@Url.Action("MembershipRenewal", "Members")">Click here to Renew.</a>
+                            </h4>
+                        }
+                    }
+                    <article class="clearfix p8 white-bg t-c">
+                        <article class="clearfix" style="margin-left: auto; margin-right: auto; display: inherit; margin-right: 20px; margin-bottom:20px;">
+                            <a href="@Url.Action("MembershipRenewal", "Members", new { str = "renewal" })" title="Proceed To Pay Now">
+                                <input type="submit" value="Proceed To Pay Now" class="cmn-form-btn" />
+                            </a>
+                        </article>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade aws-modal" id="editProfile" aria-labelledby="editProfileLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="aws-title2 mb-3">Change profile picture</div>
+                @using (Html.BeginForm("ProfilePic", "WebAPI", FormMethod.Post, new { enctype = "multipart/form-data", @class = "validation", id = "pic", name = "pic" }))
+                {
+                    @Html.Hidden("PCMemberId", (Int64)objMember.MemberId)
+                    @Html.Hidden("CHEmail", objMember.Email)
+                    <div class="aws-form">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <fieldset>
+                                    <legend class="float-none w-auto px-1">Upload Image</legend>
+                                    <input class="input-box" type="file" name="File" id="File" placeholder="Email Id" />
+                                </fieldset>
+                            </div>
+                            <div class="col-md-12 text-end">
+                                <div class="d-flex g-2" style="justify-content: end; gap: 10px;">
+                                    <div><button type="button" class="aws-btn3" data-bs-dismiss="modal" aria-label="Close" style="background-color: rgb(130, 163, 49);">Close</button></div>
+                                    <div><button type="submit" class="aws-btn3">Submit</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade aws-modal" id="changeEmail" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="aws-title2 mb-3">Change Email Id</div>
+                <div class="aws-form">
+                    @using (Html.BeginForm("ProfileEmailUpdate", "WebAPI", FormMethod.Post, new { enctype = "multipart/form-data", @class = "validation", id = "EmailVal", name = "EmailVal" }))
+                    {
+                        @Html.Hidden("CEMemberId", (Int64)objMember.MemberId)
+                        <div class="row">
+                            <div class="col-md-12">
+                                <fieldset class="toggle-password">
+                                    <legend class="float-none w-auto px-1">Email<span class="input-imp">*</span></legend>
+                                    <input class="input-box" type="text" id="CHEmail" name="CHEmail" value="@objMember.Email" placeholder="Email*" />
+                                </fieldset>
+                            </div>
+                            <div class="col-md-12 text-end">
+                                <div class="d-flex g-2" style="justify-content: end; gap: 10px;">
+                                    <div><button type="button" class="aws-btn3" data-bs-dismiss="modal" aria-label="Close" style="background-color: rgb(130, 163, 49);">Close</button></div>
+                                    <div><button type="submit" class="aws-btn3">UPDATE</button></div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade aws-modal" id="changePassword" aria-labelledby="changePasswordLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="aws-title2 mb-3">Change Password</div>
+                <div class="aws-alert-info mb-3" style="font-size: 12px;">
+                    <span class="text-danger"><i class="bi bi-filetype-key"></i> Note:- </span>
+                    Password format should be like 'Minimum 8 characters (atleast one special character &amp; one numeric character)'
+                </div>
+                <div class="aws-form">
+                    @using (Html.BeginForm("ChangePassword", "WebAPI", FormMethod.Post, new { enctype = "multipart/form-data", @class = "validation", id = "ChangePassword", name = "ChangePassword" }))
+                    {
+                    @Html.Hidden("CPMemberId", (Int64)objMember.MemberId)
+
+                    @Html.Hidden("ReturnUrl", !string.IsNullOrEmpty(Context.Request.Query["ReturnUrl"])
+                                        ? Context.Request.Query["ReturnUrl"].ToString()
+                                        : Context.Request.GetDisplayUrl())
+
+                    <input id="ddlEmail" name="Email" type="hidden" value="@objMember.Email" />
+                    <div class="row">
+                        <div class="col-md-12">
+                            <fieldset class="toggle-password">
+                                <legend class="float-none w-auto px-1">Current password <span class="input-imp">*</span></legend>
+                                <input class="input-box" type="password" id="OldPassword" name="OldPassword" placeholder="Old Password*" />
+                                <i class="bi bi-eye-slash toggle-icon" onclick="togglePassword('OldPassword', this)"></i>
+                            </fieldset>
+                        </div>
+                        <div class="col-md-12">
+                            <fieldset class="toggle-password">
+                                <legend class="float-none w-auto px-1">New Password <span class="input-imp">*</span></legend>
+                                <input class="input-box" type="password" id="NewPassword" name="NewPassword" placeholder="New Password*" />
+                                <i class="bi bi-eye-slash toggle-icon" onclick="togglePassword('NewPassword', this)"></i>
+                            </fieldset>
+                        </div>
+                        <div class="col-md-12">
+                            <fieldset class="toggle-password">
+                                <legend class="float-none w-auto px-1">Retype Password <span class="input-imp">*</span></legend>
+                                <input class="input-box" type="password" id="ConfPassword1" name="ConfPassword1" placeholder="Retype Password*" />
+                                <i class="bi bi-eye-slash toggle-icon" onclick="togglePassword('ConfPassword1', this)"></i>
+                            </fieldset>
+                        </div>
+                        <div class="col-md-12 text-end">
+                            <div class="d-flex g-2" style="justify-content: end; gap: 10px;">
+                                <div><button type="button" class="aws-btn3" data-bs-dismiss="modal" aria-label="Close" style="background-color: rgb(130, 163, 49);">Close</button></div>
+                                <div><button type="submit" class="aws-btn3">Submit</button></div>
+                            </div>
+                        </div>
+                    </div>
+                                        }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-bg position-relative">
+        <div class="container">
+            <div class="aws-inner-content">
+                @* ✅ Fix: Request.Url.AbsoluteUri → Context.Request.GetDisplayUrl() *@
+                @if (Context.Request.GetDisplayUrl().Contains("profile"))
+                {
+                    <div class="aws-profile-grid-two">
+                        @RenderBody()
+                    </div>
+                }
+                else
+                {
+                    <div class="">
+                        <div class="aws-left-sec">
+                            <div class="aws-title">
+                                @if (ViewBag.PageHeading != null && ViewBag.PageHeading != "")
+                                {
+                                    @ViewBag.PageHeading
+                                }
+                                else
+                                {
+                                    @ViewBag.pagename
+                                }
+                                @if (ViewBag.PageHeading == "Photo Gallery")
+                                {
+                                    <div style="font-size: 16px;">
+                                        <div class="d-flex flex-row align-items-center gap-2">
+                                            <div class="">
+                                                <label for="Sort" class="mb-0">Year</label>
+                                            </div>
+                                            <div class="select_style">
+                                                <select class="input-box px-2" id="Sort" style="border-radius: 50px;" onchange="PhotosBind();">
+                                                    @for (int i = (DateTime.Now.Year); i >= (DateTime.Now.Year - 6); i--)
+                                                    {
+                                                        <option @(ViewBag.Year == i ? "selected=selected" : "") value="@i">@i</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div class="aws-bdr"></div>
+                            @RenderBody()
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script src="Scripts/User/owl.carousel.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+    <script src="Scripts/User/easy-ticker.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+    <script src="Scripts/User/external.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+    <script src="Scripts/User/js.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#editProfileDetails").click(function () {
+                $("#awsEditForm").css("display", "block");
+                $("#showevents").css("display", "none");
+                $("#awsPersonalInformation").css("display", "none");
+            });
+        });
+    </script>
+
+    <script>
+        function togglePassword(inputId, iconElement) {
+            var inputField = document.getElementById(inputId);
+            if (inputField.type === "password") {
+                inputField.type = "text";
+                iconElement.classList.remove("bi-eye-slash");
+                iconElement.classList.add("bi-eye");
+            } else {
+                inputField.type = "password";
+                iconElement.classList.remove("bi-eye");
+                iconElement.classList.add("bi-eye-slash");
+            }
+        }
+
+        $(document).ready(function () {
+            $(window).scroll(function () {
+                if ($(document).scrollTop() > 160) {
+                    $("#header").addClass("fixed-tab");
+                } else {
+                    $("#header").removeClass("fixed-tab");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var lstServices = ViewBag.lstServices as List<AWS_AssociationToolCore.Entities.Services>;
+
+    int status = 0;
+    var _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    var objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var ServiceimglocNormal = objAppInfo.AdminImageUrl + "ServiceImages/Images/";
+
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+
+    // ✅ Store in session (if really needed)
+    HttpContextAccessor.HttpContext.Session.SetInt32("ChapterId", (int)chapterId);
+    HttpContextAccessor.HttpContext.Session.SetString("ChapterName", chapterName);
+}
+
+@if (lstServices != null && lstServices.Count != 0)
+{
+    <section class="clearfix wrapper">
+        <article class="clearfix donabac-bg t-p65 b-p70 t-c tabhorizontal-t-b-p30">
+            <article class="clearfix inner-wrapper">
+                <article class="clearfix position-r">
+                    <h4 class="clearfix m0 HandelGothic-Regular t-t-u font30 cheircol-t l-h22 letterspa1 mobile-font24 mobile-l-h16 t-p5"> Active Causes </h4>
+                    <img src="Content/User/images/orange-border.png" class="t-m12 b-m25 tabhorizontal-t-m10 tabhorizontal-b-m15" alt="Border" width="53" height="3" />
+                    <article>
+                        <a href="@Url.Action("ServicesIndex", "Services", new { cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName")})" class="viewallsec Roboto-Regular font13 l-h10 l-p19 r-p19 t-p12 b-p10 t-t-u dis-in viealpos">View all</a>
+                    </article>
+                </article>
+                <article class="clearfix owl-carousel donationcaro">
+                    @foreach (var item in lstServices)
+                    {
+                        <article class="clearfix items">
+                            <article class="clearfix t-l">
+                                <article class="clearfix position-r">
+
+                                    @if (item.ImageUrl != null && item.ImageUrl != "")
+                                    {
+                                        <a href="@Url.Action("ServicesDetails", "Services", new { SName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.ServiceTitle), sid = item.ServiceId, cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })">
+                                            <img src="@(ServiceimglocNormal + item.ImageUrl)" src="@(ServiceimglocNormal + "no-img.png")" class="width100 border-radius5" width="301" height="171" alt="@item.ServiceTitle" />
+
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("ServicesDetails", "Services", new { SName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.ServiceTitle), sid = item.ServiceId, cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })">
+                                            <img src="@(ServiceimglocNormal + "no-img.png")" class="width100 border-radius5" width="301" height="171" alt="@item.ServiceTitle" />
+
+                                        </a>
+                                    }
+
+                                    <article class="clearfix donathoveff">
+                                        <article class="clearfix t-m40n">
+                                            <a href="@Url.Action("ServicesDetails", "Services", new { SName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.ServiceTitle), sid = item.ServiceId, cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })" class="clearfix m0 Roboto-Medium t-t-u font14 white-t l-h10 letterspa1 t-p17 b-p13 black-bg t-c opac0-6 b-radius5 dis-b">View Details</a>
+                                        </article>
+                                    </article>
+                                    <h4 class="clearfix m0 Poppins-Medium font18 black-t l-h22 t-p15 b-p6 dontexmin">
+                                        @item.ServiceTitle
+                                    </h4>
+                                    <h5 class="clearfix m0 Roboto-Regular font13 donte-lor-t l-h18 b-p16" style="min-height:90px;">
+                                        @if (item.ShortDescription != null && item.ShortDescription != "")
+                                        {
+                                            @Html.Raw(item.ShortDescription)
+                                        }
+                                        else
+                                        {
+                                            if (item.Description.Length >= 60)
+                                            {@Html.Raw(item.Description.Substring(0, 60)) @("...")}
+                                        else
+                                        {
+                                            @Html.Raw(item.Description)
+
+                                        }
+                                    }
+                                    </h5>
+                                    @if (item.ServiceTitle != "General Donation" && item.ServiceTitle != "Help Line")
+                                    {
+                                        if ((Math.Round(item.TotalAmount, 0) != 0) || (Math.Round(item.EstimationAmount, 0) != 0))
+                                        {
+                                            <ul class="clearfix m0 list-pn list-f donrisedlis risedamoubor border-t">
+                                                @if (item.ServiceTitle != "General Donation" && item.ServiceTitle != "Help Line")
+                                                {
+                                                    if (Math.Round(item.TotalAmount, 0) != 0)
+                                                    {
+                                                        <li>
+                                                            <h5 class="clearfix m0 Roboto-Regular font11 black-t l-h10 t-p15 b-p9">Raised Amount</h5>
+                                                            <h4 class="clearfix m0 Impact font26 yelcol-t l-h26">$@Math.Round(item.TotalAmount, 0).ToString("#,##0")</h4>
+                                                        </li>
+                                                    }
+                                                    else
+                                                    {
+                                                        <li style="border-right:0px;">
+                                                            <h5 class="clearfix m0 Roboto-Regular font11 black-t l-h10 t-p15 b-p9">&nbsp;</h5>
+                                                            <h4 class="clearfix m0 Impact font26 yelcol-t l-h26">&nbsp;</h4>
+                                                        </li>
+                                                    }
+                                                    <li style="@((Math.Round(item.EstimationAmount, 0) != 0) ? "padding: 0 8px" : "")">
+                                                        @if (Math.Round(item.EstimationAmount, 0) != 0)
+                                                        {
+                                                            <h5 class="clearfix m0 Roboto-Regular font11 black-t l-h10 t-p15 b-p9">Amount Need:</h5>
+                                                            <h4 class="clearfix m0 Impact font26 black-t l-h26">$@Math.Round(item.EstimationAmount, 0).ToString("#,##0")</h4>
+                                                        }
+                                                        else
+                                                        {
+                                                            <h5 class="clearfix m0 Roboto-Regular font11 black-t l-h10 t-p15 b-p9"> &nbsp; </h5>
+                                                            <h4 class="clearfix m0 Impact font26 black-t l-h26"> &nbsp; </h4>
+                                                        }
+                                                    </li>
+                                                }
+                                                else
+                                                {
+                                                    <li style="border-right:0px;">
+                                                        <h5 class="clearfix m0 Roboto-Regular font11 black-t l-h10 t-p15 b-p9">&nbsp;</h5>
+                                                        <h4 class="clearfix m0 Impact font26 yelcol-t l-h26">&nbsp;</h4>
+                                                    </li>
+                                                }
+                                                <li class="pull-right">
+                                                    <article class="clearfix t-m34 donr-l-mn mobile-t-m30 tabhorizontal-t-m20">
+                                                        <a href="@Url.Action("Index", "Services", new { ServiceId = item.ServiceId, cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })" class="l-h12 Roboto-Medium t-t-u font14 white-t donyel-bg border-radius letterspa1 t-p13 b-p10 l-p16 r-p16">Donate</a>
+                                                    </article>
+                                                </li>
+                                            </ul>
+                                        }
+                                        else
+                                        {
+                                            <article class="clearfix t-p20 t-m0 donr-l-mn mobile-t-p20 mobile-t-m0 tabhorizontal-t-m20 t-c risedamoubor border-t">
+                                                <a href="@Url.Action("Index", "Services", new { ServiceId = item.ServiceId, cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })" class="l-h12 Roboto-Medium t-t-u t-m0 font14 white-t donyel-bg border-radius letterspa1 t-p15 b-p13 l-p40 r-p40 dis-in">Donate</a>
+                                            </article>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <article class="clearfix t-p20 t-m0 donr-l-mn mobile-t-p20 mobile-t-m0 tabhorizontal-t-m20 t-c risedamoubor border-t">
+                                            <a href="@Url.Action("Index", "Services", new { ServiceId = item.ServiceId, cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })" class="l-h12 Roboto-Medium t-t-u t-m0 font14 white-t donyel-bg border-radius letterspa1 t-p15 b-p13 l-p40 r-p40 dis-in">Donate</a>
+                                        </article>
+                                    }
+                                </article>
+                            </article>
+                        </article>
+                    }
+                </article>
+            </article>
+        </article>
+    </section>
+}

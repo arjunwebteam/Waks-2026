@@ -1,0 +1,192 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    string ChapterName = "";
+    ChapterName = ViewBag.cname;
+
+    int _qstatus = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref _qstatus);
+
+    AWS_AssociationToolCore.Entities.Members objMember = ViewBag.objMember;
+
+    List<AWS_AssociationToolCore.Entities.ServiceDonations> lstServiceDonations = ViewBag.lstServiceDonations;
+    var objMembersType = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembersType;
+
+    var location = objAppInfo.AdminImageUrl + "MemberProfileImages/";
+
+    ViewBag.Title = "Donations | " + objAppInfo.SiteName + " Member Portal";
+    ViewBag.MetaDescription = "Manage your " + objAppInfo.SiteName + " profile, update details, and track your membership activities.";
+    ViewBag.MetaKeywords = objAppInfo.SiteName + " profile, member profile, update account, Telugu community account settings";
+
+    ViewBag.PageHeading = "Donations";
+
+
+}
+<script src="Scripts/Admin/Common.js" type="text/javascript"></script>
+
+<script>
+    $(document).ready(function () {
+        LoadDonarList();
+    });
+
+    function LoadDonarList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("ProfileMenu", "Members")',
+    data: {
+                   tab    : 'DonorsList'
+                 
+               },
+               success: function (data) {
+                $("#DonorsList").html(data);
+            },
+            error: function () {
+                $("#DonorsList").html('<p class="text-danger">Failed to load ProfileMenu.</p>');
+            }
+        });
+    }
+</script>
+
+
+
+<div class="aws-profile-left-sec">
+
+    <!-- profile Here information -->
+    <div class="" id="DonorsList">
+        <div class="aws-profile-img">
+            <button class="aws-edit-icon" title="edit profile" data-bs-toggle="modal" data-bs-target="#editProfile"><i class="bi bi-pencil"></i></button>
+            @if (objMember.ProfileImage != null && objMember.ProfileImage != "")
+            {
+                <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((location + objMember.ProfileImage), "Content/user/images/com-main.png")" alt="Profile" class="border-radius10 profshd" width="159" height="159" />
+            }
+            else
+            {
+                <img src="Content/user/images/com-main.png" alt="Profile" class="border-radius10 profshd" width="159"
+                     height="159" />
+            }
+        </div>
+@*         @{Html.RenderAction("ProfileMenu", "Members", new {tab = "DonorsList" });}
+ *@
+    </div>
+    <!-- profile Here  -->
+
+</div>
+
+
+
+<div class="aws-profile-right-sec">
+
+    <div class="aws-title">
+        Donations
+        <div class="cmn-event-btn">
+            <a href="/@ChapterName/profile" class="back-btn">Back To Profile</a>
+        </div>
+    </div>
+
+    <div class="aws-bdr"></div>
+    @if (lstServiceDonations != null && lstServiceDonations.Count != 0)
+    {
+        int i = 1;
+
+        <div class="aws-table-card">
+            <table class="table table-bordered table-hover table-stripped">
+                <thead>
+                    <tr>
+
+
+
+                        <th style="width: 60px;" scope="col">S.No</th>
+                        <th width="200px">FirstName</th>
+                        <th style="width: 120px;">Amount</th>
+                        <th>Pay.Status</th>
+                        <th>Pay.Method</th>
+                        <th style="width: 180px;">Trans.Id</th>
+                        <th style="width: 60px;">#</th>
+
+
+
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in lstServiceDonations)
+                    {
+                       
+                        <tr>
+                            <td data-label="Donar Id">@i</td>
+                            <td data-label="First Name">@item.FirstName</td>
+                            <td data-label="Amount">
+                             <span style="color:#ff0000; font-weight:600;">$@Math.Round(item.Amount, 2)</span
+                             ></td>
+                            <td data-label="PaymentStatus">
+                                @if (item.PaymentStatus == "Completed")
+                                {
+                                <span>Paid</span>
+                                }
+                                else
+                                {
+                                <span>@item.PaymentStatus</span>
+                                }
+                                 </td>
+
+                            <td data-label="PaymentMethod">
+                                @(item.PaymentMethod != null && item.PaymentMethod.Length > 8 ? item.PaymentMethod.Substring(0, 8) + "..." : (item.PaymentMethod != null && item.PaymentMethod != "" ? item.PaymentMethod : "--"))
+</td>
+                            <td data-label="TransactionId">
+                                @if (item.TransactionId != null && item.TransactionId != "" && item.TransactionId != "NA")
+                                {
+
+                                <span style="color:#4dd247; font-weight:600;">  @(item.TransactionId != null && item.TransactionId.Length > 16 ? item.TransactionId.Substring(0, 16) + "..." : (item.TransactionId != null && item.TransactionId != "" ? item.TransactionId : "--"))</span>
+                                }
+                    else
+                    {
+                        <span>--</span>
+                    }
+</td>
+                            <td><a href="@Url.Action("ViewServiceDonation", "Members", new { ServiceDonationId = item.ServiceDonationId })"><span><i class="bi bi-eye-fill" style="color: #ff6c00;"></i></span></a></td>
+
+                        </tr>
+                        i++;
+                    }
+
+                </tbody>
+            </table>
+        </div>
+
+    }
+
+    else
+    {
+
+<div class="text-center">
+    <h2 style="" class="txt-up ls-2p font20 lh-18p  text-center py-4 mt-2  fnt-josefin-bold section-title">We haven't received any donations yet.</h2>
+
+    <a href="donate-now" target="_blank">
+        <div class="aws-btn" type="submit">Donate Now</div>
+
+    </a>
+</div>
+
+    }
+    
+
+    @*<a class="btn3" href="donate-now">
+        <p class="mb-0">Donate Now <span class="clk"> click here</span></p>
+        <span class="btn-ico"><img src="Content/User/images/b1.png"></span>
+    </a>*@
+
+
+
+</div>
+<style>
+    .section-title {
+        font-size: 30px;
+        letter-spacing: 1px;
+        color: #d63303;
+        font-family: 'Poppins-SemiBold';
+    }
+</style>
+

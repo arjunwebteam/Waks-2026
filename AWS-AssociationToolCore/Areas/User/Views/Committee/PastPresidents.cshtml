@@ -1,0 +1,74 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var lstCommittees = (List<AWS_AssociationToolCore.Entities.Members>)ViewBag.lstCommittees;
+
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeCategories = ViewBag.lstCommitteeCategories;
+
+    var Type = ViewBag.Type;
+
+    string cname = ViewBag.cname;
+
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status1);
+    var imglocNormal = objAppInfo.BaseUrl+ "Content/MemberProfileImages/";
+
+    Int64 status = 0;
+
+
+}
+  
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5"> Past Leadership </h3>
+        </article>
+        <article class="clearfix part-row">
+            @if (lstCommitteeCategories != null && lstCommitteeCategories.Count != 0)
+            {
+                foreach (var citem in lstCommitteeCategories)
+                {
+                    var Members = lstCommittees.FindAll(x => x.CommitteeCategoryId == citem.CommitteeCategoryId);
+
+                    if (Members != null && Members.Count != 0)
+                    {
+            <article class="clearfix part-6">
+                <h4 class="cla-d-icon red-t font20 mobile-font18 Roboto-Medium t-c"> @citem.CategoryName </h4>
+
+                <ul class="clearfix list-pn list-f m0 committee-list committee-item1 gray-border t-p20 tabhorizontal-t-p10 mobile-b-p0">
+                    @foreach (var item in Members)
+                    {
+                        <li class="border-bot border-extop r-p7 mobile-r-p0 tabhorizontal-r-p0" style="clear:both !important; width:100% !important;">
+                            <div class="clearfix com-bor-bot b-p1">
+                                <article class="clearfix p15 tablet-p10 committee-item ltgrey-bg2 tabhorizontal-p5 mobile-p5">
+                                    <article class="clearfix block-row mobile-l-p0">
+                                        <article class="clearfix left-block21">
+                                            <article class="clearfix ">
+                                                <article class="clearfix tablet-minheight0"> <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" class="profilepic-roundcircle shadow" width="158" height="172" border="0" /> </article>
+                                            </article>
+                                        </article>
+                                        <article class="right-block21">
+                                            <article class="clearfix t-p10">
+                                                <h5 class="Muli-SemiBold black-tt t-b-m0 t-t-c l-h20 mobilev-font14 mobilev-l-h18 font15 letespace1">@item.Name<span class="Poppins-Regulardis-b redd-tt font12 dis-b">@item.Designation</span></h5>
+                                                <span class="dis-b black-tt Oswald-Regular font14 l-h10 t-p10 t-b-m0 w-w-break letespace1">@item.MobilePhone</span><span class="dis-b"> <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:@item.Email"> @item.Email</a> </span>
+                                            </article>
+                                        </article>
+                                    </article>
+                                </article>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </article>
+                    }
+                    else
+                    {
+                        <h2 class="red-t Poppins-SemiBold font24 tbp20 t-c mobile-font15"> Detais Will Update Soon..</h2>
+                    }
+                }
+            }
+        </article>
+    </article>
+</article>

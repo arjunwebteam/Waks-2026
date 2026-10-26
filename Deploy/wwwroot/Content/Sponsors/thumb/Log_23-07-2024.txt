@@ -1,0 +1,60 @@
+-------------------START-------------7/23/2024 7:35:03 AM
+Page :/nats-global/member-registration-acknowledgement
+Entered into Acknowledgement Page
+-------------------END-------------7/23/2024 7:35:03 AM
+-------------------START-------------7/23/2024 9:23:35 AM
+Page :/nats-global/member-registration
+After reCAPTCHA Entered to the Process
+-------------------END-------------7/23/2024 9:23:35 AM
+-------------------START-------------7/23/2024 9:23:35 AM
+Page :/nats-global/member-registration
+Member Inserted Successfully
+-------------------END-------------7/23/2024 9:23:35 AM
+-------------------START-------------7/23/2024 9:23:35 AM
+Page :/nats-global/member-registration
+Entered Into Payment Process
+-------------------END-------------7/23/2024 9:23:35 AM
+-------------------START-------------7/23/2024 9:23:39 AM
+Page :/nats-global/member-registration
+RESPMSG Approved - Members Orders Inserted
+-------------------END-------------7/23/2024 9:23:39 AM
+-------------------START-------------7/23/2024 9:23:40 AM
+Page :/nats-global/member-registration
+User Notification Email Sent
+-------------------END-------------7/23/2024 9:23:40 AM
+-------------------START-------------7/23/2024 9:23:40 AM
+Page :/nats-global/member-registration
+Admin Notification Email Sent
+-------------------END-------------7/23/2024 9:23:40 AM
+-------------------START-------------7/23/2024 9:23:40 AM
+Page :/nats-global/member-registration-acknowledgement
+Entered into Acknowledgement Page
+-------------------END-------------7/23/2024 9:23:40 AM
+-------------------START-------------7/23/2024 2:02:56 PM
+Page :/nats-global/member-registration
+After reCAPTCHA Entered to the Process
+-------------------END-------------7/23/2024 2:02:56 PM
+-------------------START-------------7/23/2024 2:02:56 PM
+Page :/nats-global/member-registration
+Member Inserted Successfully
+-------------------END-------------7/23/2024 2:02:56 PM
+-------------------START-------------7/23/2024 2:02:56 PM
+Page :/nats-global/member-registration
+Entered Into Payment Process
+-------------------END-------------7/23/2024 2:02:56 PM
+-------------------START-------------7/23/2024 2:02:58 PM
+Page :/nats-global/member-registration
+RESPMSG Approved - Members Orders Inserted
+-------------------END-------------7/23/2024 2:02:58 PM
+-------------------START-------------7/23/2024 2:02:59 PM
+Page :/nats-global/member-registration
+User Notification Email Sent
+-------------------END-------------7/23/2024 2:02:59 PM
+-------------------START-------------7/23/2024 2:02:59 PM
+Page :/nats-global/member-registration
+Admin Notification Email Sent
+-------------------END-------------7/23/2024 2:02:59 PM
+-------------------START-------------7/23/2024 2:02:59 PM
+Page :/nats-global/member-registration-acknowledgement
+Entered into Acknowledgement Page
+-------------------END-------------7/23/2024 2:02:59 PM

@@ -1,0 +1,176 @@
+﻿@using System.Configuration
+@{
+    ViewBag.Title = "Log Report";
+    ViewBag.Pageheading = "Logs";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+}
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type : "GET",
+            url  : '@Url.Action("LogReportGetList", "Home")',
+
+            success: function (data) {
+                $("#divLogReportList").html(data);
+            },
+            error: function () {
+                $("#divLogReportList").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    });
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wLogs, #LogsMenu').addClass('active');
+
+        $("#StartDate, #EndDate").datepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            dateFormat: 'mm/dd/yy'
+        });
+
+        $("#StartDate").on("change", function () {
+            var startDate = $(this).datepicker("getDate");
+            if (startDate) {
+                $("#EndDate").datepicker("option", "minDate", startDate);
+            }
+        });
+
+        $("[data-mask]").inputmask();
+
+        ServiceDonationBind();
+        PagerClickBind();
+    });
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        ServiceDonationBind(1);
+    }
+
+    function ServiceDonationBind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var search    = $('#keyword').val();
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder  = $('#hdnsortorder').val();
+        var items      = $('#txtitems').val();
+        var startdate  = $('#StartDate').val();
+        var enddate    = $('#EndDate').val();
+
+        $.ajax({
+            url: '@Url.Action("LogReportGetList", "Home")',
+            type: 'GET',
+            cache: false,
+            data: {
+                StartDate:  startdate,
+                EndDate:    enddate,
+                search:     search,
+                PageNo:     pageno,
+                SortColumn: sortcolumn,
+                SortOrder:  sortorder,
+                Items:      items
+            },
+            success: function (result) {
+                $('#divLogReportList').html(result);
+                PagerClickBind();
+            },
+            error: function () {
+                $('#divLogReportList').html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").off("click").on("click", function () {
+            ServiceDonationBind($(this).text());
+        });
+    }
+
+    function ClearSearch() {
+        $('#keyword').val('').trigger('change');
+        $('#StartDate').val('@DateTime.UtcNow.AddMonths(-1).ToString("MM/dd/yyyy")');
+        $('#EndDate').val('@DateTime.UtcNow.AddDays(1).ToString("MM/dd/yyyy")');
+        $('#hdnPageNo').val(1);
+        ServiceDonationBind(1);
+    }
+</script>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortorder" name="hdnsortorder" value="ASC" type="hidden" />
+<input id="hdnsortcolumn" name="hdnsortcolumn" value="InsertedDate" type="hidden" />
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row gx-2">
+
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Search by Form Type :</label>
+                    <select class="single-select" name="keyword" id="keyword">
+                        <option value=""> -- Select -- </option>
+                        <option value="Event Registration">Event Registration</option>
+                        <option value="Cultural Registration">Cultural Registration</option>
+                        <option value="Volunteers">Volunteer Registration</option>
+                        <option value="Donation">Service Donation</option>
+                        <option value="Membership Registration">Membership Registration</option>
+                        <option value="MembershipRenewal">Membership Renewal</option>
+                        <option value="ContactUs">ContactUs</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col-xs-12 col-lg-3 col-sm-6">
+                <label class="form-label">Date Range</label>
+                <div class="row">
+                    <div class="col-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            <input type="text"
+                                   data-mask=""
+                                   data-inputmask="'alias': 'mm/dd/yyyy'"
+                                   class="form-control"
+                                   placeholder="From"
+                                   value="@DateTime.UtcNow.AddMonths(-1).ToString("MM/dd/yyyy")"
+                                   name="StartDate" id="StartDate" />
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            <input type="text"
+                                   data-mask=""
+                                   data-inputmask="'alias': 'mm/dd/yyyy'"
+                                   class="form-control"
+                                   placeholder="To"
+                                   value="@DateTime.UtcNow.AddDays(1).ToString("MM/dd/yyyy")"
+                                   name="EndDate" id="EndDate" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-2 col-4">
+                <div><label class="form-label">&nbsp;</label></div>
+                <button type="button" class="btn btn-primary px-3"
+                        onclick="ServiceDonationBind(1);">
+                    Search
+                </button>
+                <button type="button" class="btn btn-danger px-3"
+                        onclick="ClearSearch();">
+                    Clear
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="divLogReportList" class="clearfix">
+        {{-- table loads here via AJAX --}}
+    </div>
+</div>

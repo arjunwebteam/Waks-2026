@@ -1,0 +1,112 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+
+    var lstVolunteers = (List<AWS_AssociationToolCore.Entities.VolunteerCategories>)ViewBag.lstVolunteerCategories;
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+    ViewBag.Title = "Certicate - " + objAppInfo.SiteName /*System.Configuration.ConfigurationManager.AppSettings["ApplicationName"]*/;
+
+    List<AWS_AssociationToolCore.Entities.Events> lstEvents = ViewBag.lstEvents;
+
+}
+
+<script>
+    $(document).ready(function () {
+        LoadEventsList();
+    });
+
+    function LoadEventsList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("FEVolunteersList", "Volunteer")',
+           
+            success: function (data) {
+                $("#divVolunteerDetails").html(data);
+            },
+            error: function () {
+                $("#divVolunteerDetails").html('<p class="text-danger">Failed to load events.</p>');
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        PagerClickBind();
+    });
+
+    function Volunteerbind(Pageno) {
+        var catid = $('#VolunteerCategoryId').val();
+        var eventid = $('#EventId').val();
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = ($.trim($('#txtsearch').val()));
+        $.ajax({
+            url: '@Url.Action("FEVolunteersList", "Volunteer")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, VolunteerCategoryId: catid, EventId: eventid },
+            success: function (result) {
+                $('#divVolunteerDetails').html(result);
+                PagerClickBind();
+            }
+        });
+
+    }
+
+    function ClearSearch() {
+        $('#EventId').val('');
+        $('#txtsearch').val('');
+        Volunteerbind();
+        //$('#divVolunteerDetails').html('<span class="font18 red-t t-c l-r-m-auto"> Please search with above criteria and get the details !!!</span>');
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Volunteerbind();
+        });
+    }
+
+</script>
+<div class="cmn-inner-head t-t-c">
+    Volunteers List
+</div>
+<div class="cus-about-sec member_list">
+    <div class="row g-3">
+        <div class="col-sm-6 col-xl-4">
+            <input type="text" placeholder="FirstName / LastName" name="txtsearch" id="txtsearch" class="form-control" />
+
+        </div>
+        <div class="col-sm-6 col-xl-4">
+            <select name="VolunteerCategoryId" id="VolunteerCategoryId" class="w-100 ">
+                @if (lstVolunteers != null)
+                {
+                    <option value="">Select VolunteerCategory *</option>
+                    foreach (var item in lstVolunteers)
+                    {
+                        <option value="@item.VolunteerCategoryId">@item.CategoryName</option>
+                    }
+                }
+            </select>
+
+        </div>
+        <div class="col-xl-1">
+
+        </div>
+        <div class="col-xl-3 text-end">
+            <input type="button" value="Search" class="btn_success" onclick="Volunteerbind();">
+            <input type="reset" value="Clear" class="btn_danger" onclick="ClearSearch();">
+        </div>
+        <div id="divVolunteerDetails">
+            
+        </div>
+    </div>
+</div>
+        

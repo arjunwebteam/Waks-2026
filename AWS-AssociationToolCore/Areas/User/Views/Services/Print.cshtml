@@ -1,0 +1,18 @@
+﻿@{
+    ViewBag.Title = "Print";
+
+    AWS_AssociationToolCore.Entities.MailTemplates objTemplates = ViewBag.objTemplates;
+}
+
+<script src="~/Scripts/User/jquery.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        window.print(); 
+    });
+
+    </script>
+
+@Html.Raw(objTemplates.Description);
+
+<script src="~/Scripts/User/bootstrap.min.js"></script>
+

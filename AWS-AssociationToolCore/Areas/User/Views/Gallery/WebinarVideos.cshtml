@@ -1,0 +1,63 @@
+﻿
+@{
+    ViewBag.Title = "Webinar Videos - Telugu Association Tool - TAT";
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var lstVideos = (List<AWS_AssociationToolCore.Entities.Videos>)ViewBag.lstVideos;
+    var lstVideoCategories = (List<AWS_AssociationToolCore.Entities.VideoCategories>)ViewBag.lstVideoCategories;
+    ViewBag.heading = "WebinarVideos";
+    AWS_AssociationToolCore.BLL.InnerPages _InnerPages = new AWS_AssociationToolCore.BLL.InnerPages(); 
+}
+
+
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5">Webinars</h3>
+        </article>
+        <!------------------------------------------------------------------------------------------------------------------->
+        @if (lstVideoCategories != null && lstVideoCategories.Count != 0 && lstVideos.Count != 0)
+        {
+            foreach (var VideoCategory in lstVideoCategories)
+            {
+                if (lstVideos != null && lstVideos.Count != 0 && VideoCategory.VideosCount != 0)
+                {
+                    if (VideoCategory.CategoryName != "Media Coverage")
+                    {
+                        
+                        <h2 class="clearfix t-b-m0 font22 mobile-font18 red-t mobile-l-h24 Oswald-Regular orange-t l-h24 b-p15">@VideoCategory.CategoryName</h2>
+
+                        if (lstVideos != null && lstVideos.Count != 0)
+                        {
+
+                            <ul class="clearfix m0 list-f list-pn photogal-li">
+                                @foreach (var item in lstVideos)
+                                {
+                                    if (item.VideoCategoryId == VideoCategory.VideoCategoryId)
+                                    {
+                                        <li>
+                                            <article class="clearfix position-r">
+                                                <a href="https://www.youtube.com/embed/@(item.VideoUrl)" data-fancybox-group="gallery" class="various fancybox.iframe dis-b">
+                                                    <span class="video-icon-hover flip">&nbsp;</span>
+                                                    <img src="http://i1.ytimg.com/vi/@(item.VideoUrl)/hqdefault.jpg" alt="@item.Heading" title="@item.Heading" class="width100" width="290" height="185" />
+                                                </a>
+
+                                            </article>
+                                        </li>
+                                    }
+                                }
+
+                            </ul>
+                        }
+                    }
+                }
+            }
+        }
+
+        else
+        {
+            <h3 class="red-t Poppins-SemiBold font24 tbp20 t-c mobile-font15">No Media Found</h3>
+        }
+
+        <!------------------------------------------------------------------------------------------------------------------->
+    </article>
+</article>

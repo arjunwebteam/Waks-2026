@@ -1,0 +1,190 @@
+﻿@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+
+
+    List<AWS_AssociationToolCore.Entities.CulturalRegistrations> lstCulturalRegistrations = ViewBag.lstCulturalRegistrations;
+
+
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+}
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="70" class="text-center">S.No</th>
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('FirstName');" class="white-t-u aws-h-a">
+                            First Name @if (sortcolumn == "FirstName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('LastName');" class="white-t-u aws-h-a">
+                            Last Name @if (sortcolumn == "LastName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('LastName');" class="white-t-u aws-h-a">
+                            Event Name @if (sortcolumn == "EventName")
+                            {
+                                <img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />
+                            }
+                        </a>
+                    </th>
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('PerformanceCategory');" class="white-t-u aws-h-a">
+                            Performance Category @if (sortcolumn == "PerformanceCategory")
+                            {
+                                <img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />
+                            }
+                        </a>
+                    </th>
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('InsertedDate');" class="white-t-u aws-h-a">
+                            Reg Date @if (sortcolumn == "InsertedDate")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th> Amount </th>
+                    <th class="text-center">
+                        <a style="color: black;" onclick="javascript:sortresult('TransactionId');" class="white-t-u aws-h-a">
+                            Transaction Id @if (sortcolumn == "TransactionId")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th>
+                        P Method
+                    </th>
+                    <th>
+                        P Status
+                    </th>
+                    @if (userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin") || ViewBag.IsEdit == true || ViewBag.IsView == true || ViewBag.IsDelete == true)
+                    {
+                        <th class="text-center" width="50">Action</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (Total != 0)
+                {
+                    //int i = 1;
+                    foreach (var item in (List<AWS_AssociationToolCore.Entities.CulturalRegistrations>)ViewBag.lstCulturalRegistrations)
+                    {
+                        <tr>
+                            <td style="text-align: center">@item.RId</td>
+                            <td>@item.FirstName</td>
+
+                            <td>@item.LastName</td>
+                            <td>@(string.IsNullOrEmpty(item.EventName) ? "N/A" : item.EventName)</td>
+                            <td>@(string.IsNullOrEmpty(item.PerformanceCategory) ? "N/A" : item.PerformanceCategory)</td>
+                            <td>
+                                @item.InsertedDate.ToString("MM/dd/yyyy")
+                            </td>
+
+                            <td>
+                                $ @item.AmountPaid
+                            </td>
+
+                            <td class="text-center">
+                                @(string.IsNullOrEmpty(item.TransactionId) ? "N/A" : item.TransactionId)
+                            </td>
+
+                            <td>
+                                @(string.IsNullOrEmpty(item.PaymentMethod) ? "N/A" : item.PaymentMethod)
+
+                            </td>
+                            <td>
+                                @(string.IsNullOrEmpty(item.PaymentStatus) ? "N/A" : item.PaymentStatus)
+                            </td>
+
+                            <td style="text-align: center">
+                                <div class="table-actions d-flex align-items-center gap-3 fs-6">
+
+                                    @if (ViewBag.IsEdit == true)
+                                    {
+
+                                        <a class="text-warning cursor-pointer" href="@Url.Action("EditCulturalRegistrations", "CulturalRegistrations", new { CulturalRegistrationId = item.CulturalRegistrationId,mid = ViewBag.Mid })" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                    }
+
+                                    @if (ViewBag.IsDelete == true )
+                                    {
+
+                                        <a class="text-danger cursor-pointer" onclick="javascript:Delete(@item.CulturalRegistrationId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                    }
+
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                <div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="EventRegistrationBind();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>

@@ -1,0 +1,442 @@
+﻿@using Microsoft.AspNetCore.Http
+
+@{
+                Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+
+                var Type = ViewBag.Type;
+
+                var objEvents = (AWS_AssociationToolCore.Entities.Events)ViewBag.objEvents;
+                int status = 0;
+                AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+                AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+                objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+                ViewBag.Title = "Event Details | " + objAppInfo.SiteName + " – Cultural & Community Programs";
+                ViewBag.MetaDescription = "Get full details about upcoming Telugu cultural and community events. Join us for celebrations, festivals, and special programs!";
+                ViewBag.MetaKeywords = "Telugu event details, Telugu cultural events, Telugu community programs, upcoming Telugu events, Telugu festival celebrations";
+
+                //ViewBag.PageHeading = "Event Details   @objEvents.EventName";
+                ViewBag.PageHeading = objEvents.EventName;
+
+
+
+            
+
+            string cname = ViewBag.cname;
+    var imglocNormal = objAppInfo.BaseUrl + "Content/events/flyers/";
+            List<AWS_AssociationToolCore.Entities.RegistrationCategories> lstEventRegistrationCategories = ViewBag.lstEventRegistrationCategories;
+            var baseurl = objAppInfo.BaseUrl;
+
+
+
+        }
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var userName = User.Identity?.Name;
+    var chapterName = Context.Session?.GetString("ChapterName");
+}
+
+<script>
+    $(document).ready(function () {
+        $('#MEvents').addClass('active');
+            PagerClickBind();
+        $('#disclaimer').dialog
+            ({
+                autoOpen: false,
+                width: 550,
+                modal: true
+            });
+        $('#edisclaimer').dialog
+            ({
+                autoOpen: false,
+                width: 550,
+                modal: true
+            });
+        });
+
+    function PagerClickBind() {
+        $("ul.pagination li a").bind("click", function () {
+                EventBind($(this).text());
+            });
+        }
+
+        function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+            EventBind(1);
+        }
+
+        function EventBind(Pageno) {
+            var pageno = Common.Pageno(Pageno);
+            var search = $('#keyword').val();
+            var sortcolumn = $('#hdnsortcolumn').val();
+            var sortorder = $('#hdnsortorder').val();
+            var items = $('#txtitems').val();
+            var ChapterId = $('#ChapterId').val();;
+
+        $.ajax({
+                url: '@Url.Action("EventsList", "Event")',
+            type: 'GET',
+            cache: false,
+            data: { ChapterId:ChapterId,search: search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, Type: '@Type' },
+            success: function (result) {
+                $('#divEventsList').html(result);
+                    PagerClickBind();
+                }
+            });
+        }
+
+        function DisclaimerShow() {
+        $('#disclaimer').dialog('open');
+        }
+        function EDisclaimerShow() {
+        $('#edisclaimer').dialog('open');
+        }
+</script>
+
+<script>
+    // Input datetime string
+    const datetimeString = "7/11/2024 12:00:00 AM";
+
+        // Function to parse date from string
+        function parseDateTime(datetimeString) {
+            const [datePart, timePart, period] = datetimeString.split(" ");
+            const [month, day, year] = datePart.split("/");
+            let [hours, minutes, seconds] = timePart.split(":");
+
+            if (period === "PM" && hours !== "12") {
+                hours = parseInt(hours) + 12;
+            } else if (period === "AM" && hours === "12") {
+                hours = "00";
+            }
+
+            return new Date(year, month - 1, day, hours, minutes, seconds);
+        }
+
+        // Create a Date object from the input string
+        const dateObject = parseDateTime(datetimeString);
+
+        // Define arrays for month and day names
+        const months = ["January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"];
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+        // Extract the month, date, and day from the Date object
+        const month = months[dateObject.getMonth()];
+        const date = dateObject.getDate();
+        const day = days[dateObject.getDay()];
+
+        // Set the values to the respective elements
+        document.getElementById('month').textContent = month + " ";
+    document.getElementById('date').textContent = date;
+    document.getElementById('day').textContent = day;
+</script>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortorder" name="hdnsortorder" value="DESC" type="hidden" />
+<input id="hdnsortcolumn" name="hdnsortcolumn" value="StartDate" type="hidden" />
+
+<!--- DILOG BOX Login [start] --->
+<section id="disclaimer" style="display: none; overflow: visible;">
+
+    <span style="position:absolute; right:-25px;top:-25px;"><a class="cursor-p latomedium red-t" onclick=" $('#disclaimer').dialog('close')"><img src="Content/User/images/close-icon.png" class="t-m1" alt="Close" width="35" height="35" /></a></span>
+    <span class="clearfix Raleway-Bold font20 mobile-font14">Disclaimer</span>
+    <img alt="Border" class="t-m12 b-m25 tabhorizontal-t-m10 tabhorizontal-b-m15" src="Content/User/images/orange-border.png" width="53" height="3">
+    <article class="clearfix dialog-content black-t t-b-p5 font14 Poppins-Regular">
+        @Html.Raw(objEvents.MetaDescription)
+        <label class="checkboxstyle b-m0 t-b-p10">
+            <input name="ItemValue" id="ItemValue-2" checked="checked" value="Volunteering" type="checkbox" disabled="disabled">
+            <span for="radio" class="dis-in Poppins-Regular l-h20 yellow-t OpenSans-Semibold t-p15">I agree to the @objAppInfo.SiteName Terms and Conditions & Privacy Policy. </span>
+        </label>
+    </article>
+    <article class="clearfix t-c">
+        @if (lstEventRegistrationCategories != null && lstEventRegistrationCategories.Count != 0)
+        {
+            foreach (var item in lstEventRegistrationCategories)
+            {
+                <a href="@Url.Action("EventRegistrationForm1", "Event", new { EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName), eid = objEvents.EventId, cname = cname, cid = item.RegistrationCategoryId })" class="btn btn-success Roboto-Regular t-t-u dis-in border-radius m5 l-r-p15 t-b-p5" onclick=" $('#disclaimer').dialog('close')"> Continue </a>
+    }
+        }
+        else
+    {
+            <a href="@Url.Action("EventRegistration", "Event", new { EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName), eid = objEvents.EventId, cname = cname })" class="btn btn-danger Poppins-SemiBold t-t-u dis-in border-radius m5 l-r-p50 t-b-p9">
+                Continue
+            </a>
+        }
+    </article>
+</section>
+
+<section id="edisclaimer" style="display: none; overflow: visible;">
+    <span style="position:absolute; right:-25px;top:-25px;"><a class="cursor-p latomedium red-t" onclick=" $('#edisclaimer').dialog('close')"><img src="Content/User/images/close-icon.png" class="t-m1" alt="Close" width="35" height="35" /></a></span>
+    <span class="clearfix Raleway-Bold font20 mobile-font14">Disclaimer</span>
+    <img alt="Border" class="t-m12 b-m25 tabhorizontal-t-m10 tabhorizontal-b-m15" src="Content/User/images/orange-border.png" width="53" height="3">
+    <article class="clearfix dialog-content black-t t-b-p5 font14 Poppins-Regular">
+        @Html.Raw(objEvents.MetaDescription)
+        <label class="checkboxstyle b-m0 t-b-p10">
+            <input name="ItemValue" id="ItemValue-2" checked="checked" value="Volunteering" type="checkbox" disabled="disabled">
+            <span for="radio" class="dis-in Poppins-Regular l-h20 yellow-t OpenSans-Semibold t-p15">I agree to the @objAppInfo.SiteName Terms and Conditions & Privacy Policy. </span>
+        </label>
+    </article>
+    <article class="clearfix t-c">
+        <a href="@Url.Action("EventRegistration", "Event", new { EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName), eid = objEvents.EventId, cname = cname })" class="btn btn-danger Poppins-SemiBold t-t-u dis-in border-radius m5 l-r-p50 t-b-p9">
+            Continue
+        </a>
+    </article>
+</section>
+<!--- DILOG BOX Login [end] --->
+<style type="text/css">
+    .regbuttons {
+        display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 10px; /* Add spacing between buttons */
+    }
+</style>
+
+    <!-- content goes Here  -->
+    <div class="aws-event-details-v2 aws-editior event-details-header ">
+        <div class="aws-event-date-box d-flex flex-md-nowrap flex-wrap gap-4 align-items-center mb-lg-4 mb-3">
+
+
+            <div class="">
+                <span class="month" id="month"></span>
+                <span class="date" id="date"></span>
+                <span class="day" id="day"></span>
+            </div>
+            <div class="d-flex " style=" justify-content: space-between;" >
+                <div class="d-flex flex-wrap gap-sm-5 gap-3   ">
+                    <div class="border-end pe-lg-5">
+                        <div class="aws-event-span">Location</div>
+
+
+                        @if (objEvents.Location != null && objEvents.Location != "")
+                        {
+                            <div class="aws-event-loc"><span><i class="bi bi-geo-alt"></i>@objEvents.Location</span></div>
+                        }
+                        else
+                        {
+
+                            <div class="aws-event-loc"><span><i class="bi bi-geo-alt"></i>N/A</span></div>
+
+                        }
+
+
+
+                    </div>
+                    <div>
+                        <div class="aws-event-span">Date</div>
+                        <div class="aws-event-loc">
+                            <span>
+                                <i class="bi bi-calendar"></i>
+
+
+                                @if (objEvents.StartDate.Date == objEvents.EndDate.Date)
+                                {
+                                    if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy") (@objEvents.UpdatedBy)</span>
+                                    }
+                                    else if (objEvents.StartDate.ToString("hh:mm tt") != "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+                                    }
+                                    else if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") != "12:00 AM")
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy") @objEvents.EndDate.ToString("hh:mm tt") (@objEvents.UpdatedBy)</span>
+                                    }
+                                    else if (objEvents.StartDate.ToString("hh:mm tt") == objEvents.EndDate.ToString("hh:mm tt"))
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") -to- @objEvents.EndDate.ToString("hh:mm tt") (@objEvents.UpdatedBy)</span>
+                                    }
+                                }
+                                else
+                                {
+                                    if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy") -to- @objEvents.EndDate.ToString("MMM dd, yyyy") (@objEvents.UpdatedBy)</span>
+                                    }
+                                    else if (objEvents.StartDate.ToString("hh:mm tt") != "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") -to- @objEvents.EndDate.ToString("MMM dd, yyyy") (@objEvents.UpdatedBy)</span>
+                                    }
+                                    else if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") != "12:00 AM")
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy") -to- @objEvents.EndDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") -to- @objEvents.EndDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+                                    }
+                                }
+
+
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="aws-event-title mb-2 r-btn">
+
+
+                <div class="clearfix regbuttons" style="float: right; display: flex; gap: 10px;WIDTH: max-content;">
+                        @if (objEvents.IsRegistration == true && objEvents.RegistrationEndDate.Date >= DateTime.UtcNow.Date)
+                        {
+                            if (objEvents.PageTitle == "Yes")
+                            {
+
+                                if (isAuthenticated && userName != null && chapterName != null)
+                               {
+
+                                @if (objEvents.EventId == 20425)
+                                {
+                                 
+                                    <a class="desi-btn" target="_blank" href="https://events.humanitix.com/haasya-gaanotsava"><span><span></span> </span> Buy Ticket</a>
+
+                                }
+                                else
+                                {
+                                    <a class="desi-btn" href="@Url.Action("EventRegistration", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName), eid = objEvents.EventId, cname = cname })"><span><span></span> </span> Buy Ticket</a>
+
+                                }
+                                }
+                                else
+                                {
+                                    //string eurl = "EventName=" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName) + "&eid=" + objEvents.EventId+ cname = cname;
+                              
+                                @if (objEvents.EventId == 20425)
+                                {
+
+                                    <a class="desi-btn" target="_blank"  href="https://events.humanitix.com/haasya-gaanotsava"><span><span></span> </span> Buy Ticket</a>
+
+                                }
+                                else
+                                {
+                                    string eurl = "EventName=" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName) + "&eid=" + objEvents.EventId + "&cname=" + cname;
+
+                                    <a class="desi-btn" href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })"><span><span></span> </span> Buy Ticket</a>
+                                }
+
+                                }
+                            }
+                            else if (objEvents.PageTitle == "No")
+                            {
+                            @if (objEvents.EventId == 20425)
+                            {
+
+                                <a class="desi-btn" target="_blank"  href="https://events.humanitix.com/haasya-gaanotsava"><span><span></span> </span> Buy Ticket</a>
+
+                            }
+                            else
+                            {
+                                <a class="desi-btn" href="@Url.Action("EventRegistration", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName), eid = objEvents.EventId, cname = cname })"><span><span></span> </span> Buy Ticket</a>
+
+                            }
+
+
+                            }
+
+
+                        }
+
+                        else if (objEvents.RegistrationEndDate.Date >= DateTime.UtcNow.Date && objEvents.MetaKeywords != null && objEvents.MetaKeywords != "")
+                        {
+                            if (objEvents.PageTitle == "Yes")
+                            {
+                            if (isAuthenticated && userName != null && chapterName != null)
+                                {
+
+
+                                <a class="desi-btn" target="_blank"  href="@objEvents.MetaKeywords"><span><span></span> </span>Register Know</a>
+
+
+
+                                }
+                                else
+                                {
+                                    string eurl = "event/upcoming/" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName) + "?eid=" + objEvents.EventId;
+                                <a class="desi-btn" target="_blank"  href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })"><span><span></span> </span>Register Know</a>
+
+
+
+                                }
+                            }
+                            else if (objEvents.PageTitle == "No")
+                            {
+                            <a class="desi-btn" target="_blank"  href="@objEvents.MetaKeywords"><span><span></span> </span>Register Know</a>
+
+
+                            }
+
+                        }
+
+                        @if (objEvents.IsCulturalRegistration == true && objEvents.RegistrationEndDate.Date >= DateTime.UtcNow.Date)
+                        {
+                            if (objEvents.PageTitle == "Yes")
+                            {
+                            if (isAuthenticated && userName != null && chapterName != null)
+                            {
+                                    <a class="desi-btn" href="cultural-registration?EventName=@objEvents.EventName&amp;EventId=@objEvents.EventId&amp;cname=@cname">
+                                        <span><span></span></span> Cultural Registration
+                                    </a>
+                                }
+                                else
+                                {
+                                    string eurl = "EventName=" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@objEvents.EventName) + "&eid=" + objEvents.EventId + "&cname=" + cname;
+
+                                <a class="desi-btn" href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })">
+                                        <span><span></span></span> Cultural Registration
+                                    </a>
+                                }
+                            }
+                            else
+                            {
+                                <a class="desi-btn" href="cultural-registration?EventName=@objEvents.EventName&amp;EventId=@objEvents.EventId&amp;cname=@cname">
+                                    <span><span></span></span> Cultural Registration
+                                </a>
+                            }
+                        }
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        <hr>
+        <div>
+            <div class="row gy-3">
+                @if (objEvents.EventDetails != null && objEvents.EventDetails.Trim() != "")
+                {
+                    <div class="col-md-12">
+                        <h5>About This Event</h5>
+                        @Html.Raw(objEvents.EventDetails.Replace("src=\"Content/images/", "src=\"Content/User/images/").Replace("src=\"/Content/uploads/", "src=\"" + objAppInfo.BaseUrl + "Content/uploads/"))
+                    </div>
+                }
+
+
+            </div>
+        </div>
+    </div>
+    
+    <div class="aws-event-details aws-editior">
+
+
+        <div class="text-center">
+        <img class=" fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objEvents.Flyer, imglocNormal + "flyer-no2.jpg"))" alt="" width="100%">
+
+      
+@*         <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImageSSAsync(imglocNormal, (objEvents.Flyer != null && objEvents.Flyer != "" ? objEvents.Flyer : "N/A"), "flyer-no2.jpg")" class="fl_img" alt="@objEvents.EventName" width="100%">
+ *@           
+            
+
+        </div>
+    </div>
+
+
+
+
+

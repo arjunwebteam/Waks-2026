@@ -1,0 +1,317 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var lstCommittees = (List<AWS_AssociationToolCore.Entities.Members>)ViewBag.lstCommittees;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeCategories = ViewBag.lstCommitteeCategories;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeTypes = ViewBag.lstCommitteeTypes;
+
+    List<AWS_AssociationToolCore.Entities.Members> lstCommitteeMembers = ViewBag.lstCommitteeMembers;
+
+    var Type = ViewBag.Type;
+
+    string cname = ViewBag.cname;
+
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status1);
+
+    var imglocNormal = /*System.Configuration.ConfigurationManager.AppSettings["baseurl"]*/objAppInfo.BaseUrl + "Content/MemberProfileImages/";
+
+    AWS_AssociationToolCore.Entities.PageDetails MenuPageDetails = ViewBag.objMenuPageDetails;
+
+    Int64 ActiveId = 0;
+
+    if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+    {
+        ActiveId = MenuPageDetails.PageParentId;
+    }
+    else
+    {
+        ActiveId = MenuPageDetails.MenuItemId;
+    }
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#M-@ActiveId').addClass('active');
+
+        $('#committeeinfo').dialog
+           ({
+               autoOpen: false,
+               width: 750,
+               modal: true
+           });
+    });
+
+    function Committeeinfo(CommitteeId) {
+        $.ajax({
+            url: '@Url.Action("CommitteeInfo", "Committee")',
+            type: 'POST',
+            data: { CommitteeId: CommitteeId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objCommitteeMember = result.data;
+                    $('#CommitteeId').html(objCommitteeMember.CommitteeId);
+                    $('#Name').html(objCommitteeMember.Name);
+                    $('#Description').html(objCommitteeMember.Description.replace('Content/images/', 'Content/User/images/'));
+                    $('Designation').html(objCommitteeMember.Designation)
+
+                    $("#committeeinfo").dialog('open');
+                }
+            }
+        });
+    }
+
+</script>
+
+<article class="clearfix b-p13 mobile-t-b-p10 mobilev-b-p0 mobilev-t-p96">
+    <ul class="bread-crum-list list-f list-pn m0 tabhorizontal-t-p30 font14 mobile-font12 mobile-v-t-p5 mobile-hide">
+        <li>
+            <a class="t-t-u" href="@cname/index">Home</a>
+        </li>
+        @if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+        {
+            <li>
+                <a class="t-t-u" href="p/@(MenuPageDetails.ParentUrl + ".html?mrid=" + MenuPageDetails.PageParentId)">@MenuPageDetails.ParentName</a>
+            </li>
+        }
+        <li>
+            <a class="t-t-u">@MenuPageDetails.DisplayName</a>
+        </li>
+    </ul>
+</article>
+
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5">@AWS_AssociationToolCore.BLL.Common.DecodeURL(Type) </h3>
+        </article>
+        <!-------------------------------------------------------------------------------------------->
+
+        @if (lstCommittees != null && lstCommittees.Count != 0)
+        {
+            Int64 i = 0;
+            Int64 k = 0;
+            <div class="clearfix yellow-bg2 comet-bor-b">
+                @foreach (var item in lstCommittees)
+                {
+                    if (item.DisplayOrder == 1)
+                    {
+                        <div class="clearfix block-row comet-bor-t comet-bor-b">
+                            <div class="clearfix left-block22">
+                                <ul class="clearfix list-pn list-f m0 committee-list22 committee-item1 gray-border">
+
+                                    <li class="border-bot border-extop r-p7 ">
+                                        <div class="clearfix mobile-l-p10 mobile-t-p10">
+                                            <article class="clearfix l-p25 t-b-p20 tablet-p10 committee-item tabhorizontal-p5 mobile-p0">
+                                                <article class="clearfix block-row">
+                                                    <article class="clearfix left-block20">
+                                                        <article class="clearfix ">
+                                                            <article class="clearfix tablet-minheight0">
+                                                                @if (item.ProfileImage != null && item.ProfileImage != "")
+                                                                {
+                                                                    <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" class="profilepic-roundcircle2" width="135" height="135" border="0" />
+                                                                }
+                                                                else
+                                                                {
+                                                                    <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" class="profilepic-roundcircle2" width="135" height="135" border="0" />
+                                                                }
+                                                            </article>
+                                                        </article>
+                                                    </article>
+                                                    <article class="right-block20">
+                                                        <article class="clearfix t-p25 mobile-l-p0 mobele-t-p10">
+                                                            <h5 class="Muli-SemiBold white-t t-b-m0 l-h22 mobilev-font14 t-t-c mobilev-l-h18 font20 letespace1"> @item.Name <span class="Poppins-Regulardis-b  font12 dis-b black-t">@item.Designation</span></h5>
+                                                            <span class="dis-b redd-tt Oswald-Regular font22 l-h10 t-p10 t-b-m0 w-w-break letespace1"> @item.MobilePhone </span>
+                                                        </article>
+                                                        <h3 class="white-t font16 Muli m0 t-p10 tabhorizontal-visible">Email:<a href="mailto:chairman@AWS_AssociationToolCore.org" class="white-t">chairman@AWS_AssociationToolCore.org</a></h3>
+                                                    </article>
+                                                </article>
+                                            </article>
+                                        </div>
+                                    </li>
+
+                                </ul>
+                            </div>
+                            <div class="clearfix right-block22">
+                                <div class="t-p63 mobile-t-p10 mobile-b-p15 tabhorizontal-t-p0 tabhorizontal-b-p20">
+                                    <div class="clearfix leader-mail tabhorizontal-hide">
+                                        <h3 class="white-t font16 Muli m0 t-p10 l-p30 mobile-t-c tabhorizontal-t-c ">Email:<a href="mailto:chairman@AWS_AssociationToolCore.org" class="white-t"> chairman@AWS_AssociationToolCore.org</a></h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        k++;
+                    }
+                    else
+                    {
+                        if (k == 1 || i == 0)
+                        {
+                            @Html.Raw("<ul class=\"clearfix list-pn list-f m0 committee-list committee-item1 gray-border\">")
+                        }
+                        if (item.DisplayOrder == 2 || item.DisplayOrder == 3)
+                        {
+                            <li class="border-bot border-extop r-p7 t-b-p10 l-p10 mobile-l-p0 mobile-r-p0 mobile-b-p0 tabhorizontal-r-p10">
+                                <div class="clearfix ">
+                                    <article class="clearfix p15 tablet-p10 committee-item yellow-bg3 tabhorizontal-p5 mobile-p5">
+                                        <article class="clearfix block-row mobile-l-p0">
+                                            <article class="clearfix left-block21">
+                                                <article class="clearfix ">
+                                                    <article class="clearfix tablet-minheight0">
+                                                        @if (item.ProfileImage != null && item.ProfileImage != "")
+                                                        {
+                                                            <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" class="profilepic-roundcircle2" width="135" height="135" border="0" />
+                                                        }
+                                                        else
+                                                        {
+                                                            <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" class="profilepic-roundcircle2" width="135" height="135" border="0" />
+                                                        }
+                                                    </article>
+                                                </article>
+                                            </article>
+                                            <article class="right-block21 l-p20">
+                                                <article class="clearfix t-p10">
+                                                    <h5 class="Muli-SemiBold black-tt t-b-m0 l-h20 t-t-c mobilev-font14 mobilev-l-h18 font15 letespace1">@item.Name<span class="Poppins-Regulardis-b redd-tt font12 dis-b"> @item.Designation </span></h5>
+                                                    <span class="dis-b black-tt Oswald-Regular font14 l-h10 t-p10 t-b-m0 w-w-break letespace1"> @item.MobilePhone </span><span class="dis-b"> <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:@item.Email"> @item.Email </a> </span>
+                                                </article>
+                                            </article>
+                                        </article>
+                                    </article>
+                                </div>
+                            </li>
+                        }
+                        k--;
+                    }
+                    i++;
+                }
+                @Html.Raw("</ul>")
+            </div>
+        }
+        @if (lstCommittees != null && lstCommittees.Count != 0)
+        {
+            //var lstMembers = lstCommittees.FindAll(x => x.DisplayOrder > 3);
+            var lstMembers = lstCommittees;
+            if (lstMembers != null && lstMembers.Count != 0)
+            {
+                <ul class="clearfix list-pn list-f m0 committee-list committee-item1 gray-border t-p20 tabhorizontal-t-p10 mobile-b-p0">
+                    @foreach (var item in lstMembers)
+                    {
+                        if (item.DisplayOrder > 3)
+                        {
+                            <li class="border-bot border-extop r-p7 mobile-r-p0 tabhorizontal-r-p0">
+                                <div class="clearfix com-bor-bot b-p1">
+                                    <article class="clearfix p15 tablet-p10 committee-item ltgrey-bg2 tabhorizontal-p5 mobile-p5">
+                                        <article class="clearfix block-row mobile-l-p0">
+                                            <article class="clearfix left-block21">
+                                                <article class="clearfix ">
+                                                    <article class="clearfix tablet-minheight0"> <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" class="profilepic-roundcircle shadow" width="158" height="172" border="0" /> </article>
+                                                </article>
+                                            </article>
+                                            <article class="right-block21">
+                                                <article class="clearfix t-p10">
+                                                    <h5 class="Muli-SemiBold black-tt t-b-m0 t-t-c l-h20 mobilev-font14 mobilev-l-h18 font15 letespace1">
+                                                        @item.Name
+                                                        @if (cname == "global")
+                                                        {
+                                                            if (item.Designation == "Member" || (item.Designation == null || item.Designation == ""))
+                                                            {
+                                                                <span class="Poppins-Regulardis-b redd-tt font12 dis-b"> BOD </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="Poppins-Regulardis-b redd-tt font12 dis-b">@item.Designation</span>
+                                                            }
+                                                        }
+                                                    </h5>
+                                                    <span class="dis-b black-tt Oswald-Regular font14 l-h10 t-p10 t-b-m0 w-w-break letespace1">@item.MobilePhone</span><span class="dis-b"> <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:@item.Email"> @item.Email</a> </span>
+                                                </article>
+                                            </article>
+                                        </article>
+                                    </article>
+                                </div>
+                            </li>
+                        }
+                    }
+                </ul>
+            }
+        }
+        <!-------------------------------------------------------------------------------------------->
+
+        @if (lstCommitteeTypes != null && lstCommitteeTypes.Count != 0)
+        {
+            foreach (var item in lstCommitteeTypes)
+            {
+                var Category = lstCommitteeCategories.FindAll(x => x.Type == item.Type);
+
+                if (Category != null && Category.Count != 0)
+                {
+                    if (cname == "global")
+                    {
+                        <h2 class="clearfix m0 Poppins-Medium font24 evenorg-t l-h24 t-b-p15 border-b"> @item.Type </h2>
+                    }
+
+                    foreach (var citem in Category)
+                    {
+                        var Members = lstCommitteeMembers.FindAll(x => x.CommitteeCategoryId == citem.CommitteeCategoryId);
+
+                        if (Members != null && Members.Count != 0)
+                        {
+                            <h4 class="cla-d-icon red-t font20 mobile-font18 Roboto-Medium"> @citem.CategoryName </h4>
+                            <ul class="clearfix list-pn list-f m0 committee-list committee-item1 gray-border t-p20 tabhorizontal-t-p10 mobile-b-p0">
+                                @foreach (var item1 in Members)
+                                {
+                                    <li class="border-bot border-extop r-p7 mobile-r-p0 tabhorizontal-r-p0">
+                                        <div class="clearfix com-bor-bot b-p1">
+                                            <article class="clearfix p15 tablet-p10 committee-item ltgrey-bg2 tabhorizontal-p5 mobile-p5">
+                                                <article class="clearfix block-row mobile-l-p0">
+                                                    <article class="clearfix left-block21">
+                                                        <article class="clearfix ">
+                                                            <article class="clearfix tablet-minheight0"> <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item1.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item1.Name" title="@item1.Name" class="profilepic-roundcircle shadow" width="158" height="172" border="0" /> </article>
+                                                        </article>
+                                                    </article>
+                                                    <article class="right-block21">
+                                                        <article class="clearfix t-p10">
+                                                            <h5 class="Muli-SemiBold black-tt t-b-m0 t-t-c l-h20 mobilev-font14 mobilev-l-h18 font15 letespace1">
+                                                                @item1.Name
+
+                                                                @if (cname == "global")
+                                                                {
+                                                                    if (@item1.Designation == "Member")
+                                                                    {
+
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="Poppins-Regulardis-b redd-tt font12 dis-b">@item1.Designation</span>
+                                                                    }
+                                                                }
+                                                            </h5>
+                                                            <span class="dis-b black-tt Oswald-Regular font14 l-h10 t-p10 t-b-m0 w-w-break letespace1">@item1.MobilePhone</span>
+                                                            @if (@item1.Designation == "President")
+                                                            {
+                                                                <span class="dis-b"> <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:href=" mailto:President@AWS_AssociationToolCore.org"> President@AWS_AssociationToolCore.org </a> </span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span class="dis-b"> <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:href=" mailto:@item1.Email"> @item1.Email</a> </span>
+                                                            }
+                                                        </article>
+                                                    </article>
+                                                </article>
+                                            </article>
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+                        }
+                    }
+                }
+            }
+        }
+    </article>
+</article> 

@@ -1,0 +1,74 @@
+﻿@{
+    ViewBag.Title = "Media - United Pravaasa AAtmeeyula Society Of America(UPASA)";
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var lstPhotos = (List<AWS_AssociationToolCore.Entities.Photos>)ViewBag.lstPhotos;
+    var lstPhotoCategories = (List<AWS_AssociationToolCore.Entities.PhotoCategories>)ViewBag.lstPhotoCategories;
+    ViewBag.heading = "MediaCoverage";
+    Int64 PageId = 0;
+    int Status = 0;
+    AWS_AssociationToolCore.BLL.InnerPages _InnerPages = new AWS_AssociationToolCore.BLL.InnerPages();
+    //AWS_AssociationToolCore.Entities.InnerPages objInnerPages = _InnerPages.GetInnerPagesListById(PageId, "Media Page Content", ref Status);
+
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+    var imglocNormal =  objAppInfo.AdminImageUrl+ "photogallery/normalphoto/";
+
+    var thumbphoto = objAppInfo.AdminImageUrl + "photogallery/thumbphoto/";
+}
+
+
+
+    <article class="clearfix white-bg upcoming-eve-sha innerconthei t-b-p30 l-r-p35 tabhorizontal-b-m30 mobile-p15 mobile-b-m15">
+        <article class="clearfix heading-bottom-bg">
+            <h3 class="clearfix m0 l-h20 HandelGotD-Ligh font28 upeve-t t-t-u b-p17">Media</h3>
+
+        </article>
+       
+                        @if (lstPhotos != null && lstPhotos.Count != 0)
+                        {
+                            <article class="clearfix t-p20">
+
+                                <ul class="clearfix list-f list-pn vidgallery-li">
+                                    @foreach (var item in lstPhotos)
+                                    {                                        
+                                            <li>
+                                                <article class="clearfix position-r">
+                                                    @if (item.AlbumLink != "")
+                                                    {
+                                                        <a href="@item.AlbumLink" target="_blank">
+                                                            <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((thumbphoto + item.ImageUrl), imglocNormal + "no-image.jpg")" alt="img" class="width100 imgzoom-h" width="275" height="176" style="min-height:176px; max-height:176px;overflow: hidden;" />
+                                                        </a>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-image.jpg")" data-fancybox-group="5" class="fancybox">
+                                                            <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-image.jpg")" class="width100 imgzoom-h" width="275" height="176" title="@item.ImageDescription" alt="@item.ImageDescription" style="min-height:176px; max-height:176px;overflow: hidden;" />
+                                                        </a>
+                                                    }
+                                                    <span class="dis-b t-c t-p7 font16"><a class="gray-t poppins-medium">@item.ImageDescription</a></span>
+                                                </article>
+                                            </li>
+                                    }
+                                </ul>
+                            </article>
+
+
+                        }
+                              
+        else
+        {
+            <h3 class="red-t Poppins-SemiBold font24 tbp20 t-c mobile-font15">No Media Found</h3>
+        }
+
+
+    </article>
+       

@@ -1,0 +1,121 @@
+﻿@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+
+    List<AWS_AssociationToolCore.Entities.PhotoCategories> lstPhotoCategories = ViewBag.lstPhotoCategories;
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#MWebsite').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+    })
+</script>
+
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table width="100%" class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="8%" style="text-align: center">S.No.</th>
+                    <th>
+                        <a onclick="javascript:sortresult('CategoryName');" class="aws-h-a" style="color:black">
+                            Gallery Name @if (sortcolumn == "CategoryName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                    <th width="15%" style="text-align:center">#</th>
+                    <th style="text-align:center">
+                        <a onclick="javascript:sortresult('Year');" class="aws-h-a" style="color:black">
+                            Year @if (sortcolumn == "Year")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th width="15%" style="text-align: center">
+                        <a onclick="javascript:sortresult('UpdatedTime');" class="aws-h-a" style="color:black">
+                            Posted Date @if (sortcolumn == "UpdatedTime")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                    <th width="9%">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (lstPhotoCategories.Count != 0)
+                {
+                    foreach (var item in lstPhotoCategories)
+                    {
+                        <tr>
+                            <td align="center" valign="top">@item.RId</td>
+                            <td style="text-align: left">@item.CategoryName</td>
+                            <td style="text-align: center"><a class="aws-h-a" href="@Url.Action("Photos", "PhotoGallery", new { PhotoCategoryId = item.PhotoCategoryId, mid = ViewBag.Mid })">Photos (@item.PhotosCount)</a></td>
+                            <td style="text-align: center">@item.Year</td>
+                            <td style="text-align: center">@item.UpdatedTime.ToString("MM-dd-yyyy")</td>
+
+                            <td style="text-align: center" class="d-flex gap-3">
+                                @if (ViewBag.IsEdit == true )
+                                {
+                                    @*<a title="Edit" onclick="PhotoCategoryEdit(@item.PhotoCategoryId);"><i class="fa fa-pencil-square-o"></i></a>*@
+                                    <a class="text-warning cursor-pointer" onclick="PhotoCategoryEdit(@item.PhotoCategoryId);" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                }
+                                @if (ViewBag.IsDelete == true )
+                                {
+                                    if (item.PhotosCount == 0)
+                                    {
+                                        <a class="text-danger cursor-pointer" onclick="javascript:Delete(@item.PhotoCategoryId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                    }
+
+                                    else
+                                    {
+                                        <a class="sepV_a disable-alpha cursor-pointer" style="color: #79818b" title="This committee has members"><i class="bi bi-trash-fill"></i></a>
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                @*<div class="dataTables_length" id="example_length">
+                        <div class="d-flex align-items-center gap-2 pt-1">
+                            <span>Show Items</span>
+                            <select id="txtitems" name="txtitems" aria-controls="example" onchange="ServiceBind();" class="form-select form-select-sm w-auto">
+                                <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                                <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                                <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                                <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                            </select>
+                        </div>
+                    </div>*@
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,79 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var lstNews = (List<AWS_AssociationToolCore.Entities.News>)ViewBag.lstNews;
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var newsimgloc = objAppInfo.AdminImageUrl + "news/";
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+
+    // ✅ Store in session (if really needed)
+    HttpContextAccessor.HttpContext.Session.SetInt32("ChapterId", (int)chapterId);
+    HttpContextAccessor.HttpContext.Session.SetString("ChapterName", chapterName);
+} 
+
+@if (lstNews != null && lstNews.Count != 0)
+{
+    <section class="clearfix wrapper">
+        <article class="clearfix evenbac-bg">
+            <article class="clearfix inner-wrapper">
+                <article class="clearfix t-p65 b-p55 tabhorizontal-t-b-p30 mobile-b-p5 mobile-t-p15">
+                    <article class="clearfix position-r t-c">
+                        <h4 class="clearfix m0 HandelGothic-Regular t-t-u font30 cheircol-t l-h22 letterspa1 mobile-font24 mobile-l-h16 t-c t-p5">
+                            NATS Chapter News
+                        </h4>
+                        <img alt="Border" class="t-m12 b-m25 tabhorizontal-t-m10 tabhorizontal-b-m15" height="3" src="Content/User/images/orange-border.png" width="53" />
+                        <article>
+                            <a class="viewallsec Roboto-Regular font13 l-h10 l-p19 r-p19 t-p12 b-p10 t-t-u dis-in viealpos" href="@Url.Action("Index", "News", new { cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })">View all</a>
+                        </article>
+                    </article>
+                    <ul class="clearfix m0 list-pn list-f owl-carousel chaptnewlist">
+                        @foreach (var item in lstNews)
+                        {
+                            <li class="clearfix items">
+                                <article class="clearfix block-row">
+                                    <article class="clearfix left-block6 position-r">
+                                        <img alt="News" class="border-radius6 width100" height="250" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((newsimgloc + item.ImageUrl), newsimgloc + "no-image.jpeg")" width="270" style="width:270px; height:250px;" />
+                                        
+                                        <article class="clearfix">
+                                            <article class="clearfix t-m40n">
+                                                <a href="@Url.Action("Index", "News", new { nid = item.NewsId})" class="clearfix m0 Roboto-Medium t-t-u font16 white-t l-h10 letterspa1 t-p17 b-p13 black-bg t-c opac0-6 b-radius5 dis-b">@item.PostDate.ToString("MMM dd, yyyy")</a>
+                                            </article>
+                                        </article>
+                                    </article>
+                                    <article class="clearfix right-block6 l-p25 r-p11 mobile-l-r-p0">
+                                        <article class="clearfix newscount-bg dis-in l-m40n t-m10 b-m18 newscountwid mobile-l-m0 tabhorizontal-b-m10">
+                                            <h4 class="clearfix m0 Roboto-Regular t-p13 b-p13 font17 cheircol-t l-h12 l-p40 mobile-l-p0">
+                                                @item.ChapterName
+                                            </h4>
+                                        </article>
+                                        <a href="@Url.Action("Index","News", new { nid = item.NewsId })">
+                                            <h4 class="clearfix m0 Poppins-Medium font18 evendays-t l-h24 b-p16 border-b eventit-bor dis-b tabhorizontal-b-p10 mobile-l-h18 w-break-all">
+                                                @if (item.Title.Length >= 50)
+                                                {@Html.Raw(item.Title.Substring(0, 50)) @("...")}
+                                            else
+                                            {
+                                                @item.Title
+                                            }
+                                            </h4>
+                                        </a>
+                                        <article class="clearfix m0 Roboto-Light font14 evendays-t l-h22 t-p20 b-p15 tabhorizontal-t-p5">
+                                        </article>
+                                        <a href="@Url.Action("Index","News", new { nid = item.NewsId })"><i class="news-arow-ico f-r mobile-pull-n mobile-dis-in">&nbsp;</i></a>
+                                    </article>
+                                </article>
+                            </li>
+                        }
+                    </ul>
+                </article>
+            </article>
+        </article>
+    </section>
+}

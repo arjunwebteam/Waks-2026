@@ -1,0 +1,19 @@
+﻿@{
+    AWS_AssociationToolCore.Entities.PageDetails objNatsMissionInnerPages = ViewBag.objNatsMissionInnerPages;
+}
+
+<section class="clearfix wrapper">
+    <article class="clearfix our-mission-bg t-p25 b-p55 t-c tabhorizontal-t-b-p30 mobile-t-b-p15">
+        <article class="clearfix inner-wrapper">
+            <h4 class="clearfix m0 HandelGothic-Regular t-t-u font30 cheircol-t l-h22 letterspa1 mobile-font24 mobile-l-h16">
+                Vision & MIssion
+            </h4>
+            <img alt="Border" class="t-m12 b-m25 tabhorizontal-t-m10 tabhorizontal-b-m15" src="Content/User/images/orange-border.png" width="53" height="3" />
+
+            @if (objNatsMissionInnerPages.PageDetailId != 0 && objNatsMissionInnerPages.Description != "")
+            {
+                @Html.Raw(objNatsMissionInnerPages.Description.Replace("src=\"Content/images/", "src=\"Content/User/images/"))
+            }
+        </article>
+    </article>
+</section>

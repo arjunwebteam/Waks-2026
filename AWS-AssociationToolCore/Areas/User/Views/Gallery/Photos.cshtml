@@ -1,0 +1,380 @@
+﻿@{
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+    ViewBag.PageHeading = "Photos";
+
+
+    ViewBag.Title = "Photos - " +/* System.Configuration.ConfigurationManager.AppSettings["ApplicationName"]*/ objAppInfo.SiteName;
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var lstPhoto = (List<AWS_AssociationToolCore.Entities.Photos>)ViewBag.lstPhotos;
+    var lstPhotoCategories = (List<AWS_AssociationToolCore.Entities.PhotoCategories>)ViewBag.lstPhotoCategories;
+
+
+    List<AWS_AssociationToolCore.Entities.PhotoCategories> lstPhotoCategoriess = ViewBag.lstPhotoCategoriess;
+
+
+
+
+    var imglocNormal = /*System.Configuration.ConfigurationManager.AppSettings["adminimgurl"] */objAppInfo.AdminImageUrl + "photogallery/normalphoto/";
+
+    var thumbphoto = /*System.Configuration.ConfigurationManager.AppSettings["adminimgurl"]*/objAppInfo.AdminImageUrl + "photogallery/thumbphoto/";
+    ViewBag.heading = "Photos";
+
+    string cname = ViewBag.cname;
+
+    AWS_AssociationToolCore.BLL.InnerPages _InnerPages = new AWS_AssociationToolCore.BLL.InnerPages();
+
+    int Year = ViewBag.Year;
+}
+
+
+
+<link href="Content/User/css/magnific-popup.min.css" rel="stylesheet" />
+<script src="Scripts/User/jquery.magnific-popup.min.js"></script>
+<script>
+    function iframe(Albumlink, Title) {
+        if (Albumlink != "") {
+            $('#photo').html(Albumlink);
+            $('#title').html(Title);
+        }
+        else {
+
+        }
+    }
+
+    function FilterPhoto() {
+        var id = $('#Year').val();
+        if (id == 'All') {
+            $('.catlist_class').show();
+        }
+        else {
+            $('.catlist_class').hide();
+            $('.pht-' + id).show();
+        }
+    }
+
+    $(document).ready(function () {
+
+        $('#photoiframe').dialog
+            ({
+                autoOpen: false,
+                width: 840,
+                modal: true
+            });
+
+        FilterPhoto();
+
+        // ── Explicitly bind Fancybox to all gallery images ──
+     // ── Explicitly bind Fancybox to all gallery images ──
+   
+    });
+</script>
+<script type="text/javascript">
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            PhotosBind($(this).text());
+        });
+    }
+
+    function PhotosBind() {
+        var Year = $('#Sort').val();
+        var url = '@System.Configuration.ConfigurationManager.AppSettings["baseurl"]' + Year + '/photo-gallery';
+        window.location.href = url;
+    }
+</script>
+@* <div style="font-size: 16px; font-family: Poppins-SemiBold, sans-serif; float: right;">
+    <div class="d-flex flex-row align-items-center gap-2">
+        <div class="">
+            <label for="Sort" class="mb-0">Year</label>
+        </div>
+        <div class="select_style">
+            <select class="year-dropdown" id="Sort" onchange="PhotosBind();">
+                @for (int i = DateTime.Now.Year; i >= DateTime.Now.Year - 15; i--)
+                {
+                    <option @(Year == i ? "selected" : "") value="@i">@i</option>
+                }
+            </select>
+        </div>
+    </div>
+</div> *@
+<div class="aws-photo-gallery-sec mt-4">
+  
+
+                @if (lstPhotoCategories != null && lstPhotoCategories.Count > 0)
+                {
+                    foreach (var category in lstPhotoCategories)
+                    {
+                        if (category.PhotosCount > 0)
+                        {
+                <div class="d-flex flex-wrap flex-md-nowrap align-items-center justify-content-between mb-2 mt-4">
+                    <div class="aws-sponser-head pt-0">@category.CategoryName</div>
+                                @if (!string.IsNullOrEmpty(category.AlbumLink))
+                                {
+                                    <a href="@category.AlbumLink"
+                                       target="_blank"
+                                       class="btn btn-danger mt-0">
+                                        View Album
+                                    </a>
+                                }
+                            </div>
+
+                           <div class="product-gallery">
+                                <div class="gallery-grid gallery_container">
+
+                                    @foreach (var item in lstPhoto.Where(x => x.PhotoCategoryId == category.PhotoCategoryId))
+                                    {
+                                        <a class="lightbox"
+                                           href="@AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + item.ImageUrl, imglocNormal + "no-imagefinal.jpg")"
+                                           title="@item.CategoryName">
+
+                                            <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + item.ImageUrl, imglocNormal + "no-imagefinal.jpg")"
+                                                 alt="@item.CategoryName" />
+                                        </a>
+                                    }
+
+                                </div>
+                            </div>
+                        }
+                    }
+                }
+                else
+                {
+                    <h4 class="text-center">Photo Gallery Will Update Soon.</h4>
+                }
+
+          
+</div>
+    <!-- content goes Here  -->
+    <div class="aws-photo-gallery-sec mt-3" style="display:none;">
+
+        @if (lstPhotoCategories != null && lstPhotoCategories.Count != 0)
+        {
+            if (lstPhoto != null && lstPhoto.Count != 0)
+            {
+                int j = 0;
+                foreach (var PhotoCategory in lstPhotoCategories)
+                {
+                    if (PhotoCategory.PhotosCount != 0 && PhotoCategory.PhotosCount != 0)
+                    {
+                      <div class="d-flex align-items-center justify-content-between" >
+                        <div class="aws-sponser-head pt-0">@PhotoCategory.CategoryName</div>
+                       @if (PhotoCategory.AlbumLink !=null && PhotoCategory.AlbumLink !="")
+                         {
+
+                        <a href="@PhotoCategory.AlbumLink" target="_blank" style="color: #fd2e2c; text-decoration: underline; font-family: Poppins-SemiBold, sans-serif;">
+                              <div class="mt-0" type="submit" style="border-radius: 10px;">View Album</div>
+
+                             </a>   
+
+                         }
+                      </div>
+                    }
+
+
+                    if (lstPhoto != null && lstPhoto.Count != 0 && PhotoCategory.PhotosCount != 0)
+                    {
+                        int i = 1;
+                        <div class="aws-gallery-grid gallery_container">
+
+                            @foreach (var item in lstPhoto)
+                            {
+
+
+                                if (item.PhotoCategoryId == PhotoCategory.PhotoCategoryId)
+
+                                {
+                                    <div class="aws-gallery-box">
+
+
+                                        @*@if (item.AlbumLink != null && item.AlbumLink != "")
+                                        {
+
+                                            <a href="@item.AlbumLink" class="a-overlay" target="_blank"></a>
+                                            <img class="aws-gallery-icon w-100" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-imagefinal.jpg")">
+                                            <div class="aws-overlay">
+                                                <div class="aws-text">
+                                                    <i class="bi bi-images"></i>
+                                                    <p class="text-center mb-0 pt-2 album_view">View Album</p>
+                                                </div>
+                                            </div>
+
+
+                                        }*@
+                                        @*else
+                                        {*@
+                                            <a class="lightbox" href="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-imagefinal.jpg")">
+
+                                                <img class="aws-gallery-icon w-100" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-imagefinal.jpg")">
+
+                                            </a>
+
+
+                                        @*}*@
+                                    </div>
+
+                                }
+                            }
+
+                        </div>
+                        i++;
+                    }
+                }
+                j++;
+            }
+            else
+            {
+                <h4 class="sec-title2 t-t-c font22 m-5" style="text-align:center;">@Year Photos Will Update Soon </h4>
+            }
+        }
+        else
+        {
+            <h4 class="sec-title2 t-t-c font22 m-5" style="text-align:center;">Photos Gallery Will Update Soon .</h4>
+        }
+    </div>
+
+    <!-- content End Here  -->
+
+
+
+
+<script>
+    $(document).ready(function () {
+        // Hide all tab content except the active tab
+        $('.cus-tabs-content .cus-tab-pane').not('.active').hide();
+
+        // When a tab label is clicked
+        $('.cus-tab-label').click(function () {
+            // Remove the 'active' class from all tab labels
+            $('.cus-tab-label').removeClass('active');
+
+            // Add the 'active' class to the clicked tab label
+            $(this).addClass('active');
+
+            // Get the target tab ID from the data-tab attribute
+            var targetTab = $(this).data('tab');
+
+            // Hide all tab content
+            $('.cus-tabs-content .cus-tab-pane').hide();
+
+            // Show the target tab content
+            $('#' + targetTab).show();
+        });
+    });
+
+    function hideCheque() {
+        $('.cheque-hide').hide();
+    }
+
+
+    function ShowCheque() {
+        $('.cheque-hide').show();
+    }
+
+</script>
+
+<script>
+    /* Video Popup*/
+    $(document).ready(function () {
+        // Define App Namespace
+        var popup = {
+            // Initializer
+            init: function () {
+                popup.popupVideo();
+            },
+            popupVideo: function () {
+
+                $('.video_model').magnificPopup({
+                    // delegate: 'a',
+                    type: 'iframe',
+                    iframe: {
+                        patterns: {
+                            youtube: {
+                                index: 'youtu',
+                                id: function (url) {
+                                    // Extract video ID from URL
+                                    var match = url.match(/[^\w-]([-\w]{11})[^-\w]?/);
+                                    if (match && match[1]) {
+                                        return match[1];
+                                    }
+                                },
+                                src: 'https://www.youtube.com/embed/%id%?autoplay=1'
+                            },
+                            vimeo: {
+                                index: 'vimeo.com/',
+                                id: '/',
+                                src: 'https://player.vimeo.com/video/%id%?autoplay=1'
+                            }
+                            // Add more patterns for other video platforms if needed
+                        }
+                    },
+                    gallery: {
+                        enabled: true
+                    }
+                });
+
+                /* Image Popup*/
+                $('.gallery_container').magnificPopup({
+                    delegate: 'a',
+                    type: 'image',
+                    mainClass: 'mfp-fade',
+                    removalDelay: 160,
+                    preloader: false,
+                    fixedContentPos: false,
+                    gallery: {
+                        enabled: true
+                    }
+                });
+
+            }
+        };
+        popup.init($);
+    });
+</script>
+<style>
+    /* Year Label */
+    .year-label {
+        font-size: 20px;
+        font-weight: 700;
+        color: #000;
+        margin-bottom: 0;
+    }
+
+    /* Year Dropdown */
+    .year-dropdown {
+        min-width: 130px;
+        height: 42px;
+        border: 2px solid #000;
+        border-radius: 25px;
+        padding: 0 15px;
+        font-size: 18px;
+        font-weight: 600;
+        color: #000;
+        background: #fff;
+        outline: none;
+    }
+
+        .year-dropdown:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 5px rgba(220,53,69,.3);
+        }
+
+    /* Category Heading */
+    .gallery-header {
+        font-size: 36px;
+        font-weight: 700;
+        color: #dc3545;
+        margin: 30px 0 20px;
+        line-height: 1.3;
+    }
+
+    .mt-5 {
+        margin-top: 4rem !important;
+    }
+</style>

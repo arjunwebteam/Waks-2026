@@ -1,0 +1,107 @@
+﻿@using Microsoft.AspNetCore.Http;
+@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var NewsId = ViewBag.NewsId;
+    var ChapterId = ViewBag.ChapterId;
+
+    string cname = ViewBag.cname;
+
+    string Type = "";
+
+    if (ViewBag.Type != null && ViewBag.Type != "")
+    {
+        Type = ViewBag.Type;
+    }
+    else
+    {
+        Type = "News";
+    }
+
+    ViewBag.PageHeading = "News & Updates";
+    AWS_AssociationToolCore.Entities.PageDetails MenuPageDetails = ViewBag.objMenuPageDetails;
+
+    Int64 ActiveId = 0;
+
+    if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+    {
+        ActiveId = MenuPageDetails.PageParentId;
+    }
+    else
+    {
+        ActiveId = MenuPageDetails.MenuItemId;
+    }
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#M-@ActiveId').addClass('active');
+        PagerClickBind();
+    });
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            NewsBind($(this).text());
+        });
+    }
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        NewsBind(1);
+    }
+
+    function NewsBind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+
+        $.ajax({
+            url: '@Url.Action("NewsList", "News")',
+            type: 'GET',
+            cache: false,
+            data: { PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, NewsId: '@NewsId', ChapterId: '@ChapterId', Type: '@Type'},
+            success: function (result) {
+                $('#divNewsList').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+</script>
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="E.PostDate" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+
+@if (Type == "Blog")
+{
+    <div class="aws-title">Blog</div>
+}
+else
+{
+@*     <div class="aws-title">News & Updates</div>
+ *@
+    @*<div class="cmn-inner-head">latest updates</div>*@
+}
+
+<div class="aws-editior">
+    <div id="divNewsList">
+    </div>
+    </div>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type : "GET",
+            url  : '@Url.Action("NewsList", "News")',
+            data : {
+                NewsId    : '@NewsId'
+            
+            },
+            success: function (data) {
+                $("#divNewsList").html(data);
+            },
+            error: function () {
+                $("#divNewsList").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    });
+</script>
+

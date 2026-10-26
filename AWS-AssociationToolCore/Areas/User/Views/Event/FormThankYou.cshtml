@@ -1,0 +1,36 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Title = "FormThankYou";
+    string cname = ViewBag.cname;
+    string EventName = ViewBag.EventName;
+
+    AWS_AssociationToolCore.Entities.Form1 objForm1 = ViewBag.objForm1;
+}
+
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5">Thank You</h3>
+        </article>
+        <!------------------------------------------------------------------------------------------------------------------->
+        <article class="clearfix l-r-m-auto" style="max-width:800px;">
+            <article class="clearfix t-p20">
+                <!-- Thank you Section Start -->
+                <article class="clearfix t-b-p40 t-c">
+                    <img src="Content/User/images/thankyou2.png" width="162" height="162">
+                    <h4 class="montserrat-medium font30 green-t t-p5">Thank You...!!!</h4>
+                    <article class="clearfix b-p20 font16 l-h22  mobile-font15">
+                        We appreciate you registering for the @objForm1.EventName.
+                        <br>
+                        You will receive the Notification email.
+                    </article>
+                    <article class="clearfix t-p10 mobile-t-p20 message">
+                        <a style="background-color:#a1257d; border-radius:4px; padding:20px 60px; color:#fff; border-bottom:4px solid #ebbaca;" href="@Url.Action("Index", "Home", new { cname = cname})" class="Raleway-Medium font14 t-t-u tabhorizontal-dis-in"><span class="v-align-m font22">BACK TO HOME</span></a>
+                    </article>
+                </article>
+                <!-- Thank you Section End -->
+            </article>
+        </article>
+        <!------------------------------------------------------------------------------------------------------------------->
+    </article>
+</article>

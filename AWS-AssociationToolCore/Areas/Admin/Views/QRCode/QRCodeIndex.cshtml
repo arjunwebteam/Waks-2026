@@ -1,0 +1,435 @@
+﻿
+@using System.Configuration;
+@{
+
+    ViewBag.Pageheading = "Qr Code";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    ViewBag.Title = "QRCode | " + objAppInfo.SiteName;
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+
+}
+<script>
+    function showQRSection() {
+        const qrSection = document.getElementById("qrSection");
+        if (qrSection) {
+            qrSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("QrCodeList", "QRCode")',
+            data: {
+
+                Mid       : '@ViewBag.mid'
+            },
+            success: function (data) {
+                $("#divService").html(data);
+            },
+            error: function () {
+                $("#divService").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#wQrCode, #wwQrCodeIndex').addClass('active');
+
+        $('#AddSlots').dialog
+           ({
+               autoOpen: false,
+               width: 500,
+               modal: true
+           });
+
+        $('#ViewInnerPageCategory').dialog
+          ({
+              autoOpen: false,
+              width: 450,
+              modal: true
+          });
+        PagerClickBind();
+    });
+
+    function Onload(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#txtsearch').val();
+
+        $.ajax({
+            url: '@Url.Action("QrCodeList", "QrCode")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items , Mid: '@Mid'},
+            success: function (result) {
+                $('#divService').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1);
+    }
+    function SearchClear() {
+        $('#txtsearch').val('');
+        $('#QrLevel').val('');
+        Onload(1);
+    }
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        $('#QrLevel').val('');
+        $('#hdnPageNo').val(1);
+        Onload(1);
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Onload($(this).text());
+        });
+    }
+
+    function QrCodeEdit(QrCodeId) {
+    $.ajax({
+        url: '@Url.Action("ViewQrCode", "QRCode")', // adjust controller/action as needed
+        type: 'POST',
+        data: { QrCodeId: QrCodeId },
+        datatype: "JSON",
+        success: function (result) {
+            if (result.ok) {
+                var objqrcode = result.data;
+
+                // Set image src
+                var imageUrl = '@System.Configuration.ConfigurationManager.AppSettings["baseurl"]' + 'Admin/QRCode/DownloadQRCode/' + data.QrCodeId;
+                $('#qrCodeImage').attr('src', imageUrl);
+
+                // Set other details if needed
+                $('#qrCodeName').text(objqrcode.Name);
+                $('#qrCodeDescription').text(objqrcode.Description);
+
+                // Show modal
+                $('#QrImageModal').modal('show');
+            }
+        },
+        error: function () {
+            alert("Something went wrong while loading the QR Code.");
+        }
+    });
+}
+
+    function Add() {
+       clearInnerPageCategory();
+        $("#AddQrCode").modal('show');
+        $('#lbltitle').html('Add QrCode');
+    }
+
+    function clearInnerPageCategory() {
+        $('#QrCodeId').val('0');
+        $('#QrLevel').val('');
+        $('#LabelText').val('');
+
+
+    }
+</script>
+<style>
+    .svsn_align .field-validation-error {
+        top: 27px;
+        left: 190px;
+        position: absolute;
+    }
+</style>
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="InsertedDate" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Search <span class="text-danger">*</span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Qr Level ">
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="btn-align">
+                    <button type="button" class="btn btn-primary px-3" onclick="Onload(1);">Search</button>
+                    <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                </div>
+            </div>
+            <div class="col-lg-4 col-4 text-end ms-auto">
+                <div class="btn-align">
+                    @if (IsAdd == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+                    {
+                        <button type="button" class="btn btn-primary" onclick="showQRSection();">Add QR Code</button>
+                        @*<button type="button" class="btn btn-primary" onclick="Add();"> Add QrCode</button>*@
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--end breadcrumb-->
+    <!-- Button trigger modal -->
+
+    <div id="divService" class="clearfix">
+
+    </div>
+</div>
+
+<div class="modal fade" id="QrImageModal" tabindex="-1" aria-labelledby="qrImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qrImageModalLabel">QR Code Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="qrCodeImage" src="" alt="QR Code" class="img-fluid" style="max-height: 300px;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#FormHallTypes").validate({
+            rules: {
+                qrLevel: "required",
+                labelText: "required",
+                pixelSize: "required",
+                RefUrl: "required",
+            },
+            messages: {
+                qrLevel: "required",
+                labelText: "required",
+                pixelSize: "required",
+                RefUrl: "required",
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                // Add the `help-block` class to the error element
+                error.addClass("invalid-feedback");
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+                // Move the error element after the fieldset element
+                if (element.closest("fieldset").length) {
+                    element.closest("fieldset").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).parents("fieldset").addClass("has-error").removeClass("has-success");
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).parents("fieldset").addClass("has-success").removeClass("has-error");
+            },
+        });
+    });
+
+    // Function to clear form validation errors and reset the form
+    function clearFormErrorsAndReset() {
+        // Clear any validation error messages
+        $('em.error').remove(); // Assuming error messages have a class of 'error-message'
+
+        // Reset the form
+        $('form')[0].reset();
+    }
+
+    // Event handler for closing the modal dialog
+    $('.modal-close-button, .close').on('click', function () {
+        // Clear form errors and reset upon closing the modal
+        clearFormErrorsAndReset();
+    });
+
+    // Event handler for when the modal is closed by clicking outside of it
+    $('.modal').on('click', function (event) {
+        // Check if the click event occurred outside the modal dialog
+        if ($(event.target).hasClass('modal')) {
+            // Clear form errors and reset upon closing the modal
+            clearFormErrorsAndReset();
+        }
+    });
+
+    // Additional event handler for any other action that might close the modal
+    // For example, pressing escape key
+    $(document).on('keydown', function (event) {
+        // Check if the escape key was pressed and the modal is open
+        if (event.key === "Escape" && $('.modal').is(':visible')) {
+            // Clear form errors and reset upon closing the modal
+            clearFormErrorsAndReset();
+        }
+    });
+
+</script>
+
+<div class="card-header py-3 mb-3" id="qrSection">
+    <div class="row  gx-2">
+
+        <form id="qrForm">
+            <div class="modal-body" style="margin-left:30px; margin-right:30px;">
+                <h3 style="font-size:18px; margin-bottom:10px;">Generate QR Code</h3>
+                <div class="row">
+
+                    <div class="col-lg-2">
+                        <div class="input-box">
+                            <label class="form-label">QR Level <span class="text-danger">*</span></label>
+                            <select class="form-control" name="qrLevel">
+                                <option value="L">L (Low)</option>
+                                <option value="M">M (Medium)</option>
+                                <option value="Q">Q (Quartile)</option>
+                                <option value="H" selected>H (High)</option>
+                            </select><br><br>
+                        </div>
+                    </div>
+
+
+                    <div class="col-lg-3">
+                        <div class="input-box">
+                            <label class="form-label">Label Text <span class="text-danger">*</span></label>
+
+                            <input type="text" name="labelText" class="form-control" value="" placeholder="Enter label text here" />
+                        </div>
+                    </div>
+                    <div class="col-lg-2">
+                        <div class="input-box">
+                            <label class="form-label">Pixel Size <span class="text-danger">*</span></label>
+                            <input type="number" name="pixelSize" class="form-control" value="25">
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="input-box">
+                            <label class="form-label">URL <span class="text-danger">*</span></label>
+                            <input type="text" name="RefUrl" class="form-control" placeholder="Enter the url to generate QR code" value="">
+                        </div>
+                    </div>
+                    <div class="clearfix" style="margin-left:auto; margin-right:auto; text-align:center;">
+                        <button class="btn btn-danger px-3" style="width: 150px;" type="submit">Generate</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <br>
+        <div class="modal-body" style="margin-left:30px; margin-right:30px;">
+            <h3 style="font-size:18px; margin-bottom:10px;">QR Code Preview</h3>
+            <div class="row">
+                <div class="" style="text-align:center; margin-left:auto; margin-right:auto;">
+                    <div id="qrResult"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $('#qrForm').on('submit', function (e) {
+        e.preventDefault();
+
+        // ✅ Collect form data
+        const data = {
+            qrLevel   : $('select[name="qrLevel"]').val(),
+            labelText : $('input[name="labelText"]').val(),
+            pixelSize : parseInt($('input[name="pixelSize"]').val()),
+            RefUrl    : $('input[name="RefUrl"]').val()
+        };
+
+        // ✅ Show loading state
+        $('#qrResult').html('<p class="text-muted">Generating QR Code, please wait...</p>');
+
+        $.ajax({
+            type        : 'POST',
+            url         : '@Url.Action("GenerateDynamicQR", "QRCode")',
+            contentType : 'application/json',
+            data        : JSON.stringify(data),
+            success: function (response) {
+                if (response.ok) {
+                    $('#qrResult').html(`
+                        <div class="d-flex flex-column align-items-center gap-3 mt-3">
+
+                            <img src="${response.ImagePath}"
+                                 alt="Generated QR Code"
+                                 style="width:300px; border:1px solid #ddd; border-radius:8px; padding:10px;" />
+
+                            <div class="d-flex align-items-center gap-3">
+                                <strong>File:</strong>
+                                <span>${response.FileName}</span>
+
+                                <a href="@Url.Action("DownloadQRCode", "QRCode")?code=${response.FileName}"
+                                   download="${response.FileName}"
+                                   class="cursor-pointer"
+                                   title="Download QR Code"
+                                   aria-label="Download QR Code"
+                                   style="border:1px solid #e8e6e7;
+                                          padding:8px 12px;
+                                          border-radius:50%;
+                                          background-color:#e8e6e7;
+                                          text-decoration:none;">
+                                    <i class="lni lni-download" style="font-size:20px; color:black;"></i>
+                                </a>
+                            </div>
+
+                        </div>
+                    `);
+
+                    // ✅ Reload list after generation
+                    if (typeof Onload === 'function') {
+                        Onload(1);
+                    }
+
+                } else {
+                    // ✅ Show server error message
+                    $('#qrResult').html(`
+                        <div class="alert alert-danger mt-3">
+                            <i class="bi bi-exclamation-circle"></i>
+                            Error: ${response.message}
+                        </div>
+                    `);
+                }
+            },
+            error: function (xhr, status, error) {
+                // ✅ Show AJAX error with details
+                $('#qrResult').html(`
+                    <div class="alert alert-danger mt-3">
+                        <i class="bi bi-exclamation-circle"></i>
+                        Failed to generate QR Code. Please try again.<br>
+                        <small>${error}</small>
+                    </div>
+                `);
+            }
+        });
+    });
+</script>

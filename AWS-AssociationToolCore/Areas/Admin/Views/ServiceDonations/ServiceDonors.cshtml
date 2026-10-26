@@ -1,0 +1,261 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Pageheading = "Donors";
+
+    var lstDonationCategories = ViewBag.lstDonationCategories as List<AWS_AssociationToolCore.Entities.DonationCategories>;
+
+    var objMembers = ViewBag.objMembers as AWS_AssociationToolCore.Entities.Members;
+
+    var lstPaymentMethod = objMembers?.lstPaymentMethod as List<AWS_AssociationToolCore.Entities.PaymentMethods>;
+    var lstPaymentStatus = objMembers?.lstPaymentStatus as List<AWS_AssociationToolCore.Entities.PaymentStatus>;
+
+    var lstServices = ViewBag.lstServices as List<AWS_AssociationToolCore.Entities.Services>;
+
+    long ServiceId = ViewBag.ServiceId ?? 0;
+    string ServiceTitle = ViewBag.ServiceTitle ?? "";
+
+    // ❌ OLD COOKIE + FORMS AUTH REMOVED
+    // ✅ Use Claims-based identity
+    string userRole = "";
+
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    }
+
+    // Permissions
+    bool IsEdit = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsEdit") ?? "false");
+    bool IsView = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsView") ?? "false");
+    bool IsDelete = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsDelete") ?? "false");
+    bool IsExport = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsExport") ?? "false");
+    bool IsAdd = Convert.ToBoolean(HttpContextAccessor.HttpContext.Session.GetString("IsAdd") ?? "false");
+
+    long Mid = ViewBag.mid ?? 0;
+    long ChapterId = ViewBag.ChapterId ?? 0;
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wDonations, #wDonors').addClass('active');
+        //$('#MMDonations').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        PagerClickBind();
+    });
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        ServiceDonorsBind(1);
+    }
+
+    function ServiceDonorsBind(Pageno) {
+
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#keyword').val().trim();
+       
+
+        $.ajax({
+            url: '@Url.Action("ServiceDonarsList", "ServiceDonations")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items,chapterId:@ChapterId},
+            success: function (result) {
+                $('#divDetails').html(result);
+                PagerClickBind();
+                myFunction();
+            }
+        });
+    }
+
+
+     function Delete(ServiceDonationId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteServiceDonation", "ServiceDonations")',  // the URL of the controller action method
+                data: { ServiceDonationId: ServiceDonationId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    ServiceDonorsBind($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            ServiceDonorsBind($(this).text());
+        });
+    }
+
+    function SearchClear() {
+        $('#txtsearch').val('');
+        ServiceDonorsBind(1);
+    }
+    function ClearSearch() {
+        $('#keyword').val('');
+        $('#PaymentMethod').val('');
+        $('#PaymentStatus').val('');
+        $('#ServiceId').val('');
+
+        $('#hdnPageNo').val(1);
+        ServiceDonorsBind(1);
+    }
+    function ServiceDonationstatus(ServiceDonationId) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ServiceDonationsStatus", "ServiceDonations")',  // the URL of the controller action method
+                data: { ServiceDonationId: ServiceDonationId }, // optional data
+                success: function (result) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    ServiceDonorsBind(1);
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+    }
+
+    function ExporttoExcel() {
+
+        window.location.href = "ServiceDonations/DonorRegistrationsExportToExcel?Search=" + $('#keyword').val() + "&ServiceId=" + $('#ServiceId').val() + "&PaymentStatusId=" + $('#PaymentStatus').val() + "&PaymentMethodId=" + $('#PaymentMethod').val() + "";
+    }
+
+
+
+</script>
+<script type="text/javascript">
+    function myFunction() {
+        $('#totalpaysection').show();
+        var x = document.getElementById("myDIV");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+    $(document).ready(function () {
+
+
+        $("[data-mask]").inputmask();
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        PagerClickBind();
+    });
+
+   
+    function SendMailtoDonor(ServiceDonationId, Email, UserName) {
+         var val2 = confirm("Do you want to send remainder details to this Donor?");
+         if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DonorsRemainderEmails", "ServiceDonations")',  // the URL of the controller action method
+                data: { ServiceDonationId: ServiceDonationId, Email: Email, UserName: UserName }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    ServiceDonorsBind($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+</script>
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="" />
+<input id="hdnsortorder" type="hidden" value="" />
+
+<div class="card">
+    <!-- /.box-header -->
+    <div class="card-header py-3 mb-3">
+        @if (ServiceId != 0)
+        {
+            <ul class="nav nav-tabs" style="display:none;">
+                <li><a href="@Url.Action("Index", "Services", new { ServiceId = ServiceId })">Services</a></li>
+                <li><a class="btn" href="@Url.Action("Index", "ServiceImages", new { ServiceId = ServiceId, ServiceTitle = ServiceTitle })">Service Images</a></li>
+                <li class="active"><a class="btn" href="@Url.Action("Index", "ServiceDonations", new { ServiceId = ServiceId, ServiceTitle = ServiceTitle })">Donations</a></li>
+            </ul>
+        }
+    <div class="row  gx-2">
+       
+
+        <div class="col-lg-3 col-md-6 col-8">
+            <div class="input-box">
+                <label class="form-label">Search<span class="text-danger"></span></label>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Email">
+                    @*<span class="input-group-text pointer" style="cursor:pointer" onclick="ServiceDonorsBind();" id="basic-addon1"><i class="bi bi-search"></i></span>*@
+                </div>
+            </div>
+        </div>
+
+        
+
+
+        <div class="col-lg-2 col-2" id="clearhide">
+            <div>
+                <label>&nbsp;</label>
+            </div>
+            <button type="button" class="btn btn-primary px-3" onclick="ServiceDonorsBind();">Search</button>
+            <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+        </div>
+        
+    </div>
+
+
+
+    </div>
+
+
+    <div id="divDetails" class="clearfix">
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type : "GET",
+                url  : '@Url.Action("ServiceDonarsList", "ServiceDonations")',
+                       data : {
+            ServiceId: @ServiceId,
+            IsEdit: '@IsEdit',
+            IsView: '@IsView',
+            IsDelete: '@IsDelete',
+            IsExport: '@IsExport',
+            IsAdd: '@IsAdd',
+            Mid: '@Mid',
+            ChapterId: '@(ChapterId == 0 ? 1 : ChapterId)'
+        },
+                success: function (data) {
+                    $("#divDetails").html(data);
+                },
+                error: function () {
+                    $("#divDetails").html('<p class="text-danger">Failed to load.</p>');
+                }
+            });
+        });
+    </script>
+
+</div>

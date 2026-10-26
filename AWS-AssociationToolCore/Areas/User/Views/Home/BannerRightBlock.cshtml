@@ -1,0 +1,81 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var lstCommitteeMembers = (List<AWS_AssociationToolCore.Entities.Members>)ViewBag.lstCommitteeMembers;
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var imgclocNormal = objAppInfo.BaseUrl+ "Content/MemberProfileImages/";
+
+
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+
+    // ✅ Store in session (if really needed)
+    HttpContextAccessor.HttpContext.Session.SetInt32("ChapterId", (int)chapterId);
+    HttpContextAccessor.HttpContext.Session.SetString("ChapterName", chapterName);
+}
+
+@if (lstCommitteeMembers != null && lstCommitteeMembers.Count != 0)
+{
+    <article class="clearfix chairma-bg t-c">
+        <article class="clearfix owl-carousel cheirma">
+            @foreach (var item in lstCommitteeMembers)
+            {
+                <article class="clearfix items">
+                    <h4 class="clearfix m0 t-p25 b-p10 l-h16 HandelGotD-Ligh t-t-u font22 cheircol-t letterspa1 mobile-t-p15">
+                        @if (item.Designation == "President")
+                        {
+                            <a class="cheircol-t" href="p/president-message">@item.Designation Message </a>
+                        }
+                        else
+                        {
+                            <a class="cheircol-t" href="p/chairman-message">@item.Designation Message </a>
+                        }
+                    </h4>
+                    <img alt="Border" class="b-m12" height="3" src="Content/User/images/orange-border.png" width="53" />
+                    <article class="clearfix b-p33">
+                        <article class="clearfix position-r">
+                            @if (item.Designation == "President")
+                            {
+                                <a href="p/president-message"><img class="border-radius69 border3 whiteborder" height="138" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imgclocNormal + item.ProfileImage), imgclocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" width="140" /></a>
+                            }
+                            else
+                            {
+                                <a href="p/chairman-message"><img class="border-radius69 border3 whiteborder" height="138" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imgclocNormal + item.ProfileImage), imgclocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" width="140" /></a>
+                            }
+                            <article class="clearfix chairtex-det">
+                                <article class="clearfix chair-nam-bg border-radius26 dis-in l-r-p42">
+                                    <h4 class="clearfix m0 t-p12 b-p7 l-h14 Oswald-Regular t-t-u font16 white-t letterspa1">
+                                        @if (item.Designation == "President")
+                                        {
+                                            <a href="p/president-message" class="white-t">
+                                                @item.Name,
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <a href="p/chairman-message" class="white-t">
+                                                @item.Name,
+                                            </a>
+                                        }
+
+                                    </h4>
+                                    <h4 class="clearfix m0 b-p10 l-h10 Muli font13 white-t letterspa1">
+                                        @item.Designation, NATS
+                                    </h4>
+                                </article>
+                            </article>
+                        </article>
+                    </article>
+                </article>
+            }
+        </article>
+    </article>
+}

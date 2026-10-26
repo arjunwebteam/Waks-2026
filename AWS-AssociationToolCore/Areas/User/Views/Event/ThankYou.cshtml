@@ -1,0 +1,87 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var Date = ViewBag.Date;
+
+    AWS_AssociationToolCore.Entities.EventUserInfo objEventUserInfo = ViewBag.objEventUserInfo;
+
+    var cname = ViewBag.cname;
+
+  
+    ViewBag.Title = "Acknowledgment | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Thank you for supporting the " + objAppInfo.SiteName + ". Your contribution is appreciated";
+    ViewBag.MetaKeywords = objAppInfo.SiteName + " acknowledgment, thank you Telugu support, appreciation message, donation acknowledgment";
+
+    ViewBag.PageHeading = "Acknowledgment";
+}
+
+
+    <!-- content goes Here  -->
+    <div class="aws-acknowledgement-sec">
+
+        <div class="aws-acknowledgement-box ">
+            <div class="row justify-content-center">
+                <div class="col-md-7">
+                    <div class="printer-top"></div>
+                    <div class="paper-container">
+                        <div class="printer-bottom"></div>
+                        <div class="paper">
+                            <div class="main-contents">
+                                <div class="success-icon">&#10004;</div>
+                                <div class="aws-title2 mb-2 text-success text-center">@objEventUserInfo.PaymentStatus</div>
+                                <div class="success-description">
+
+                                Thank you for your payment towards <span class="" style="color: #ad1115">@objEventUserInfo.EventName</span> Registration Fee to  the @objAppInfo.SiteName
+                                </div>
+                                <hr style="opacity: 0.1;">
+                                <div class="order-details px-lg-5">
+                                    <div class="row gy-0">
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Date</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@Date.ToString("MM/dd/yyyy")</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Transaction Number</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@ViewBag.TransactionId</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Summary</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start"> <span class="red-t"> @objEventUserInfo.EventName </span> Event Registration for @objAppInfo.PresidentPhone</div>
+
+                                            
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Status</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@ViewBag.PaymentStatus </div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Amount</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">$@objEventUserInfo.objEventOrderDetails.AmountPaid</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="order-footer">Thank you!</div>
+                            </div>
+                            <div class="jagged-edge"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <!-- content End Here  -->

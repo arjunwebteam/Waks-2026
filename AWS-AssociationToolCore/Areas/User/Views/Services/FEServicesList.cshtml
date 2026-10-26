@@ -1,0 +1,65 @@
+﻿@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+    var Type = ViewBag.Type;
+    Int64 ChapterId = (Int64)ViewBag.ChapterId;
+    var lstServices = (List<AWS_AssociationToolCore.Entities.Services>)ViewBag.lstServices;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var ServiceimglocNormal = objAppInfo.AdminImageUrl + "ServiceImages/Images/";
+
+    var ChapterName = ViewBag.cname;
+}
+
+
+
+    <div class="cus-about-sec member_list">
+        <div class="row g-3">
+           
+            <div class="col-12 ">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-stripped  member_table">
+                        <thead>
+                            <tr>
+                                <th>Member Id</th>
+                                <th>First Name</th>
+                                <th>Last Name</th>
+
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @if (lstServices != null && lstServices.Count != 0)
+                            {
+                                Int64 i = 1;
+                                foreach (var item in lstServices)
+                                {
+                                    <tr>
+                                      
+                                        <td>@item.ServiceId</td>
+                                        <td>@item.ServiceType</td>
+                                        <td>@item.ServiceTitle</td>
+
+                                    </tr>
+                                    i++;
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td class="norecords" colspan="7">No Records Found.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>

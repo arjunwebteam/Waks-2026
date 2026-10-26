@@ -1,0 +1,146 @@
+﻿@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+    var Type = ViewBag.Type;
+    Int64 ChapterId = (Int64)ViewBag.ChapterId;
+    var lstEvents = (List<AWS_AssociationToolCore.Entities.Events>)ViewBag.Eventslist;
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+        var imglocEvent = objAppInfo.BaseUrl + "Content/events/banners/";
+    var ChapterName = ViewBag.cname;
+    var baseurl = objAppInfo.BaseUrl;
+}
+
+<div class="aws-left-sec">
+   
+    @if (lstEvents != null && lstEvents.Count != 0)
+    {
+
+        <div class="row gx-3 gy-md-1 gy-2">
+
+
+            @if (lstEvents != null && lstEvents.Count != 0)
+            {
+                foreach (var item in lstEvents)
+                {
+                    <div class="col-md-6">
+
+
+                        <div class="aws-event-box">
+                            @if (item.BannerUrl != null && item.BannerUrl != "")
+                            {
+                                <a href="@Url.Action("EventDetails", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName), Type = Type, eid = item.EventId })" class="a-overlay"></a>
+                                <img class="aws-event-box-img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocEvent + item.BannerUrl, imglocEvent + "no-imagefinal.jpg"))" alt="@item.EventName">
+                            }
+                            else
+                            {
+                                <a href="@Url.Action("EventDetails", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName), Type = Type, eid = item.EventId })" class="a-overlay"></a>
+                                <img class="aws-event-box-img" src="@(imglocEvent + "no-imagefinal.jpg")" alt="@item.EventName">
+
+                            }
+                            <div class="aws-event-box-content">
+                                <h5 class="">@item.EventName</h5>
+                                <div class="d-flex flex-wrap gap-1 justify-content-between align-items-center">
+                                    <div>
+                                        <div class="aws-time">
+                                            <i class="bi bi-calendar-event"></i>
+                                            @if (item.StartDate.Date == item.EndDate.Date)
+                                            {
+                                                if (item.StartDate.ToString("hh:mm tt") == "12:00 AM" && item.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy") (@item.UpdatedBy)</span>
+                                                }
+                                                else if (item.StartDate.ToString("hh:mm tt") != "12:00 AM" && item.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy hh:mm tt") (@item.UpdatedBy)</span>
+                                                }
+                                                else if (item.StartDate.ToString("hh:mm tt") == "12:00 AM" && item.EndDate.ToString("hh:mm tt") != "12:00 AM")
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy") @item.EndDate.ToString("hh:mm tt") (@item.UpdatedBy)</span>
+                                                }
+                                                else if (item.StartDate.ToString("hh:mm tt") == item.EndDate.ToString("hh:mm tt"))
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy hh:mm tt") (@item.UpdatedBy)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy hh:mm tt") - @item.EndDate.ToString("hh:mm tt") (@item.UpdatedBy)</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (item.StartDate.ToString("hh:mm tt") == "12:00 AM" && item.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy") - @item.EndDate.ToString("MMM dd, yyyy") (@item.UpdatedBy)</span>
+                                                }
+                                                else if (item.StartDate.ToString("hh:mm tt") != "12:00 AM" && item.EndDate.ToString("hh:mm tt") == "12:00 AM")
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy hh:mm tt") - @item.EndDate.ToString("MMM dd, yyyy") (@item.UpdatedBy)</span>
+                                                }
+                                                else if (item.StartDate.ToString("hh:mm tt") == "12:00 AM" && item.EndDate.ToString("hh:mm tt") != "12:00 AM")
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd, yyyy") - @item.EndDate.ToString("MMM dd, yyyy hh:mm tt") (@item.UpdatedBy)</span>
+                                                }
+                                                else
+                                                {
+                                                    <span>@item.StartDate.ToString("MMM dd,  hh:mm tt") - @item.EndDate.ToString("MMM dd, yyyy hh:mm tt") (@item.UpdatedBy)</span>
+                                                }
+                                            }
+
+                                        </div>
+
+                                        @if (item.Location != null && item.Location != "")
+                                        {
+                                            <div class="aws-loc"><i class="bi bi-map"></i>@item.Location</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="aws-loc"><i class="bi bi-map"></i>N/A</div>
+
+                                        }
+
+
+
+
+
+
+
+                                    </div>
+                                    <div>
+                                        <a href="@Url.Action("EventDetails", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName), Type = Type, eid = item.EventId, cname = ChapterName })" class="aws-event-box-btn">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                }
+            }
+        </div>
+        <!-- content End Here  -->
+    }
+
+
+    else
+    {
+
+        @using System.Globalization
+
+    <p style="text-align:center;font-size: 1.6rem;">
+        <span style="font-weight:bold;color:#1a2a6c;font-family:'Poppins-SemiBold';">
+            @CultureInfo.CurrentCulture.TextInfo.ToTitleCase(Type.ToLower()) Events
+        </span>
+        <span style="color:#555;"> – We will update soon.</span>
+    </p>
+    }
+</div>

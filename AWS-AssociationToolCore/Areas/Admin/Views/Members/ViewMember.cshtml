@@ -1,0 +1,265 @@
+﻿@{
+    ViewBag.Title = "ViewMember";
+    ViewBag.Pageheading = "ViewMember";
+
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var objMemberDetails = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMemberDetails;
+}
+@{var baseurl = System.Configuration.ConfigurationManager.AppSettings["BaseUrl"].ToString();}
+
+<base href="@(baseurl)" />
+
+<script type="text/javascript">
+    $(function () {
+        $(".ui-accordion").accordion({
+            collapsible: true,
+            heightStyle: "content"
+        });
+
+        // date picker
+        $(function () {
+            $(function () {
+                $(".datepicker").datepicker({
+                    altField: "#alternate",
+                    altFormat: "DD, d MM, yy"
+                });
+            });
+        });
+    });
+    $(document).ready(function () {
+        $('#wMembership, #wMembers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+    });
+</script>
+<!-- breadcumb -->
+<div class="content-header">
+    @*<h1>@(Session["userrole"].ToString() != "Vendor" ? "View Vendor" : "My Profile") (@objVendors.VendorTaxId) </h1>
+    <ol class="breadcrumb">
+        @if (Session["userrole"].ToString() != "Vendor")
+        {
+            <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+            <li><a href="@Url.Action("Index", "Vendors")">Vendors</a></li>
+        }
+        <li class="active">@(Session["userrole"].ToString() != "Vendor" ? "View Vendor" : "My Profile")</li>
+    </ol>*@
+</div>
+<!--end breadcumb -->
+<div class="content">
+    <!-- Main content -->
+   
+    <div class="clearfix sepH_b"></div>
+    <div class="nav-tabs-custom">
+        <ul class="nav nav-tabs">
+            @*<li class="active"><a href="@Url.Action("ViewVendor", "Vendors", new { VendorId = objVendors.VendorId })">@(Session["userrole"].ToString() != "Vendor" ? "Vendor Information" : "My Profile")</a></li>
+            @if (Session["userrole"].ToString() != "Vendor")
+            {
+                <li><a href="@Url.Action("Index", "Consultants", new { VendorId = objVendors.VendorId, Name = objVendors.VendorName })">@(Session["userrole"].ToString() != "Vendor" ? "Vendor Consultants" : "My Consultants")</a></li>
+            }
+            <li><a href="@Url.Action("Index", "Invoices", new { VendorId = objVendors.VendorId, Name = objVendors.VendorName })">@(Session["userrole"].ToString() != "Vendor" ? "Vendor Invoices" : "My Invoices")</a></li>*@
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="box validation">
+                            <div class="box-header">
+
+                                <h4 class="box-title dis-in">Personal Details</h4>
+                            </div>
+
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>MemberId : </label>
+                                        @objMemberDetails.MemberId
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>First Name : </label>
+                                        @objMemberDetails.FirstName
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Last Name : </label>
+                                        @objMemberDetails.LastName
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Email : </label>
+                                        @(objMemberDetails.Email)
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Mobile Phone: </label>
+                                        @(objMemberDetails.MobilePhone == "" ? "N/A" : objMemberDetails.MobilePhone)
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+
+                        <div class="box validation">
+                            <div class="box-header">
+                                <h4 class="box-title dis-in">Spouse Details</h4>
+                            </div>
+
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Spouse First Name  :</label>
+                                        @(objMemberDetails.SpouseFirstName == "" ? "N/A" : objMemberDetails.SpouseFirstName)
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Spouse LastName :</label>
+                                        @(objMemberDetails.SpouseLastName == "" ? "N/A" : objMemberDetails.SpouseLastName)
+                                    </div>
+                                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                                        <label>Spouse Email : </label>
+                                        @(objMemberDetails.SpouseEmail == "" ? "N/A" : objMemberDetails.SpouseEmail)
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Phone Number : </label>
+                                        @(objMemberDetails.SpouseCell == "" ? "N/A" : objMemberDetails.SpouseCell)
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-body">
+                        <div class="box validation">
+                            <div class="box-header">
+                                <h4 class="box-title dis-in">Contact Details</h4>
+                            </div>
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>State  :</label>
+                                        @objMemberDetails.State
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>City :</label>
+                                        @objMemberDetails.City
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Mobile Phone : </label>
+                                        @objMemberDetails.MobilePhone
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>ZipCode : </label>
+                                        @objMemberDetails.ZipCode
+
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Address1:</label>
+                                        @objMemberDetails.Address
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Address2:</label>
+                                        @objMemberDetails.Address
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Comments:</label>
+                                        @(objMemberDetails.Comments == "" ? "N/A" : objMemberDetails.Comments)
+
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="box validation">
+                            <div class="box-header">
+                                <h4 class="box-title dis-in">Latest Order Details</h4>
+                            </div>
+                            <div class="box-body">
+                                <div class="row">
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Membership  Type  :</label>
+                                        @objMemberDetails.objMembershipOrder.MembershipType
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Transaction Id :</label>
+                                        @objMemberDetails.objMembershipOrder.TransactionId
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Payment Method : </label>
+                                        @objMemberDetails.objMembershipOrder.PaymentMethod
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Payment Status : </label>
+                                        @objMemberDetails.objMembershipOrder.PaymentStatus
+
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Expiry Date:</label>
+                                        @(objMemberDetails.objMembershipOrder.ExpiryDate == DateTime.MinValue ? "LifeTime" : objMemberDetails.objMembershipOrder.ExpiryDate.ToString("MM/dd/yyyy"))
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>ChequeNo:</label>
+                                        @(objMemberDetails.objMembershipOrder.ChequeNo == "" ? "N/A" : objMemberDetails.objMembershipOrder.ChequeNo)
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Amount :</label>
+
+                                        <b>$ @objMemberDetails.MemberAmount</b> <span id="payamount"></span>
+
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label class="t-p5">Bank Name :</label>
+                                        @(objMemberDetails.objMembershipOrder.BankName == "" ? "N/A" : objMemberDetails.objMembershipOrder.BankName)
+
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Cheque Date :</label>
+                                        @(objMemberDetails.objMembershipOrder.ChequeDate == DateTime.MinValue ? "" : objMemberDetails.objMembershipOrder.ChequeDate.ToString("MM/dd/yyyy"))
+
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>User Comments :</label>
+                                        @(objMemberDetails.objMembershipOrder.UserComment == "" ? "N/A" : objMemberDetails.objMembershipOrder.UserComment)
+
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>Admin Comments :</label>
+
+                                        @(objMemberDetails.objMembershipOrder.AdminComment == "" ? "N/A" : objMemberDetails.objMembershipOrder.AdminComment)
+
+                                    </div>
+                                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                                        <label>
+                                            Payment Given To ( If Already Paid) :
+                                        </label>
+                                        @(objMemberDetails.objMembershipOrder.PaymentBy == "" ? "N/A" : objMemberDetails.objMembershipOrder.PaymentBy)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="box">
+                    <!-- /.box-header -->
+                    <div class="box-body text-right align-center">
+                        <a class="btn btn-info" style="margin-left:500px;" href="@Url.Action("Index", "Members")">Back</a>
+                    </div>
+                    <!-- /.box-body -->
+                </div>
+
+
+            </div>
+                </div>
+            </div>
+</div>
+

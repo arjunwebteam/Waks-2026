@@ -1,0 +1,1033 @@
+﻿@{
+    ViewBag.Title = "Add Member";
+    ViewBag.Pageheading = "Add Member";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+    var lstMembershipType = (List<AWS_AssociationToolCore.Entities.MembershipTypes>)objMembers.lstMembershipType;
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+    int status = 0;
+
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    Int64 ChapterId = ViewBag.ChapterId;
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        function forceCorrectFormat(el) {
+            setTimeout(function () {
+                el.value = formatPhone(el.value);
+            }, 0);
+        }
+
+        // Personal Details Mobile Phone
+        var selfPhone = document.getElementById('SelfMobilePhone');
+        if (selfPhone) {
+            selfPhone.addEventListener('blur', function () { forceCorrectFormat(selfPhone); });
+            selfPhone.addEventListener('change', function () { forceCorrectFormat(selfPhone); });
+        }
+
+        // Spouse Mobile Phone
+        var spousePhone = document.getElementById('SpouseCell');
+        if (spousePhone) {
+            spousePhone.addEventListener('blur', function () { forceCorrectFormat(spousePhone); });
+            spousePhone.addEventListener('change', function () { forceCorrectFormat(spousePhone); });
+        }
+    });
+</script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+        $(function () {
+            $("#ChequeDate").datetimepicker({
+
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: 'mm/dd/yy'
+            });
+        });
+
+
+
+    });
+    function calculateExpiryDate(startDate, months) {
+        // Create a new Date object based on the provided start date
+        const startDateObj = new Date(startDate);
+
+        // Add the specified number of months to the start date
+        startDateObj.setMonth(startDateObj.getMonth() + months);
+
+        // Return the calculated expiry date
+        return startDateObj;
+    }
+
+
+
+
+
+    $(document).ready(function () {
+        $('#ChequeHolderNamehide').hide()
+        $('#ZellePartnerNamehide').hide()
+        $("#BannerUrl").change(function () {
+            validateBannerUrl();
+        });
+
+        function validateBannerUrl() {
+            $("#FormWebBanners").validate().resetForm();
+            $("#FormWebBanners").validate().element("#BannerUrl");
+        }
+
+        $.validator.addMethod("validImageExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                var allowedExtensions = ["jpg", "png", "gif", "jpeg"];
+                var fileName = element.files[0].name;
+                var extension = fileName.split('.').pop().toLowerCase();
+                return $.inArray(extension, allowedExtensions) !== -1;
+            }
+            return true;
+        }, "Only allowed extensions are: jpg, png, gif, jpeg");
+
+
+
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormWebBanners')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+    });
+
+
+
+    function getamount() {
+        var membershipid = $('#MembershipTypeId').val();
+        $.ajax({
+            url: '@Url.Action("EditMembershipTypes", "MembershipTypes")',
+            type: 'POST',
+            data: { MembershipTypeId: membershipid },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objMembershipType = result.data;
+                    $('#payamount').html(objMembershipType.Price);
+                    $('#MemberAmount').val(objMembershipType.Price);
+                    $('#TMemberAmount').val(objMembershipType.Price);
+                    $('#total').html(objMembershipType.Price);
+                    if (objMembershipType.Validity != 0) {
+                        const startDate = new Date(); // current date
+
+                        const formattedDate = startDate.toLocaleString('en-US', {
+                            year: 'numeric',
+                            month: 'numeric',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            second: 'numeric',
+                            hour12: true
+                        });
+
+                        const monthsToAdd = objMembershipType.Validity;
+                        const expiryDate = calculateExpiryDate(formattedDate, monthsToAdd);
+                        $('#ExpiryDate').val(expiryDate.toString("MM/dd/yyyy"));
+
+                    }
+                    else {
+                        $('#ExpiryDate').val('Life Time');
+
+                    }
+
+                    //if (Common.ConvertDate(objMembershipType.Validity) != '1/1/1') {
+                    //    var d = new Date();
+                    //    d.setMonth((d.getMonth()) + objMembershipType.Validity);
+                    //    $('#ExpiryDate').val(Common.ConvertDate(objMembershipType.Validity));
+                    //} else { $('#ExpiryDate').val('Life Time'); }
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+    }
+    function PaymentMethodBind() {
+
+        var PaymentMethod = $('#PaymentMethodId').val();
+        if (PaymentMethod == 3) {
+            $('#ChequeHolderNamehide').show()
+            $('#ZellePartnerNamehide').hide()
+        }
+        else if (PaymentMethod == 6) {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').show()
+        }
+        else {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').hide()
+        }
+    }
+</script>
+<script type="text/javascript">
+    function addRow() {
+        var table = document.getElementById("childinfo");
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+        row.id = "child-" + rowCount;
+
+        // Cell 1: FirstName
+        var cell1 = row.insertCell(0);
+        var element1 = document.createElement("input");
+        element1.type = "text";
+        element1.name = "[" + (rowCount - 1) + "].FirstName";
+        element1.id = "FirstName-" + (rowCount - 1);
+        element1.className = "form-control";
+        cell1.appendChild(element1);
+
+        // Cell 2: Relationship
+        var cell2 = row.insertCell(1);
+        var element2 = document.createElement("input");
+        element2.type = "text";
+        element2.name = "[" + (rowCount - 1) + "].Relationship";
+        element2.id = "Relationship-" + (rowCount - 1);
+        element2.className = "form-control";
+        cell2.appendChild(element2);
+
+        // Cell 3: Age
+        var cell3 = row.insertCell(2);
+        var element3 = document.createElement("input");
+        element3.type = "text";
+        element3.name = "[" + (rowCount - 1) + "].Age";
+        element3.id = "Age-" + (rowCount - 1);
+        element3.maxLength = 2;
+        element3.className = "form-control";
+        element3.onkeypress = function (event) { return Common.isNumberKey(event); };
+        cell3.appendChild(element3);
+
+        // Cell 4: Delete button
+        var cell4 = row.insertCell(3);
+        cell4.innerHTML = '<a onclick="javascript:deleteRow(' + rowCount + ')" class="btn darkgray-text" style="background-color:#b00000;color:#fff;"><i class="bi bi-trash"></i> Remove</a>';
+
+        $('#hdnRowCount').val(rowCount);
+    }
+
+    function addRow1() {
+
+        var table = document.getElementById("masterpoojadates");
+
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+        row.id = rowCount;
+
+        var cell1 = row.insertCell(0);
+        var element1 = document.createElement("input");
+        element1.type = "text";
+        element1.name = "[" + (rowCount - 1) + "].PoojaDate";
+        element1.id = "PoojaDate-" + (rowCount - 1);
+        element1.className = "form-control date1" + (rowCount - 1);
+        cell1.appendChild(element1);
+        $(".date1" + (rowCount - 1)).datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.date1' + (rowCount - 1), altFormat: 'mm/dd/yy' });
+
+        var cell1 = row.insertCell(1);
+        cell1.innerHTML = '<a onclick="javascript:deleteRow1(' + rowCount + ')" class="btn darkgray-text"><img alt="Delete" title="Delete" src="Content/Admin/images/delete.gif" class="margin-top-5" /> Delete</a>';
+
+        $('#hdnRowCount').val(rowCount);
+    }
+     function formatPhone(val) {
+        var ph = val.replace(/\D/g, '').slice(0, 10);   // AU mobile = 10 digits max
+        if (ph.length > 6) return ph.slice(0, 4) + '-' + ph.slice(4, 7) + '-' + ph.slice(7, 10);
+        if (ph.length > 4) return ph.slice(0, 4) + '-' + ph.slice(4);
+        return ph;
+    }
+
+      function handlePaste(event) {
+        if (event.target.id === "SelfMobilePhone") {   // ✅ updated id
+            const pastedNumber = (event.clipboardData || window.clipboardData).getData('text');
+            event.target.value = formatPhone(pastedNumber);
+            event.preventDefault();
+        }
+    }
+
+    function handlePastes(event) {
+        if (event.target.id === "SpouseCell") {
+            const pastedNumber = (event.clipboardData || window.clipboardData).getData('text');
+            const formattedNumber = formatPhone(pastedNumber);   // ✅ formatPhone, not formatPhoneNumber
+            event.target.value = formattedNumber;
+            event.preventDefault();
+        }
+    }
+
+    function deleteRow(i) {
+        try {
+            var row = document.getElementById("child-" + i);
+            row.parentNode.removeChild(row);
+        } catch (e) {
+            alert(e);
+        }
+    }
+
+    function deleteRow1(i) {
+        try {
+            var row = document.getElementById(i);
+            row.parentNode.removeChild(row);
+        } catch (e) {
+            alert(e);
+        }
+    }
+
+    function DropDown(el) {
+        this.dd = el;
+       /* this.initEvents();*/
+    }
+    DropDown.prototype = {
+        initEvents: function () {
+            var obj = this;
+
+            obj.dd.on('click', function (event) {
+                $(this).toggleClass('active');
+                event.stopPropagation();
+            });
+        }
+    }
+
+    $(function () {
+
+        var dd = new DropDown($('#dd'));
+
+        $(document).click(function () {
+
+            $('.wrapper-dropdown-3').removeClass('active');
+
+        });
+
+    });
+
+    function CheckEmailAvailability(email) {
+
+        var returnval = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("CheckEmailAvailability", "Members")', // the URL of the controller action method
+            data: { Email: email }, // optional data
+            datatype: "JSON",
+            async: false,
+            success: function (result) {
+                if (result.ok) {
+                    returnval = result.data;
+                }
+            }
+        });
+        return returnval;
+    }
+
+    function CheckUserNameAvailability(username) {
+
+        var returnval = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("CheckUserNameAvailability", "Members")', // the URL of the controller action method
+            data: { UserName: username }, // optional data
+            datatype: "JSON",
+            async: false,
+            success: function (result) {
+                if (result.ok) {
+                    returnval = result.data;
+                }
+            }
+        });
+        return returnval;
+    }
+
+
+        function CheckPhoneNoAvailability(MobilePhone) {
+
+        var returnval = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("CheckPhoneNoAvailability", "Members")', // the URL of the controller action method
+            data: { MobilePhone: MobilePhone }, // optional data
+            datatype: "JSON",
+            async: false,
+            success: function (result) {
+                if (result.ok) {
+                    returnval = result.data;
+                }
+            }
+        });
+        return returnval;
+    }
+
+
+
+
+
+
+
+        function SelfPhoneNoChange1(event) {
+            if (event.keyCode == 8 || event.keyCode == 46) {
+            }
+            else {
+                var ph = $('#SelfPhoneNo').val();
+                if (ph.length == 3) { $('#SelfPhoneNo').val(ph + '-'); }
+                if (ph.length == 7) { $('#SelfPhoneNo').val(ph + '-'); }
+            }
+        }
+
+
+     function IndianSpouePhoneNoChange(event) {
+    if (event.keyCode == 8 || event.keyCode == 46) {
+    }
+    else {
+        var ph = $('#Field1').val();
+        if (ph.length == 3) { $('#Field1').val(ph + '-'); }
+        if (ph.length == 7) { $('#Field1').val(ph + '-'); }
+    }
+    }
+
+</script>
+<script type="text/javascript">
+    $(function () {
+        $(".ui-accordion").accordion({
+            collapsible: true,
+            heightStyle: "content"
+        });
+
+        // date picker
+        $(function () {
+            $(function () {
+                $(".datepicker").datepicker({
+                    altField: "#alternate",
+                    altFormat: "DD, d MM, yy"
+                });
+            });
+        });
+    });
+    $(document).ready(function () {
+        $('#wMembership, #wMembers').addClass('active');
+
+        $(".Odate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+        $(".Edate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-0:+40", altField: '.Edate', altFormat: 'mm/dd/yy' });
+        $(".Cdate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-0:+40", altField: '.Cdate', altFormat: 'mm/dd/yy' });
+        $('#MMembers').addClass('active');
+    });
+
+
+    function NoofPaym() {
+        var type = $('#FrequencyofDonation').val();
+        if (type == 'OneTimeDonation') {
+
+            $('#TAmount').hide();
+            $('#NoofPay').hide();
+            $('#TStarts').hide();
+        }
+        else {
+            $('#TAmount').show();
+            $('#NoofPay').show();
+            $('#TStarts').show();
+
+        }
+
+    }
+
+
+    function Billing() {
+        var type = $('#SameBilling').val();
+        if (type == 'No') {
+            $('#TTTD').show();
+
+        }
+        else {
+            // alert(type);
+
+            $('#TTTD').hide();
+        }
+
+    }
+
+    function Insurance() {
+        var type = $('#Field2').val();
+        if (type == 'Yes') {
+            $('#Beneficiary').show();
+            $('#University').show();
+
+        }
+
+
+        else {
+            // alert(type);
+            $('#Beneficiary').hide();
+            $('#University').hide();
+
+
+        }
+
+    }
+
+    function DonatAmount() {
+        var type = $('#Donate').val();
+        if (type == 'Yes') {
+            $('#Frequency').show();
+
+        }
+        else {
+            // alert(type);
+            $('#Frequency').hide();
+        }
+
+    }
+
+    function AmountChange(AAmount) {
+        $('#OtherAmount').attr('readonly', 'readonly');
+        if (AAmount == 'Other') {
+            $('#Amount').val('');
+            $('#OtherAmount').removeAttr('readonly');
+        }
+        else {
+
+            var mamt = $('#TMemberAmount').val();
+            AAmount = parseFloat(AAmount) + parseFloat(mamt);
+            $('#MemberAmount').val(AAmount);
+            $('#total').html(AAmount);
+            $('#OtherAmount').val('');
+        }
+    }
+
+    function OtherNewAmount() {
+        var OtherAmount = $('#OtherAmount').val();
+
+        if (OtherAmount != '') {
+            var mamt = $('#TMemberAmount').val();
+            OtherAmount = parseFloat(OtherAmount) + parseFloat(mamt);
+            $('#MemberAmount').val(OtherAmount);
+            $('#total').html(OtherAmount);
+        }
+    }
+
+
+</script>
+<script type="text/javascript">
+        $(document).ready(function () {
+        document.querySelectorAll('.single-select').forEach(function (el) {
+            el.addEventListener('change', function () {
+                // Force close the Virtual Select dropdown after selection
+                if (this.closeDropbox) {
+                    this.closeDropbox();
+                } else if (this.classList.contains('vscomp-ele')) {
+                    document.body.click(); // fallback: simulate outside click to close
+                }
+            });
+        });
+    });
+    $(document).ready(function () {
+        $('#wVolunteer, #wVolunteers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+           $(document).on('change', 'select', function () {
+        $(this).valid(); // Triggers jQuery Validate on this element
+    });
+        $("#VolunteerForm select").on("change", function () {
+        $(this).valid();
+    });
+    $(document).ready(function () {
+
+    $.validator.addMethod('phoneFormat', function (value, element) {
+        var phone = value.replace(/\D/g, '');
+        return this.optional(element) || /^04\d{8}$/.test(phone); // must start with 04, 10 digits total
+    }, 'Please enter a valid Australian mobile number (e.g. 0412-345-678)');
+        $("#VolunteerForm").validate({
+            rules: {
+                FirstName: "required",
+                gender: "required",
+                MaritalStatus: "required",
+                LastName: "required",
+                    Email: {
+                     validate_email: true,
+                    remote: {
+                        type: "POST",
+                        url: "@Url.Action("CheckEmailAvailability", "Members")",
+                        dataType: "json",
+                        data: {
+                            Email: function () {
+                                return $("#Email").val().trim();  // Use ID directly
+                            }
+                        },
+                        dataFilter: function (response) {
+                            var responseData = JSON.parse(response);
+                            return responseData.data === true ? "true" : "false";
+                        }
+                    }
+                },
+                MobilePhone: {
+
+                    phoneFormat: true
+                },
+                MembershipTypeId: "required",
+                //City: "required",
+                //Country: "required",
+                //State: "required",
+                //ZipCode: "required",
+
+                //VolunteerCategoryId: "required",
+            },
+            messages: {
+                FirstName: " First Name Is Required",
+                gender: " Please Select gender",
+                MaritalStatus: " Please Select Marital Status",
+                LastName: " Last Name Is Required",
+
+                Email: {
+                    validate_email: "Please enter valid email address",
+                    remote: "This email address is already in use."
+                },
+                MobilePhone: {
+
+                    phoneFormat: "Please Enter Valid Phone Number",
+                },
+
+                MembershipTypeId: "Please Select Membership Type ",
+                //        MobilePhone: "required",
+                //City: " City is required",
+                //Country: " Country is required",
+                //ZipCode: " ZipCode is required",
+                //State: " State is required",
+                //VolunteerCategoryId: " Please Select Category",
+
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+</script>
+@*<script src="Scripts/Admin/jquery.validate.js"></script>*@
+@using (Html.BeginForm("AddMember", "Members", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VolunteerForm", @name = "VolunteerForm" }))
+{
+    <input type="hidden" value="" id="MemberAmount" name="MemberAmount" />
+    <input type="hidden" value="" id="TMemberAmount" name="TMemberAmount" />
+    <input type="hidden" id="Amount" name="Amount" value="" />
+
+
+    if (objAppInfo.chapterStatus == "No")
+    {
+        <input type="hidden" value="1" name="ChapterId" id="ChapterId" />
+    }
+
+    @*<input type="hidden" id="ChapterId" name="ChapterId" value="1" />*@
+    <input type="hidden" id="mid" name="mid" value="@ViewBag.mid" />
+    <input type="hidden" id="type" name="type" value="@ViewBag.type" />
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Personal Details</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">First Name   <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="FirstName" name="FirstName" placeholder="First Name" onkeypress="return Common.isChar(event)">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Last Name   <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="LastName" name="LastName" placeholder="Last Name" onkeypress="return Common.isChar(event)">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Email  <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" id="Email" name="Email" placeholder="Email">
+                            </div>
+                        </div>
+                        <!-- Personal Details -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Mobile Phone <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" id="SelfMobilePhone" name="MobilePhone"
+                                       oninput="this.value = formatPhone(this.value);"
+                                       autocomplete="off" maxlength="12" placeholder="0412-345-678"
+                                       onpaste="handlePaste(event);" />
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">State  <span class="text-danger"></span></label>
+                                <select class="single-select" name="State" id="State" type="text">
+
+
+                                    <option value="" selected="selected">--Select--</option>
+                                    <option value="Australian Capital Territory">Australian Capital Territory</option>
+                                    <option value="New South Wales">New South Wales</option>
+                                    <option value="Northern Territory">Northern Territory</option>
+                                    <option value="Queensland">Queensland</option>
+                                    <option value="South Australia">South Australia</option>
+                                    <option value="Tasmania">Tasmania</option>
+                                    <option value="Victoria">Victoria</option>
+                                    <option value="Western Australia">Western Australia</option>
+
+
+
+                                </select>
+
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">City </label>
+                                <input type="text" id="City" class="form-control" name="City" placeholder="City">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">ZipCode </label>
+                                <input type="text" id="ZipCode" class="form-control" name="ZipCode" placeholder="ZipCode" onkeypress="return Common.isNumberKey(event);" maxlength="8">
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Marital Status <span class="text-danger">*</span></label>
+                                <select class="single-select" name="MaritalStatus" id="MaritalStatus" placeholder="Marital Status">
+                                    <option value="">-- Select --</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Married">Married</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Gender <span class="text-danger">*</span></label>
+                                <select class="single-select" name="gender" id="gender" placeholder="Gender">
+                                    <option value="">-- Select --</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        @if (objAppInfo.chapterStatus == "Yes")
+                        {
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Chapters  <span class="text-danger"></span></label>
+
+
+                                    <select class="form-control" id="ChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+                                        <option value="">-- Select --</option>
+                                        @if (lstChapters != null && lstChapters.Count != 0)
+                                        {
+                                            foreach (var item in lstChapters)
+                                            {
+                                                <option @(item.ChapterId == ChapterId ? "selected=selected" : "") value="@item.ChapterId">@item.ChapterName</option>
+                                            }
+                                        }
+                                    </select>
+
+                                </div>
+                            </div>
+                        }
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Address-1</label>
+                                <textarea type="text" id="Address" class="form-control" name="Address" placeholder="Address"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Do you identify as Kannadiga</label>
+                                <select class="single-select" name="Address2" id="Address2" placeholder="">
+                                    <option value="">-- Select --</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Spouse Details </h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">First Name </label>
+                                <input type="text" class="form-control" id="SpouseFirstName" name="SpouseFirstName" placeholder="Spouse First Name">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Last Name </label>
+                                <input type="text" class="form-control" id="SpouseLastName" name="SpouseLastName" placeholder="Spouse Last Name">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Email</label>
+                                <input type="text" class="form-control" id="SpouseEmail" name="SpouseEmail" placeholder="Spouse Email">
+                            </div>
+                        </div>
+                        <!-- Spouse Details -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Mobile Phone <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" id="SpouseCell" name="SpouseCell"
+                                       oninput="this.value = formatPhone(this.value);"
+                                       maxlength="12" placeholder="0412-345-678"
+                                       onpaste="handlePastes(event);" autocomplete="off" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Latest Order Details </h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">
+                                    Membership Type : <span class="text-danger">*</span>
+                                </label>
+
+                                <select class="single-select" name="MembershipTypeId" id="MembershipTypeId" type="text" onchange="getamount();">
+                                    @if (lstMembershipType != null)
+                                    {
+                                        <option value="">Select</option>
+                                        foreach (var item in lstMembershipType)
+                                        {
+                                            <option value="@item.MembershipTypeId">@item.MembershipType</option>
+                                        }
+                                    }
+
+
+                                </select>
+
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Expiry Date </label>
+                                <input type="text" class="form-control" id="ExpiryDate" name="ExpiryDate" readonly="true">
+
+
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+
+                            <div class="input-box">
+                                <div>
+                                    <label>&nbsp;</label>
+                                </div>
+                                <label>Amount :</label>
+                                $<span id="payamount"></span>
+
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Payment Method</label>
+
+                                <select class="single-select" name="PaymentMethodId" id="PaymentMethodId" type="text" onchange="PaymentMethodBind();">
+                                    @if (lstPaymentMethod != null)
+                                    {
+                                        <option value="">Select</option>
+                                        foreach (var item in lstPaymentMethod)
+                                        {
+                                            <option value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                                        }
+                                    }
+
+
+                                </select>
+
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6" id="ChequeHolderNamehide">
+                            <div class="input-box">
+                                <label class="form-label">Handed the cash/cheque to - Name of the :</label>
+                                <input type="text" class="form-control" id="ChequeHolderName" name="ChequeHolderName">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6" id="ZellePartnerNamehide">
+                            <div class="input-box">
+                                <label class="form-label">Zelle Person Name </label>
+                                <input type="text" class="form-control" id="ZellePartnerName" name="ZellePartnerName">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Transaction Id </label>
+                                <input type="text" class="form-control" id="TransactionId" name="TransactionId">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Payment Status</label>
+
+                                <select class="single-select" name="PaymentStatusId" id="PaymentStatusId" type="text">
+                                    @if (lstPaymentStatus != null)
+                                    {
+                                        <option value="">Select</option>
+                                        foreach (var item in lstPaymentStatus)
+                                        {
+                                            <option value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                                        }
+                                    }
+
+
+                                </select>
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Bank Name  :</label>
+                                <input type="text" class="form-control" id="BankName" name="BankName">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Cheque Date :</label>
+                                <input type="text" class="form-control" id="ChequeDate" name="ChequeDate">
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-6 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">User Comments</label>
+                                <textarea type="text" id="UserComment" class="form-control" name="UserComment" placeholder="UserComment"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Admin Comments</label>
+                                <textarea type="text" class="form-control" id="AdminComment" name="AdminComment" placeholder="AdminComment"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3 col-3 text-end ms-auto">
+            <button type="submit" class="btn btn-success px-3 " value="submit"> Submit</button>
+            <a class="btn btn-primary px-3" href="@Url.Action("Index", "Members", new { mid = ViewBag.mid })">Cancel</a>
+        </div>
+    </div>
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

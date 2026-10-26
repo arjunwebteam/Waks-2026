@@ -1,0 +1,49 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = "NATSWorld - VolunteersList";
+
+    var lstVolunteers = (List<AWS_AssociationToolCore.Entities.Volunteers>)ViewBag.lstVolunteers;
+
+    Int64 MemberId = ViewBag.MemberId;
+}
+
+
+
+
+<table width="100%" cellspacing="0" cellpadding="0" class="table table-hover table-bordered poppins-regular gray-t font13 m0">
+    <tbody>
+        <tr class="t-l yello-bg">
+            <th>S.No</th>
+            <th>Category Name</th>
+            <th>Event Name</th>
+            <th>Event Date</th>
+            <th>Registration Date </th>
+            <th>Status</th>
+
+        </tr>
+        @if (lstVolunteers != null && lstVolunteers.Count != 0)
+        {
+            Int64 i = 1;
+            foreach (var item in lstVolunteers)
+            {
+    <tr>
+        <td align="left" style="text-align: center;">@i</td>
+        <td align="left" valign="middle"><a href="mailto:@item.Email" class="black-t r-p5">@((item.CategoryName == null || item.CategoryName == "") ? "N/A" : item.CategoryName)</a></td>
+        <td align="left" valign="middle" class="orange-t">@((item.EventName == null || item.EventName == "") ? "N/A" : item.EventName)</td>
+        <td align="left" valign="middle" class="orange-t">@(item.StartDate == DateTime.MinValue?"N/A": item.StartDate.ToString("MM/dd/yyyy")) </td>
+        <td align="left" valign="middle" class="orange-t">@(item.UpdatedDate == DateTime.MinValue?"N/A": item.UpdatedDate.ToString("MM/dd/yyyy")) </td>
+
+        <td align="left" valign="middle"> @(item.IsActive == true ? "Approved" : "Not Approved" )</td>
+
+    </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td class="norecords" colspan="7">No Volunters Found.</td>
+            </tr>
+        }
+    </tbody>
+</table>

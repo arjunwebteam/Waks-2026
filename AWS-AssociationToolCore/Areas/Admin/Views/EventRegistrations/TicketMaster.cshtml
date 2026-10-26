@@ -1,0 +1,137 @@
+﻿@{
+    ViewBag.Title = "TicketMaster";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var EventId = ViewBag.eid;
+    var EventName = ViewBag.ename;
+    var Mobile = ViewBag.tid;
+}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wEvents').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        PagerClickBind();
+    });
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            RegistrationCountBind($(this).text());
+        });
+    }
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        RegistrationCountBind(1);
+    }
+
+    function RegistrationCountBind(Pageno) {
+        if (Validate()) {
+            var pageno = Common.Pageno(Pageno);
+            var search = $('#txtsearch').val();
+            var sortcolumn = $('#hdnsortcolumn').val();
+            var sortorder = $('#hdnsortorder').val();
+            var items = $('#txtitems').val();
+            var EventId = '@EventId';
+            var Mobile = '@Mobile';
+            $.ajax({
+                url: '@Url.Action("EventTicketMasterList", "EventRegistrations")',
+                type: 'GET',
+                cache: false,
+                data: { search: search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, EventId: EventId, Mobile: Mobile },
+                success: function (result) {
+                    $('#divRegistrationCountList').html(result);
+                    $('#divRegistrationCountList').show();
+
+                    PagerClickBind();
+                }
+            });
+        }
+    }
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        $('#hdnPageNo').val(1);        
+        RegistrationCountBind(1);
+        $('#divRegistrationCountList').hide();
+    }
+
+    function Validate() {
+
+        if ($.trim($('#txtsearch').val()) == '') { $('#spantxtsearch').html('Required.'); $('#txtsearch').focus().addClass("validate"); return false; } else { $('#txtsearch').focus().removeClass("validate"); }
+
+        return true;
+    }
+    function ResetValidateClass() {
+        $('#txtsearch').removeClass("validate");        
+    }
+   
+</script>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortorder" name="hdnsortorder" value="DESC" type="hidden" />
+<input id="hdnsortcolumn" name="hdnsortcolumn" value="EventRegCountId" type="hidden" />
+<!-- breadcumb -->
+
+<div class="content-header">
+    <h1>Event Ticket Master</h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li class="active"> Event Ticket Master</li>
+    </ol>
+</div>
+<!-- end breadcumb -->
+<div class="content">
+    <!-- Main content -->
+   
+    <div class="box">
+        <!-- /.box-header -->
+        <div class="clearfix box-body">
+            <div class="clearfix row">
+                <div class="col-xs-12 col-lg-4 col-sm-6">
+                    <label>Search by:</label>
+                    <input type="text" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();"  placeholder="Email / Phone No / Transaction ID" class="form-control" name="txtsearch" id="txtsearch" />
+                    <label id="spantxtsearch" class="field-validation-error"></label>                    
+                </div>
+                <div class="col-xs-12 col-lg-8 col-sm-6">
+                    <div>
+                        <label>&nbsp;</label>
+                    </div>
+                    <button class="btn btn-primary" type="submit" onclick="RegistrationCountBind(1);">Search</button>
+                    <button class="btn btn-info" type="submit" onclick="ClearSearch();">Clear</button>
+                </div>
+            </div>
+            <div class="clearfix row">
+                  
+                     <div class="clearfix row">               
+                         <div class="col-xs-12 col-lg-12 col-sm-12">
+                             <h1 class="clearfix" style="color:#f00; font-size:22px; text-align:center;">{ @EventName }</h1>
+                             </div>
+                         </div>
+                   
+            </div>
+            
+        </div>
+        @if (@Mobile != null && @Mobile != "")
+        {
+            <div id="divRegistrationCountList"
+                 class="box-body table-responsive"
+                 style="@(Mobile != null && Mobile != "" ? "" : "display:none;")">
+                @await Html.PartialAsync("_EventTicketMasterList")
+            </div>
+        }
+        else
+        {
+            <div id="divRegistrationCountList"
+                 class="box-body table-responsive"
+                 style="@(Mobile != null && Mobile != "" ? "" : "display:none;")">
+                @await Html.PartialAsync("_EventTicketMasterList")
+            </div>
+        
+        } 
+        
+    </div>
+    </div>

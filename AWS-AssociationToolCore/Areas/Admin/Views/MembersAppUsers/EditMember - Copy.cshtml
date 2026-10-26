@@ -1,0 +1,1421 @@
+﻿@using System.Configuration;
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@{
+    ViewBag.Title = "Edit Member";
+    ViewBag.Pageheading = "Member Details";
+
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayoutIOS.cshtml";
+    int status = 0;
+
+    Int64 ChapterId = ViewBag.ChapterId;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+    var lstMembershipType = (List<AWS_AssociationToolCore.Entities.MembershipTypes>)objMembers.lstMembershipType;
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+    var objMemberDetails = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMemberDetails;
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    List<AWS_AssociationToolCore.Entities.Members> lstMemberLogs = ViewBag.lstMemberLogs;
+    var chequeimage = objAppInfo.BaseUrl + "Content/MemberReceiptImages/";
+    var imglocNormal = objAppInfo.BaseUrl + "Content/MemberReceiptImages/";
+
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+
+    var Test = objPhotosImageSettings.Photosize;
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+    }
+    var imglocNormal1 = objAppInfo.BaseUrl + "Content/MemberProfileImages/thumb/";
+
+
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        function forceCorrectFormat(el) {
+            setTimeout(function () {
+                el.value = formatPhone(el.value);
+            }, 0);
+        }
+
+        // Personal Details Mobile Phone
+        var selfPhone = document.getElementById('SelfMobilePhone');
+        if (selfPhone) {
+            selfPhone.addEventListener('blur', function () { forceCorrectFormat(selfPhone); });
+            selfPhone.addEventListener('change', function () { forceCorrectFormat(selfPhone); });
+        }
+
+        // Spouse Mobile Phone
+        var spousePhone = document.getElementById('SpouseCell');
+        if (spousePhone) {
+            spousePhone.addEventListener('blur', function () { forceCorrectFormat(spousePhone); });
+            spousePhone.addEventListener('change', function () { forceCorrectFormat(spousePhone); });
+        }
+    });
+</script>
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+        font-size: 17px;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+
+    .status-code {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        padding-bottom: 0px;
+        padding-top: 23px;
+    }
+
+    tr#child-1 td .form-control {
+        width: 108%;
+    }
+
+    table#childinfo {
+        width: 50%;
+        gap: 14px !important;
+        display: flex;
+    }
+
+    .add-btn {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .add-btn {
+        padding-bottom: 10px;
+    }
+
+        .add-btn .add {
+            border: 1px solid #343434;
+            background: rgb(255 255 255);
+            border-radius: 5px;
+        }
+
+    .btn {
+        font-size: 16px !important;
+        border-radius: 3px !important;
+    }
+</style>
+<script>
+    function getStatusBadge(status) {
+        if (!status) return '<span class="badge bg-secondary text-white" style="font-size:13px;padding:5px 10px;">N/A</span>';
+        var s = status.toUpperCase();
+
+        if (s === 'ACTIVE')
+            return '<span class="badge bg-success text-white" style="font-size:13px;padding:5px 10px;">✔ ACTIVE</span>';
+        else if (s === 'PENDING')
+            return '<span class="badge bg-warning text-dark" style="font-size:13px;padding:5px 10px;">⏳ PENDING</span>';
+        else if (s === 'START SCHEDULED')                             // ✅ NEW
+            return '<span class="badge text-white" style="background:#0d6efd;font-size:13px;padding:5px 10px;">🔵 START SCHEDULED</span>';
+        else if (s === 'CANCELLATION SCHEDULED')
+            return '<span class="badge bg-warning text-dark" style="font-size:13px;padding:5px 10px;">⚠ CANCELLATION SCHEDULED</span>';
+        else if (s === 'CANCELED' || s === 'CANCELLED')
+            return '<span class="badge bg-danger text-white" style="font-size:13px;padding:5px 10px;">✖ CANCELED</span>';
+        else if (s === 'PAUSED')
+            return '<span class="badge bg-info text-white" style="font-size:13px;padding:5px 10px;">⏸ PAUSED</span>';
+        else if (s === 'DEACTIVATED')
+            return '<span class="badge bg-danger text-white" style="font-size:13px;padding:5px 10px;">⛔ DEACTIVATED</span>';
+        else
+            return '<span class="badge bg-secondary text-white" style="font-size:13px;padding:5px 10px;">' + status + '</span>';
+    }
+
+    // ── STEP 2: Open modal and call API ──────────────────────────────────
+    function showSquareSubscriptionDetails(subscriptionId) {
+        $('#squareModalContent').html(`
+        <div class="text-center p-4">
+            <i class="fa fa-spinner fa-spin fa-2x text-warning"></i>
+            <p>Loading Square Subscription...</p>
+        </div>`);
+        $('#squareSubscriptionModal').modal('show');
+
+        $.ajax({
+            url: 'Admin/MembersAppUsers/GetSquareSubscriptionDetails',
+            type: 'GET',
+            data: { subscriptionId: subscriptionId },
+            success: function (data) {
+                console.log('Square Response:', JSON.stringify(data));
+                console.log('Status value:', data.Status); // ← debug line
+                if (data.Error) {
+                    $('#squareModalContent').html(
+                        `<div class="alert alert-danger">${data.Error}</div>`);
+                    return;
+                }
+                renderSquarePopup(data);
+            },
+            error: function (xhr) {
+                console.log('Square AJAX Error:', xhr.responseText);
+                $('#squareModalContent').html(
+                    `<div class="alert alert-danger">Failed to load subscription details.</div>`);
+            }
+        });
+    }
+    function renderSquarePopup(data) {
+        var statusBadge = getStatusBadge(data.Status);
+
+        // ✅ Next Billing Date row — always show
+        var nextBillingRow = '';
+        if (data.StartDate) {
+            var s = data.Status ? data.Status.toUpperCase() : '';
+            var noteText = (s === 'START SCHEDULED')
+                ? 'Next billing on this date'
+                : (s === 'PENDING')
+                    ? 'First billing on this date'
+                    : 'Auto debit on this date';
+
+            nextBillingRow = `
+            <tr style="background:#e8f5e9;">
+                <td><b>Next Billing Date</b></td>
+                <td style="color:#2e7d32; font-weight:600;">
+                    <i class="fa fa-calendar"></i> ${data.StartDate}
+                    &nbsp;<small class="text-muted">(${noteText})</small>
+                </td>
+            </tr>`;
+        }
+
+        // ✅ Charged Through row
+        var chargedThroughRow = '';
+        if (data.ChargeAt) {
+            chargedThroughRow = `
+            <tr style="background:#f0f4ff;">
+                <td><b>Charged Through Date</b></td>
+                <td style="color:#1a237e; font-weight:600;">
+                    <i class="fa fa-check-circle"></i> ${data.ChargeAt}
+                </td>
+            </tr>`;
+        }
+
+        // ✅ Cancellation Scheduled row
+        var cancelledRow = '';
+        if (data.CancelledDate) {
+            cancelledRow = `
+            <tr style="background:#fff3cd;">
+                <td><b>Subscription Ends On</b></td>
+                <td style="color:#856404; font-weight:600;">
+                    <i class="fa fa-calendar-times-o"></i> ${data.CancelledDate}
+                    &nbsp;<small class="text-muted">(Next billing cancelled)</small>
+                </td>
+            </tr>`;
+        }
+
+        var html = `
+        <table class="table table-bordered table-sm">
+            <tr style="background:#fff8e1;">
+                <td><b>Name:</b> <span class="text-danger">${data.CustomerName || 'N/A'}</span></td>
+                <td><b>Email:</b> <span class="text-danger">${data.CustomerEmail || 'N/A'}</span></td>
+                <td><b>Phone:</b> <span class="text-danger">${data.CustomerPhone || 'N/A'}</span></td>
+            </tr>
+        </table>
+
+        <table class="table table-bordered table-sm">
+            <tr>
+                <td width="35%"><b>Status</b></td>
+                <td>${statusBadge}</td>
+            </tr>
+
+            ${nextBillingRow}
+            ${chargedThroughRow}
+            ${cancelledRow}
+
+            <tr>
+                <td><b>Subscription Created At</b></td>
+                <td>${data.CreatedAt || 'N/A'}</td>
+            </tr>
+            <tr>
+                <td><b>Card</b></td>
+                <td>
+                    ${data.PaymentMethod || ''}
+                    ${data.CardLast4 ? '**** **** **** ' + data.CardLast4 : 'N/A'}
+                    ${data.CardExpiry ? '&nbsp;&nbsp; Exp: ' + data.CardExpiry : ''}
+                </td>
+            </tr>
+            <tr>
+                <td><b>Card ID</b></td>
+                <td><small>${data.CardMandateId || 'N/A'}</small></td>
+            </tr>
+            <tr>
+                <td><b>Subscription Link</b></td>
+                <td>
+                    <a href="${data.SubscriptionLink}" target="_blank" class="btn btn-xs btn-warning">
+                        <i class="fa fa-external-link"></i> Open in Square
+                    </a>
+                </td>
+            </tr>
+        </table>`;
+
+        $('#squareModalContent').html(html);
+    }</script>
+
+<script type="text/javascript" src="Scripts/Admin/jquery-ui-timepicker-addon.js"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $(function () {
+            $("#EndDate,#RegistrationStartDate,#RegistrationEndDate,#EarlyBirdCutOfDate").datetimepicker({
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: 'mm/dd/yy'
+            });
+        });
+    });
+
+    $(document).ready(function () {
+        getamount();
+    });
+
+    function calculateExpiryDate(startDate, months) {
+        const startDateObj = new Date(startDate);
+        startDateObj.setMonth(startDateObj.getMonth() + months);
+        return startDateObj;
+    }
+
+    function getamount() {
+        var MembershipTypeId = $('#MembershipTypeId').val();
+        $.ajax({
+            url: '@Url.Action("EditMembershipTypes", "MembershipTypes")',
+            type: 'POST',
+            data: { MembershipTypeId: MembershipTypeId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objMembershipType = result.data;
+                    $('#payamount').html(objMembershipType.Price);
+                    $('#MemberAmount').val(objMembershipType.Price);
+                    $('#TMemberAmount').val(objMembershipType.Price);
+                    $('#total').html(objMembershipType.Price);
+                    // if (objMembershipType.Validity != 0) {
+                    //     const startDate = new Date();
+                    //     const formattedDate = startDate.toLocaleString('en-US', {
+                    //         year: 'numeric',
+                    //         month: 'numeric',
+                    //         day: 'numeric',
+                    //         hour: 'numeric',
+                    //         minute: 'numeric',
+                    //         second: 'numeric',
+                    //         hour12: true
+                    //     });
+                    //     const monthsToAdd = objMembershipType.Validity;
+                    //     const expiryDate = calculateExpiryDate(formattedDate, monthsToAdd);
+                    //     $('#ExpiryDate').val(expiryDate.toString("MM/dd/yyyy"));
+                    // } else {
+                    //     $('#ExpiryDate').val('N/A');
+                    // }
+                } else {
+                    alert(result.data);
+                }
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+        $(document).ready(function () {
+            $('#CropImage').dialog({
+                autoOpen: false,
+                width: 600,
+                modal: true
+            });
+        });
+
+        function addRow() {
+            var table = document.getElementById("childinfo");
+            var rowCount = table.rows.length;
+            var row = table.insertRow(rowCount);
+            row.id = "child-" + rowCount;
+
+            // Cell 1: FirstName
+            var cell1 = row.insertCell(0);
+            var element1 = document.createElement("input");
+            element1.type = "text";
+            element1.name = "[" + (rowCount - 1) + "].FirstName";
+            element1.id = "FirstName-" + (rowCount - 1);
+            element1.className = "form-control";
+            cell1.appendChild(element1);
+
+            // Cell 2: Date of Birth (datepicker)
+            var cell2 = row.insertCell(1);
+            var element2 = document.createElement("input");
+            element2.type = "text";
+            element2.name = "[" + (rowCount - 1) + "].Relationship";
+            element2.id = "Relationship-" + (rowCount - 1);
+            element2.className = "form-control childDOB";
+            element2.autocomplete = "off";
+            element2.placeholder = "dd/mm/yyyy";   // ✅ Australian format
+            cell2.appendChild(element2);
+
+            // Cell 3: Age (readonly)
+            var cell3 = row.insertCell(2);
+            var element3 = document.createElement("input");
+            element3.type = "text";
+            element3.name = "[" + (rowCount - 1) + "].Age";
+            element3.id = "Age-" + (rowCount - 1);
+            element3.maxLength = 2;
+            element3.className = "form-control";
+            element3.readOnly = true;
+            cell3.appendChild(element3);
+
+            // Cell 4: Delete button
+            var cell4 = row.insertCell(3);
+            cell4.innerHTML = '<a onclick="javascript:deleteRow(' + rowCount + ')" class="btn darkgray-text" style="background-color:#b00000;color:#fff;"><i class="bi bi-trash"></i> Remove</a>';
+
+            bindChildDOB('#Relationship-' + (rowCount - 1));
+
+            $('#hdnRowCount').val(rowCount);
+        }
+    function deleteRow(i) {
+            try {
+                var row = document.getElementById("child-" + i);
+                row.parentNode.removeChild(row);
+            } catch (e) {
+                alert(e);
+            }
+        }
+
+        function deleteRow1(i) {
+            try {
+                var row = document.getElementById(i);
+                row.parentNode.removeChild(row);
+            } catch (e) {
+                alert(e);
+            }
+        }
+
+             function formatPhone(val) {
+                var ph = val.replace(/\D/g, '').slice(0, 10);   // AU mobile = 10 digits max
+                if (ph.length > 6) return ph.slice(0, 4) + '-' + ph.slice(4, 7) + '-' + ph.slice(7, 10);
+                if (ph.length > 4) return ph.slice(0, 4) + '-' + ph.slice(4);
+                return ph;
+            }
+        const phoneNumber = document.getElementById("phoneNumber");
+        if (phoneNumber) {
+            phoneNumber.addEventListener("input", function () {
+                const formattedNumber = formatPhoneNumber(this.value);
+                this.value = formattedNumber;
+            });
+        }
+
+            function handlePaste(event) {
+                if (event.target.id === "SelfMobilePhone") {   // ✅ updated id
+                    const pastedNumber = (event.clipboardData || window.clipboardData).getData('text');
+                    event.target.value = formatPhone(pastedNumber);
+                    event.preventDefault();
+                }
+            }
+
+            function handlePastes(event) {
+                if (event.target.id === "SpouseCell") {
+                    const pastedNumber = (event.clipboardData || window.clipboardData).getData('text');
+                    const formattedNumber = formatPhone(pastedNumber);   // ✅ formatPhone, not formatPhoneNumber
+                    event.target.value = formattedNumber;
+                    event.preventDefault();
+                }
+            }
+
+        function CheckUserNameAvailability(username) {
+            var returnval = null;
+            $.ajax({
+                type: "POST",
+                        url: '@Url.Action("CheckUserNameAvailability", "MembersAppUsers")',
+                data: { UserName: username },
+                datatype: "JSON",
+                async: false,
+                success: function (result) {
+                    if (result.ok) { returnval = result.data; }
+                }
+            });
+            return returnval;
+        }
+
+
+
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#blah').attr('src', e.target.result).width(@value1).height(@value2);
+                    $('#image').attr('src', e.target.result);
+                    $('#divimage').show();
+                    $('#noimagetext').hide();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+</script>
+
+<script type="text/javascript">
+        $(function () {
+            $(".ui-accordion").accordion({ collapsible: true, heightStyle: "content" });
+            $(function () {
+                $(".datepicker").datepicker({ altField: "#alternate", altFormat: "DD, d MM, yy" });
+            });
+        });
+            function UserStatus(MemberId) {
+            var $chk = $('#chkMemberStatus');
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("MemberStatus", "MembersAppUsers")',
+                data: { MemberId: MemberId },
+                datatype: "JSON",
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    if (!result.ok) {
+                        // revert the toggle if the update failed
+                        $chk.prop('checked', !$chk.prop('checked'));
+                    }
+                },
+                error: function () {
+                    $chk.prop('checked', !$chk.prop('checked'));
+                }
+            });
+        }
+        $(document).ready(function () {
+            PaymentMethodBind();
+            $('#wMembership, #wMembers').addClass('active');
+            Insurance();
+            Billing();
+            NoofPaym();
+            DonatAmount();
+            $(".Odate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+            $(".Edate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Edate', altFormat: 'mm/dd/yy' });
+            $(".Cdate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-0:+40", altField: '.Cdate', altFormat: 'mm/dd/yy' });
+            $('#MMembers').addClass('active');
+        });
+
+        function CheckProfileEmailAvailability(email, userid) {
+            var returnval = null;
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("CheckProfileEmailAvailability", "MembersAppUsers")',
+                data: { MemberId: userid, Email: email },
+                datatype: "JSON",
+                async: false,
+                success: function (result) {
+                    if (result.ok) { returnval = result.data; }
+                }
+            });
+            return returnval;
+        }
+
+        function CheckProfilePhoneNoAvailability(MobilePhone, userid) {
+            var returnval = null;
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("CheckProfilePhoneNoAvailability", "MembersAppUsers")',
+                data: { MemberId: userid, MobilePhone: MobilePhone },
+                datatype: "JSON",
+                async: false,
+                success: function (result) {
+                    if (result.ok) { returnval = result.data; }
+                }
+            });
+            return returnval;
+        }
+
+        function Billing() {
+            var type = $('#SameBilling').val();
+            if (type == 'No') { $('#TTTD').show(); }
+            else { $('#TTTD').hide(); }
+        }
+
+        function Insurance() {
+            var type = $('#Field2').val();
+            if (type == 'Yes') { $('#Beneficiary').show(); $('#University').show(); }
+            else { $('#Beneficiary').hide(); $('#University').hide(); }
+        }
+
+        function NoofPaym() {
+            var type = $('#FrequencyofDonation').val();
+            if (type == 'OneTimeDonation') {
+                $('#TAmount').hide(); $('#NoofPay').hide(); $('#TStarts').hide();
+            } else {
+                $('#TAmount').show(); $('#NoofPay').show(); $('#TStarts').show();
+            }
+        }
+
+        function DonatAmount() {
+            var type = $('#Donate').val();
+            if (type == 'Yes') { $('#Frequency').show(); }
+            else { $('#Frequency').show(); }
+        }
+
+        function AmountChange(AAmount) {
+            $('#OtherAmount').attr('readonly', 'readonly');
+            if (AAmount == 'Other') {
+                $('#Amount').val('');
+                $('#OtherAmount').removeAttr('readonly');
+            } else {
+                var mamt = $('#TMemberAmount').val();
+                AAmount = parseFloat(AAmount) + parseFloat(mamt);
+                $('#MemberAmount').val(AAmount);
+                $('#total').html(AAmount);
+                $('#OtherAmount').val('');
+            }
+        }
+
+        function OtherNewAmount() {
+            var OtherAmount = $('#OtherAmount').val();
+            if (OtherAmount != '') {
+                var mamt = $('#TMemberAmount').val();
+                OtherAmount = parseFloat(OtherAmount) + parseFloat(mamt);
+                $('#MemberAmount').val(OtherAmount);
+                $('#total').html(OtherAmount);
+            }
+        }
+
+        function PaymentMethodBind() {
+            var PaymentMethod = document.getElementById("PaymentMethodId").value;
+            if (PaymentMethod == 3) {
+                $('#ChequeHolderNamehide').show();
+                $('#ZellePartnerNamehide').hide();
+            } else if (PaymentMethod == 6) {
+                $('#ChequeHolderNamehide').hide();
+                $('#ZellePartnerNamehide').show();
+            } else {
+                $('#ChequeHolderNamehide').hide();
+                $('#ZellePartnerNamehide').hide();
+            }
+
+            // Cash/Transfer (15) or Bank/Transfer (16) selected -> auto display fixed expiry date
+            if (PaymentMethod == 15 || PaymentMethod == 16) {
+                $('#ExpiryDate').val('06-30-2027');
+            }
+       else  {
+        $('#ExpiryDate').val('@(objMemberDetails.objMembershipOrder.ExpiryDate == DateTime.MinValue ? "N/A" : objMemberDetails.objMembershipOrder.ExpiryDate.ToString("MM-dd-yyyy"))');
+    }
+        }
+</script>
+
+<script type="text/javascript">
+           $(document).ready(function () {
+        document.querySelectorAll('.single-select').forEach(function (el) {
+            el.addEventListener('change', function () {
+                // Force close the Virtual Select dropdown after selection
+                if (this.closeDropbox) {
+                    this.closeDropbox();
+                } else if (this.classList.contains('vscomp-ele')) {
+                    document.body.click(); // fallback: simulate outside click to close
+                }
+            });
+        });
+    });
+    $(document).ready(function () {
+        $('#wVolunteer, #wVolunteers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+    $(document).ready(function () {
+        $('#MemberLogsId').hide();
+
+        $.validator.addMethod("phoneFormat", function (value, element) {
+            if (value === "") return true;
+            var phoneNumber = value.replace(/\D/g, '');
+            var phoneNumberLength = phoneNumber.length;
+            if (phoneNumberLength >= 3 && phoneNumberLength <= 6) {
+                phoneNumber = phoneNumber.replace(/^(\d{3})(\d+)/, '$1-$2');
+            } else if (phoneNumberLength > 6) {
+                phoneNumber = phoneNumber.replace(/^(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+            }
+            $(element).val(phoneNumber);
+            var pattern = /^\d{4}-\d{3}-\d{2}$/;
+            return pattern.test(phoneNumber);
+        }, "Please enter format xxx-xxx-xxxx.");
+
+        $("#VolunteerForm").validate({
+            rules: {
+                FirstName: "required",
+                LastName: "required",
+                Email: {validate_email: true },
+                MobilePhone: {phoneFormat: true },
+                MembershipTypeId: "required",
+            },
+            messages: {
+                FirstName: " First Name is required",
+                LastName: " Last Name is required",
+                Email: {
+
+                    validate_email: "Please enter valid email address",
+                },
+                MobilePhone: {
+
+                    phoneFormat: "Please enter valid phone number",
+                },
+                MembershipTypeId: "Please Select Membership Type ",
+            },
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+            },
+        });
+    });
+</script>
+
+<input type="hidden" value="1" id="hdnRowCount" />
+
+<section id="CropImage" style="display: none; overflow: visible; padding: 0; border: none!important;">
+    <article class="clearfix dialog-title">
+        <article class="clearfix white-bg" style="border: 0!important;">
+            <span class="pull-right r-p10 t-p10">
+                <a class="cursor-p dk1-t" onclick=" $('#CropImage').dialog('close')">
+                    <img class="red-t" src="Content/User/images/popup-close.png" width="12" height="12" alt="" />
+                </a>
+            </span>
+            <article class="clearfix l-r-p50 mobile-l-r-p20 t-b-p15">
+                <article class="clearfix dialog-title t-c white-bg t-p25">
+                    <h2 class="clearfix t-b-m0 vi-t Montserrat-Regular font24 mobile-font22 t-t-u">Crop Thumb Image</h2>
+                </article>
+                <article class="clearfix dialog-content t-b-m10">
+                    <article class="result"></article>
+                    <article class="options">
+                        <input type="hidden" class="img-w" value="@value1" />
+                        <input type="hidden" class="img-h" value="@value2" />
+                    </article>
+                    <article class="clearfix t-c t-b-m15 l-r-m-auto" style="text-align:center;">
+                        <a class="white-t border0 shadowcropper t-b-p15 l-r-p20 t-t-u Poppins-SemiBold font18 border-radius25 save" style="background-color: #e35558;">Save Thumb</a>
+                    </article>
+                </article>
+            </article>
+        </article>
+    </article>
+</section>
+<div class="modal fade" id="squareSubscriptionModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header" style="background:linear-gradient(135deg,#f7971e,#ffd200); color:#000;">
+                <h5 class="modal-title">
+                    <i class="fa fa-credit-card"></i> Square Subscription Details
+                </h5>
+                <!-- ✅ FIXED: data-dismiss (Bootstrap 4) not data-bs-dismiss (Bootstrap 5) -->
+
+            </div>
+
+            <div class="modal-body" id="squareModalContent">
+                <!-- Data loads here -->
+            </div>
+
+            <div class="modal-footer" style="justify-content:center;">
+                <button type="button" class="btn"
+                        data-bs-dismiss="modal"
+                        style="width:13%; background-color:blue; color:white; font-weight:600;">
+                    Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@using (Html.BeginForm("UpdateMember", "MembersAppUsers", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VolunteerForm", @name = "VolunteerForm" }))
+{
+    <input type="hidden" id="hdnimgvalidate" value="0" />
+    <input type="hidden" id="MembershipOrderId" name="MembershipOrderId" value="@objMemberDetails.objMembershipOrder.MembershipOrderId" />
+    <input type="hidden" id="MemberId" name="MemberId" value="@objMemberDetails.MemberId" />
+    <input type="hidden" id="Amount" name="Amount" value="@objMemberDetails.objMembershipOrder.Amount" />
+    <input type="hidden" id="SpouseSkils" name="SpouseSkils" />
+    <input type="hidden" value="" id="MemberAmount" name="MemberAmount" />
+    <input type="hidden" value="" id="TMemberAmount" name="TMemberAmount" />
+
+    if (objAppInfo.chapterStatus == "No")
+    {
+        <input type="hidden" value="1" name="ChapterId" id="ChapterId" />
+    }
+
+    @* ✅ FIX 1: Replaced Session["username"] with ViewBag.UpdatedBy *@
+    <input type="hidden" value="@ViewBag.UpdatedBy" id="UpdatedBy" name="UpdatedBy" />
+    <input type="hidden" value="@ViewBag.mid" id="mid" name="mid" />
+    <input type="hidden" value="@ViewBag.type" id="type" name="type" />
+
+
+    <div class="card" style="PADDING-BOTTOM: 14PX;">
+        @if (objMemberDetails.SubscriptionId != null && objMemberDetails.SubscriptionId != "")
+        {
+            <div class="card-body">
+                <div class="box validation">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3" style="
+            flex-direction: column;
+            text-align: center;
+        ">
+
+                        <div class="d-flex flex-wrap align-items-center gap-3" style="text-align: center;flex-direction: column;">
+                            @if (objMemberDetails.SubscriptionId != null && objMemberDetails.SubscriptionId != "")
+                            {
+                                <button type="button" onclick="showSquareSubscriptionDetails('@objMemberDetails.SubscriptionId')" class="btn btn-primary btn-sm">
+                                    <i class="fa fa-credit-card me-1"></i>
+                                    View Subscription Deatis
+                                </button>
+                            }
+
+
+                        </div>
+
+                    </div>
+
+                    <div class="box-body">
+                        <div class="row g-3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        <div class="status-code">
+
+
+            <div>
+                <a class="btn btn-secondary btn-sm" href="@Url.Action("Index", "MembersAppUsers", new { mid = ViewBag.mid, type = ViewBag.type })">
+                    <i class="fa fa-arrow-left me-1"></i> Back
+                </a>
+            </div>
+            <div class="menu-hover d-flex align-items-center gap-2">
+                <span>Status</span>
+                @{
+                    var isChecked = objMemberDetails.IsApproved ? "checked" : "";
+                    var titleValue = objMemberDetails.IsApproved ? "IsApproved" : "Not Approved";
+                }
+                <label class="switch" title="@titleValue">
+                    <input type="checkbox" id="chkMemberStatus" onclick="UserStatus(@objMemberDetails.MemberId)" @isChecked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="card">
+        <div class="card-body">
+            <div class="box validation">
+                <div class="row py-1">
+                    <div class="col-lg-6">
+                        <h3 class="box-title dis-in">Personal Details</h3>
+                    </div>
+                    <div class="col-lg-6">
+                        <h3 class="box-title dis-in text-end">
+                            <a href="#" onclick="scrollToSection(); return false;" class="aws-h-a log-title"></a>
+                        </h3>
+                    </div>
+                </div>
+                <br />
+                <div class="box-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">FirstName <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="FirstName" value="@objMemberDetails.FirstName" name="FirstName" placeholder="FirstName">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="LastName" value="@objMemberDetails.LastName" name="LastName" placeholder="LastName">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Email<span class="text-danger"></span></label>
+                                <input type="text" class="form-control" value="@objMemberDetails.Email" id="Email" name="Email" placeholder="Email">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Mobile Phone <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" value="@objMemberDetails.MobilePhone" id="SelfMobilePhone" name="MobilePhone"
+                                       oninput="this.value = formatPhone(this.value);"
+                                       autocomplete="off" maxlength="15" placeholder="0412-345-678"
+                                       onpaste="handlePaste(event);" />
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">State <span class="text-danger"></span></label>
+                                <select class="single-select" name="State" id="State">
+                                    <option value="" selected="selected">--Select--</option>
+                                    <option @(objMemberDetails.State == "Alabama" ? "selected=selected" : "") value="Alabama">Alabama</option>
+                                    <option @(objMemberDetails.State == "Australian Capital Territory" ? "selected=selected" : "") value="Australian Capital Territory">Australian Capital Territory</option>
+                                    <option @(objMemberDetails.State == "New South Wales" ? "selected=selected" : "") value="New South Wales">New South Wales</option>
+                                    <option @(objMemberDetails.State == "Northern Territory" ? "selected=selected" : "") value="Northern Territory">Northern Territory</option>
+                                    <option @(objMemberDetails.State == "Queensland" ? "selected=selected" : "") value="Queensland">Queensland</option>
+                                    <option @(objMemberDetails.State == "South Australia" ? "selected=selected" : "") value="South Australia">South Australia</option>
+                                    <option @(objMemberDetails.State == "Tasmania" ? "selected=selected" : "") value="Tasmania">Tasmania</option>
+                                    <option @(objMemberDetails.State == "Victoria" ? "selected=selected" : "") value="Victoria">Victoria</option>
+                                    <option @(objMemberDetails.State == "Western Australia" ? "selected=selected" : "") value="Western Australia">Western Australia</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">City </label>
+                                <input type="text" id="City" class="form-control" name="City" value="@objMemberDetails.City" placeholder="City">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">ZipCode</label>
+                                <input type="text" id="ZipCode" class="form-control" value="@objMemberDetails.ZipCode" name="ZipCode" placeholder="Zip Code" onkeypress="return Common.isNumberKey(event);" maxlength="8">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Marital Status <span class="input-imp">*</span></label>
+                                <select class="single-select" name="MaritalStatus" id="MaritalStatus" onchange="bindspouse()" placeholder="Marital Status">
+                                    <option value="">Marital Status</option>
+                                    <option @(objMemberDetails.MaritalStatus == "Single" ? "selected=selected" : "") value="Single">Single</option>
+                                    <option @(objMemberDetails.MaritalStatus == "Married" ? "selected=selected" : "") value="Married">Married</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Gender <span class="input-imp">*</span></label>
+                                <select class="single-select" name="Gender" id="Gender" placeholder="Gender">
+                                    <option value="">Gender</option>
+                                    <option @(objMemberDetails.gender == "Male" ? "selected=selected" : "") value="Male">Male</option>
+                                    <option @(objMemberDetails.gender == "Female" ? "selected=selected" : "") value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        @if (objAppInfo.chapterStatus == "Yes")
+                        {
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Chapters</label>
+                                    <select class="form-control" id="ChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+                                        <option value="">-- Select --</option>
+                                        @if (lstChapters != null && lstChapters.Count != 0)
+                                        {
+                                            foreach (var item in lstChapters)
+                                            {
+                                                <option @(item.ChapterId == ChapterId ? "selected=selected" : "") value="@item.ChapterId">@item.ChapterName</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Address-1</label>
+                                <textarea type="text" id="Address" class="form-control" name="Address" placeholder="Address" style="height: 35px;">@objMemberDetails.Address</textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Do you identify as Kannadiga</label>
+                                <select class="single-select" name="Address2" id="Address2" placeholder="Marital Status">
+                                    <option value="">--Select --</option>
+                                    <option @(objMemberDetails.Address2 == "Yes" ? "selected=selected" : "") value="Yes">Yes</option>
+                                    <option @(objMemberDetails.Address2 == "No" ? "selected=selected" : "") value="No">No</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3">
+                            <div class="input-box">
+                                <label class="form-label">
+                                    Image Url
+                                    <button type="button" data-bs-toggle="tooltip" title="Image size should be maintained width * height (482 * 932)" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+                                </label>
+                                <div class="position-relative">
+                                    <input type="file" id="file" class="item-img file center-block browse form-control" name="file" />
+                                </div>
+                                <div class="confirm-identity">
+                                    <div class="ci-user d-flex align-items-center justify-content-center">
+                                        <div class="ci-user-picture" style="display: none;">
+                                            <input type="hidden" id="Thumbimage" name="Thumbimage">
+                                            <img src="" id="item-img-output" class="imgpreviewPrf img-fluid" alt="">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3" id="img-tag" style="display:none">
+                                <label>Image</label>
+                                <img src="" id="test1" />
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Profile Image : </label>
+                                <img width="100px" title="@objMemberDetails.FirstName" alt="@objMemberDetails.LastName" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal1 + objMemberDetails.ProfileImage), imglocNormal1 + "no-image.jpeg")" class="borwhite5 border-radius shadow" />
+
+
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Spouse Details </h3>
+                </div>
+                <br />
+                <div class="box-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">First Name </label>
+                                <input type="text" class="form-control" id="SpouseFirstName" value="@objMemberDetails.SpouseFirstName" name="SpouseFirstName" placeholder="Spouse First Name">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Last Name </label>
+                                <input type="text" class="form-control" id="SpouseLastName" value="@objMemberDetails.SpouseLastName" name="SpouseLastName" placeholder="Spouse Last Name">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Email</label>
+                                <input type="text" class="form-control" value="@objMemberDetails.SpouseEmail" id="SpouseEmail" name="SpouseEmail" placeholder="Spouse Email">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Mobile Phone <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" value="@objMemberDetails.SpouseCell" id="SpouseCell" name="SpouseCell"
+                                       oninput="this.value = formatPhone(this.value);"
+                                       maxlength="12" placeholder="0412-345-678"
+                                       onpaste="handlePastes(event);" autocomplete="off" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (objMemberDetails.lstChildrenInfo != null && objMemberDetails.lstChildrenInfo.Count != 0)
+    {
+        <div class="box validation">
+            <div class="box-header">
+
+                <div class="add-btn">
+                    <div>
+                        <h3 class="box-title dis-in">Children Details</h3>
+                    </div>
+                    <div width="100" align="center" class="add">
+                        <input type="button" onclick="javascript: addRow();" name="add-child" class="btn" value="Add child">
+                    </div>
+                </div>
+            </div>
+            <div class="table-responsive" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+                <table cellspacing="0" cellpadding="0" border="0" class="tbl membership" width="1000">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span12 omb table_vam table-black tvm">
+                                    <thead>
+                                        <tr style="background-color:#000;">
+                                            <th width="180" align="center" style="color:#fff;">Name</th>
+                                            <th width="180" align="center" style="color:#fff;">Date of Birth</th>
+                                            <th width="120" align="center" style="color:#fff;">Age</th>
+
+                                        </tr>
+
+                                        @if (objMemberDetails.lstChildrenInfo != null && objMemberDetails.lstChildrenInfo.Count != 0)
+                                        {
+                                            Int64 i = 0;
+                                            foreach (var Item in objMemberDetails.lstChildrenInfo)
+                                            {
+                                                <input id="ChildrenInfoId-@(i)" name="[@(i)].ChildrenInfoId" value="@(Item.ChildrenInfoId)" type="hidden" />
+                                                <tr id="child-@(i + 1)">
+                                                    <td width="180">
+                                                        <input type="text" value="@Item.FirstName" id="FirstName-@i" name="[@i].FirstName" class="form-control b-m0" />
+                                                    </td>
+                                                    <td width="180">
+                                                        <input type="text" value="@Item.Relationship" id="Relationship-@i" name="[@i].Relationship" class="form-control b-m0 childDOB" autocomplete="off" placeholder="dd/mm/yyyy" />
+                                                    </td>
+                                                    <td width="120" align="left">
+                                                        <input type="text" value="@Item.Age" id="Age-@i" name="[@i].Age" maxlength="2" class="form-control b-m0" readonly="readonly" />
+                                                    </td>
+                                                    <td width="100" align="center">
+                                                        <a class="btn" style="background-color:#b00000;color:#fff;"
+                                                           href="@Url.Action("DeleteChildInfo", "MembersAppUsers", new { ChildInfoId = Item.ChildrenInfoId, MemberId = Item.MemberId })">
+                                                            <i class="bi bi-trash"></i> Remove
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                                i++;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <tr id="child-0">
+                                                <td width="180">
+                                                    <input type="text" id="FirstName-0" name="[0].FirstName" class="form-control b-m0" />
+                                                </td>
+                                                <td width="180">
+                                                    <input type="text" id="Relationship-0" name="[0].Relationship" class="form-control b-m0 childDOB" autocomplete="off" placeholder="mm/dd/yyyy" />
+                                                </td>
+                                                <td width="120" align="left">
+                                                    <input type="text" id="Age-0" name="[0].Age" maxlength="2" class="form-control b-m0" readonly="readonly" />
+                                                </td>
+                                                <td width="100"></td>
+                                            </tr>
+                                        }
+                                    </thead>
+                                </table>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    <div class="card">
+        <div class="card-body">
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Latest Order Details </h3>
+                </div>
+                <div class="box-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Membership Id </label>
+                                <input type="text" class="form-control" value="@objMemberDetails.MemberSkils" id="MemberSkils" name="MemberSkils" readonly="true">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Membership Type <span class="text-danger">*</span></label>
+                                <select class="single-select" name="MembershipTypeId" id="MembershipTypeId" onchange="getamount();">
+                                    @if (lstMembershipType != null)
+                                    {
+                                        <option value="">Select</option>
+                                        foreach (var item in lstMembershipType)
+                                        {
+                                            <option @(item.MembershipTypeId == objMemberDetails.MembershipTypeId ? "selected=selected" : "") value="@item.MembershipTypeId">@item.MembershipType</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <div><label>&nbsp;</label></div>
+                                <label>Amount :</label>
+                                $<span id="payamount"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Expiry Date </label>
+                                <input type="text" class="form-control" readonly id="ExpiryDate" value="@(objMemberDetails.objMembershipOrder.ExpiryDate == DateTime.MinValue ? "N/A" : objMemberDetails.objMembershipOrder.ExpiryDate.ToString("MM-dd-yyyy"))" name="ExpiryDate">
+                                @*                                 <input type="text" class="form-control" readonly id="ExpiryDate" value="@(objMemberDetails.objMembershipOrder.ExpiryDate == DateTime.MinValue ? "" : objMemberDetails.objMembershipOrder.ExpiryDate.ToString("MM/dd/yyyy"))" name="ExpiryDate">
+ *@                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                <select class="single-select" name="PaymentMethodId" id="PaymentMethodId" onchange="PaymentMethodBind();">
+                                    @if (lstPaymentMethod != null)
+                                    {
+                                        <option value="">Select</option>
+                                        foreach (var item in lstPaymentMethod)
+                                        {
+                                            <option @(item.PaymentMethodId == objMemberDetails.objMembershipOrder.PaymentMethodId ? "selected=selected" : "") value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Transaction Id </label>
+                                <input type="text" class="form-control" value="@objMemberDetails.objMembershipOrder.TransactionId" id="TransactionId" name="TransactionId">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Payment Status <span class="text-danger">*</span></label>
+                                <select class="single-select" name="PaymentStatusId" id="PaymentStatusId">
+                                    @if (lstPaymentStatus != null)
+                                    {
+                                        <option value="">Select</option>
+                                        foreach (var item in lstPaymentStatus)
+                                        {
+                                            <option @(item.PaymentStatusId == objMemberDetails.objMembershipOrder.PaymentStatusId ? "selected=selected" : "") value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="ChequeHolderNamehide">
+                            <div class="row">
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label class="dk-t poppins-regular"> Cheque Image : </label>
+                                    <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objMemberDetails.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+
+
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Cheque Holder Name :</label>
+                                    <input type="text" id="ChequeHolderName" value="@objMemberDetails.ChequeHolderName" class="form-control" name="ChequeHolderName">
+                                    <span class="field-validation-error" id="spanTransactionId"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="ZellePartnerNamehide">
+                            <div class="row">
+                                <div class="col-lg-3 col-md-6">
+                                    <label>Zelle Id :</label>
+                                    <input type="text" id="Zelle" value="@objMemberDetails.Zelle" class="form-control" name="Zelle">
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <label>Zelle PartnerName :</label>
+                                    <input type="text" id="ZellePartnerName" value="@objMemberDetails.ZellePartnerName" class="form-control" name="ZellePartnerName">
+                                </div>
+                                <div class="col-lg-3 col-md-6">
+                                    <label class="dk-t poppins-regular"> Zelle Receipt Image : </label>
+                                    <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objMemberDetails.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-lg-6 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">User Comments</label>
+                                <textarea type="text" id="UserComment" class="form-control" name="UserComment">@objMemberDetails.objMembershipOrder.UserComment</textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Admin Comments</label>
+                                <textarea type="text" class="form-control" id="AdminComment" name="AdminComment">@objMemberDetails.objMembershipOrder.AdminComment</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row gy-3 justify-content-end mt-3">
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-end">
+                        <strong><label class="form-label">Last Modified by :<span class="text-danger">@objMemberDetails.objMembershipOrder.UpdatedBy</span></label></strong>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="text-end">
+                        <strong><label class="form-label">Last Modified Date :<span class="text-danger">@objMemberDetails.UpdatedTime.ToString("MM/dd/yyyy")</span></label></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-3  text-center ms-auto">
+            <a class="btn btn-primary px-3" href="@Url.Action("Index", "MembersAppUsers", new { mid = ViewBag.mid, type = ViewBag.type })">Cancel</a>
+
+            <button type="submit" class="btn btn-success px-3" value="submit"> Submit</button>
+        </div>
+    </div>
+}
+
+<div class="card mt-3" id="MemberLogsId">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="text-align:center">S.No</th>
+                        <th style="text-align:center">First Name</th>
+                        <th style="text-align:center">Last Name</th>
+                        <th style="text-align:center">Email</th>
+                        <th style="text-align:center">Mobile Number</th>
+                        <th style="text-align:center">State</th>
+                        <th style="text-align:center">City</th>
+                        <th style="text-align:center">ZipCode</th>
+                        <th style="text-align:center">Address-1</th>
+                        <th style="text-align:center">Address-2</th>
+                        <th style="text-align:center">Membership Type</th>
+                        <th style="text-align:center">Payment Method</th>
+                        <th style="text-align:center">Transaction Id</th>
+                        <th style="text-align:center">Payment Status</th>
+                        <th style="text-align:center">User Comments</th>
+                        <th style="text-align:center">Admin Comments</th>
+                        <th style="text-align:center">Last Modified by</th>
+                        <th style="text-align:center">Last Modified Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (lstMemberLogs.Count != 0)
+                    {
+                        Int64 i = 1;
+                        foreach (var item in lstMemberLogs)
+                        {
+                            <tr>
+                                <td style="text-align:center">@i</td>
+                                <td>
+                                    <div class="align-items-center gap-3 cursor-pointer">
+                                        <div><p class="mb-0">@item.FirstName</p></div>
+                                    </div>
+                                </td>
+                                <td>@item.LastName</td>
+                                <td style="text-align:left">
+                                    <div class="align-items-center gap-3 cursor-pointer">
+                                        <div>
+                                            <a href="mailto:@item.Email"><p class="mb-0">@item.Email</p></a>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>@item.MobilePhone</td>
+                                <td>@item.State</td>
+                                <td>@item.City</td>
+                                <td>@item.ZipCode</td>
+                                <td>@item.Address</td>
+                                <td>@item.Address2</td>
+                                <td>@item.MembershipType</td>
+                                <td>@item.PaymentMethod</td>
+                                <td>@item.TransactionId</td>
+                                <td>@item.PaymentStatus</td>
+                                <td>@item.UserComment</td>
+                                <td>@item.AdminComment</td>
+                                <td>@item.UpdatedBy</td>
+                                <td style="text-align:center">
+                                    <span style="color: #990033">@(item.UpdatedTime.ToString("MM-dd-yyyy"))</span>
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr class="odd"><td valign="top" colspan="18" class="font-14 text-center">No Records found</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    var _URL = window.URL || window.webkitURL;
+    $("#file").change(function (e) {
+        var file, img;
+        if ((file = this.files[0])) {
+            img = new Image();
+            img.onload = function () {
+                if (this.width == 350 && this.height == 250) {
+                    $('#hdnimgvalidate').val('1');
+                } else {
+                    $('#hdnimgvalidate').val('0');
+                }
+            };
+            img.src = _URL.createObjectURL(file);
+        }
+    });
+
+    function scrollToSection() {
+        $('#MemberLogsId').show();
+        const targetElement = document.getElementById("MemberLogsId");
+        if (targetElement) {
+            const offset = 100;
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+            window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+        } else {
+            console.error("Element with id 'MemberLogsId' not found.");
+        }
+    }
+           $(document).ready(function () {
+        bindChildDOB(); // init datepickers for server-rendered rows on page load
+    });
+
+    function bindChildDOB(selector) {
+        var target = selector ? selector : '.childDOB';
+        $(target).datepicker({
+            changeMonth: true,
+            changeYear: true,
+            yearRange: "-25:+0",
+            dateFormat: 'dd/mm/yy',   // ✅ Australian format
+            maxDate: 0,               // no future dates
+            onSelect: function (dateText) {
+                var age = calculateChildAge(dateText);
+                $(this).closest('tr').find('input[id^="Age-"]').val(age);
+            }
+        });
+    }
+
+    function calculateChildAge(dobText) {
+        // ✅ Parse using the same dd/mm/yy format as the datepicker (avoids US mm/dd/yyyy misparsing)
+        var dob = $.datepicker.parseDate('dd/mm/yy', dobText);
+        var today = new Date();
+        var age = today.getFullYear() - dob.getFullYear();
+        var m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+            age--;
+        }
+        return age >= 0 ? age : '';
+    }
+</script>
+
+<script src="Scripts/Admin/cropper-js-min.js" type="text/javascript"></script>

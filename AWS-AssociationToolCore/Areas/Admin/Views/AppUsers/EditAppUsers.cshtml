@@ -1,0 +1,223 @@
+﻿
+@{ ViewBag.Title = "Edit User";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    AWS_AssociationToolCore.Entities.AppUsers objAppUsers = ViewBag.objAppUsers;
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#Others').addClass('active');
+        $('#wVolunteers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+    function EValidate() {
+        var return_val = true;
+
+        if ($.trim($('#EFirstName').val()) == '') { document.getElementsByName('FirstName')[0].placeholder = 'First Name Required'; $('#EFirstName').focus().addClass("validate"); return false; } else { $('#EFirstName').focus().removeClass("validate"); }
+        if ($.trim($('#ELastName').val()) == '') { document.getElementsByName('LastName')[0].placeholder = 'Last Name Required'; $('#ELastName').focus().addClass("validate"); return false; } else { $('#ELastName').focus().removeClass("validate"); }
+
+
+        if ($.trim($('#EEmail').val()) == '') { document.getElementsByName('Email')[0].placeholder = 'Email Required'; $('#EEmail').focus().addClass("validate"); return false; } else { $('#EEmail').focus().removeClass("validate"); }
+        if (!Common.CheckEmail($('#EEmail').val())) { $('#spanEmail').html('Please enter valid email address.'); $('#EEmail').focus().addClass("red-border"); return false; } else { $('#spanEmail').html(''); $('#EEmail').focus().removeClass("red-border"); }
+        if ($.trim($('#EHoursSpent').val()) == '') { document.getElementsByName('HoursSpent')[0].placeholder = 'Hours Spent Required'; $('#EHoursSpent').focus().addClass("validate"); return false; } else { $('#EHoursSpent').focus().removeClass("validate"); }
+
+
+        return return_val;
+    }
+
+
+
+</script>
+
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+<script src="Content/Admin/js/jquery.validate.js"></script>
+
+
+<!--end breadcumb -->
+<div class="content">
+
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("AddAppUsers", "AppUsers", FormMethod.Post, new { enctype = "multipart/form-data", @id = "Form", @name = "Form" }))
+    {
+            <input type="hidden" name="UserID" id="UserID" value="@objAppUsers.UserID" />
+        <div class="card">
+            <div class="card-body">
+                <input class="form-control" type="hidden" id="PageDetailId" name="PageDetailId" value="" />
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in">Personal Details </h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6" style="display:none;">
+                        <div class="input-box">
+                            <label class="form-label">Name:  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Name" id="Name" value="@objAppUsers.Name" onkeypress="return Common.isChar(event)">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6" style="display:none;">
+                        <div class="input-box">
+                            <label class="form-label">Email :  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Email" id="Email" value="@objAppUsers.Email">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6" style="display:none;">
+                        <div class="input-box">
+                            <label class="form-label">Mobile Number : <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Phone" id="Phone" value="@objAppUsers.Phone" maxlength="12" onpaste="handlePaste(event);" onkeypress="Mobilephonenochange(event); return Common.isNumberKey(event)">
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">DeviceID : </label>
+                            <input type="text" class="form-control" name="DeviceID" id="DeviceID" value="@objAppUsers.DeviceID">
+                        </div>
+                    </div>
+
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">AppVersion : </label>
+                            <input type="text" class="form-control" name="AppVersion" id="AppVersion" value="@objAppUsers.AppVersion">
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">App Type : </label>
+                            <input type="text" class="form-control" name="AppType" id="AppType" value="@objAppUsers.AppType" >
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6" style="display:none;">
+                        <div class="input-box">
+                            <label class="form-label">OneSignalID : </label>
+                            <input type="text" class="form-control" name="OneSignalID" id="OneSignalID" value="@objAppUsers.OneSignalID" onkeypress="return Common.isNumberKey(event)" maxlength="6">
+                        </div>
+                    </div>
+
+
+
+                    
+
+                </div>
+                <div class="row">
+                    <div class="col-lg-3 col-3 text-end ms-auto">
+                        <button type="submit" class="btn btn-success px-3 " onclick="return Validate();" value="submit">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                        <a class="btn btn-primary px-3" href="@Url.Action("Index", "AppUsers")">Cancel</a>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+
+
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+
+        $("#Form").validate({
+            rules: {
+                Name: "required",
+               
+                Email: {
+                    required: true,
+                    email: {
+                        depends: function (element) {
+                            // Only validate if SpouseEmail is not null
+                            return $(element).val() !== null;
+                        },
+                        messages: "Please Enter Valid Email Address"
+                    }
+                },
+
+                Phone: {
+                    required: true,
+                    phone: true
+                },
+
+            },
+            messages: {
+                FirstName: "First Name Is required",
+                LastName: "Last Name Is required",
+                Email: {
+                    required: "Please Enter Your Email Address",
+                    validate_email: "Please Enter Valid Email Address",
+
+                },
+                Phone: {
+                    required: "Please Enter Phone Number",
+                    phone: "Please Enter Valid Phone Number",
+                },
+
+
+            },
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+            },
+
+
+        });
+
+
+
+    });
+    function Mobilephonenochange(event) {
+        if (event.keyCode == 8 || event.keyCode == 46) {
+        }
+        else {
+            var ph = $('#PhoneNo').val();
+            if (ph.length == 3) { $('#PhoneNo').val(ph + '-'); }
+            if (ph.length == 7) { $('#PhoneNo').val(ph + '-'); }
+        }
+    }
+
+</script>

@@ -1,0 +1,150 @@
+﻿@{
+    ViewBag.Title = "ViewEventUser";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    AWS_AssociationToolCore.Entities.PromoCodes objPromoCodes = ViewBag.objPromoCodes;
+}
+
+<script type="text/javascript">
+    $(function () {
+        $(".ui-accordion").accordion({
+            collapsible: true,
+            heightStyle: "content"
+        });
+
+        // date picker
+        $(function () {
+            $(function () {
+                $(".datepicker").datepicker({
+                    altField: "#alternate",
+                    altFormat: "DD, d MM, yy"
+                });
+            });
+        });
+    });
+    $(document).ready(function () {
+        $('#MEvents').addClass('active');
+
+    });
+</script>
+
+<!-- breadcumb -->
+<div class="clearfix breadcrumb-main">
+    <ul class="breadcrumb  ">
+
+        <li><a href="@Url.Action("Index", "Events", new { EventType = "current" })">Events</a> <span class="divider">/</span></li>
+        <li class="active">View Event</li>
+        <li class="fR sepV_c"><i class="icon-globe"></i><a href="@System.Configuration.ConfigurationManager.AppSettings["usersiteurl"].ToString()" target="_blank">View Mainsite</a></li>
+    </ul>
+</div>
+<!-- end breadcumb -->
+
+<div id="maincontainer">
+    <div class="mainContent">
+        <!--- TOPEBAR [start] ---->
+        @Html.Partial("MainMenu", "SuperAdmin")
+        <!--- TOPEBAR [end] ---->
+        <!--- SIDEBAR [start] ---->
+        @Html.Partial("LeftMenu")
+        <!--- SIDEBAR [en] ---->
+
+        <div class="pageHeadingBlock ">
+            <div class="grayBackground">
+
+                <div class="fR t-r p_b">
+                    <a class="clearfix" href="@Url.Action("Index", "PromoCodes")">← back to Promo Codes list</a>
+                   
+                </div>
+                <h3 class="title">View Promo Code Details</h3>
+            </div>
+        </div>
+        <div class="clearfix sepH_b"></div>
+        <div id="divmessage">
+            @if (TempData["message"] != null)
+            {@Html.Raw(TempData["message"].ToString())}
+
+            @if (ViewBag.message != null)
+            {@Html.Raw(ViewBag.message.ToString())}
+        </div>
+
+        <div class="custom-adn grayBackground nobL nobR">
+            <div class="ui-accordion">
+                <h3 class="bor0 black-t"><b>Promo Code Details</b></h3>
+                <div class="clearfix">
+                    <div class="row-fluid">
+                        <div class="span6">
+                            <div class="clearfix rp10">
+                                <div class="row-fluid">
+                                    <div class="span5">
+                                        <label class="t-p5">Promo  Code :</label>
+                                    </div>
+                                    <div class="span6">
+                                        <label class="t-p5 black-t">@objPromoCodes.PromoCode</label>
+                                    </div>
+                                </div>
+                                <div class="row-fluid">
+                                    <div class="span5">
+                                        <label class="t-p5">Start Date :</label>
+                                    </div>
+                                    <div class="span6">
+                                        <label class="t-p5 black-t"> @objPromoCodes.StartDate.ToString("dd/MM/yyyy")</label>
+                                    </div>
+                                </div>
+                                <div class="row-fluid">
+                                    <div class="span5">
+                                        <label class="t-p5">End Date :</label>
+                                    </div>
+                                    <div class="span6">
+                                        <label class="t-p5 black-t"> @objPromoCodes.EndDate.ToString("dd/MM/yyyy")</label>
+                                    </div>
+                                </div>
+                                <div class="row-fluid">
+                                    <div class="span5">
+                                        <label class="t-p5">No Of Users :</label>
+                                    </div>
+                                    <div class="span6">
+                                        <label class="t-p5 black-t"> @objPromoCodes.NoOfUsers</label>
+                                    </div>
+                                </div>
+                                <div class="row-fluid">
+                                    <div class="span5">
+                                        <label class="t-p5">Discount Type :</label>
+                                    </div>
+                                    <div class="span6">
+                                        <label class="t-p5 black-t"> @objPromoCodes.DiscountType</label>
+                                    </div>
+                                </div>
+                                <div class="row-fluid">
+                                    <div class="span5">
+                                        <label class="t-p5">Discount :</label>
+                                    </div>
+                                    <div class="span6">
+                                        <label class="t-p5 black-t"> @objPromoCodes.Discount</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="span6">
+                            <div class="clearfix">
+                                <div class="row-fluid">
+                                    <div class="span5">
+                                        <label class="t-p5">Description :</label>
+                                    </div>
+                                    <div class="span6">
+                                        <label class="t-p5 black-t"> @objPromoCodes.Message</label>
+                                    </div>
+                                </div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+  
+    </div>
+</div>
+
+
+

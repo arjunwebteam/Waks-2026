@@ -1,0 +1,378 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var lstCommittees = (List<AWS_AssociationToolCore.Entities.Members>)ViewBag.lstCommittees;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategories = ViewBag.lstCommitteeCategories;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeTypes = ViewBag.lstCommitteeTypes;
+
+    List<AWS_AssociationToolCore.Entities.Members> lstCommitteeMembers = ViewBag.lstCommitteeMembers;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoriesyears = ViewBag.lstCommitteeCategoriesyears;
+
+    var Type = ViewBag.Type;
+
+    var Year = ViewBag.Year;
+
+    string cname = ViewBag.cname;
+
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo1 = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo1.GetAppInfoDetails(ref status1);
+
+    var imglocNormal = objAppInfo.BaseUrl + "Content/MemberProfileImages/";
+
+    AWS_AssociationToolCore.Entities.PageDetails MenuPageDetails = ViewBag.objMenuPageDetails;
+
+    Int64 ActiveId = 0;
+
+    if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+    {
+        ActiveId = MenuPageDetails.PageParentId;
+    }
+    else
+    {
+        ActiveId = MenuPageDetails.MenuItemId;
+    }
+
+    var honorcommittee = lstCommitteeMembers.FindAll(x => x.CategoryName == "Honorary Board of Directors");
+
+    var chaptercommittee = lstCommitteeMembers.FindAll(x => x.CategoryName == "Chapter Coordinator");
+
+    var coordinatorcommittee = lstCommitteeMembers.FindAll(x => x.CategoryName == "Jt. Chapter Coordinator");
+
+
+    ViewBag.Title = "Committees | " + objAppInfo.SiteName + " – Leadership & Community Initiatives";
+    ViewBag.MetaDescription = "Discover the committees of our " + objAppInfo.SiteName + ".Learn about leadership teams, cultural programs, event planning, and community service initiatives";
+
+    ViewBag.PageHeading = "Leadership";
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#M-@ActiveId').addClass('active');
+    });
+
+    function Committeeinfo(CommitteeId) {
+        $.ajax({
+            url: '@Url.Action("CommitteeInfo", "Committee")',
+            type: 'POST',
+            data: { CommitteeId: CommitteeId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objCommitteeMember = result.data;
+                    $('#CommitteeId').html(objCommitteeMember.CommitteeId);
+                    $('#Name').html(objCommitteeMember.Name);
+                    $('#Description').html(objCommitteeMember.Description.replace('Content/images/', 'Content/User/images/'));
+                    $('Designation').html(objCommitteeMember.Designation)
+
+                    $("#committeeinfo").dialog('open');
+                }
+            }
+        });
+    }
+
+</script>
+
+
+<script type="text/javascript">
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            PhotosBind($(this).text());
+        });
+    }
+
+    function PhotosBind() {
+
+        var Year = $('#Sort').val();
+        var url = '@objAppInfo.BaseUrl' + '@cname' + +  Year + '-leadership';
+        window.location.href = url;
+
+    }
+</script>
+<div style="font-size: 16px; font-family: Poppins-SemiBold, sans-serif; float: right;">
+    <div class="d-flex flex-row align-items-center gap-2">
+        <div class="">
+            <label for="Sort" class="mb-0">Year</label>
+        </div>
+        <div class="select_style">
+            <select class="input-box px-2" id="Sort" style="border-radius: 50px;" onchange="PhotosBind();">
+
+
+                @if (lstCommitteeCategoriesyears != null && lstCommitteeCategoriesyears.Count != 0)
+                {
+                    @foreach (var item in lstCommitteeCategoriesyears
+                                    .OrderBy(x => x.YearId))
+                    {
+                        <option @(item.YearId.ToString() == Year ? "selected=selected" : "") value="@item.YearId">
+                            @item.YearId
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+</div>
+@if (lstCommitteeCategories != null && lstCommitteeCategories.Count != 0 && lstCommitteeCategories.Count != 0)
+{
+    if (lstCommittees != null && lstCommittees.Count != 0)
+    {
+        int i = 1;
+        foreach (var CommitteeCategories in lstCommitteeCategories)
+        {
+
+
+
+            if (lstCommittees != null && lstCommittees.Count != 0)
+            {
+                <div class="aws-title mt-lg-5 mt-4 mb-3">
+                    <h5>@CommitteeCategories.CategoryName</h5>
+                </div>
+            }
+
+
+            <div class="aws-committee-main">
+
+                @if (lstCommittees != null && lstCommittees.Count != 0)
+                {
+
+                    foreach (var item in lstCommittees)
+                    {
+
+                        if (item.CommitteeCategoryId == CommitteeCategories.CommitteeCategoryId)
+                        {
+                            if (item.Designation == "President")
+                            {
+                                <div class="aws-committee-main-card">
+                                    <div class="aws-committee-card pos-relative">
+                                        @if (item.ProfileImage != null && item.ProfileImage != "")
+                                        {
+
+                                            <div class="aws-committee-icon-bar"><img class="aws-committee-icon" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="img"></div>
+                                        }
+                                        else
+                                        {
+
+                                            <div class="aws-committee-icon-bar"><img class="aws-committee-icon" src="Content/User/images/President.png" alt="img"></div>
+
+
+                                        }
+                                        <div class="aws-committee-cnt">
+                                            <div class="aws-title4">@item.Name</div>
+                                            <div class="aws-desgination">@item.Designation</div>
+                                            <div class="aws-desgination">@item.MobilePhone</div>
+                                            <div class="aws-desgination">@item.Email</div>
+                                        </div>
+                                        <button class="eye-btn" onclick="openCommitteePopup('@item.Name','@item.Description','@(item.ProfileImage != null && item.ProfileImage != "" ? imglocNormal + item.ProfileImage : "Content/User/images/President.png")')">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+
+                                    </div>
+                                    <div class="wel-shadow text-center"><img class="img-fluid" src="Content/User/images/wel-shadow.png" alt="img"></div>
+                                </div>
+                            }
+                        }
+                    }
+                }
+            </div>
+            <!-- highlighted Committee Member end-->
+            <div class="row g-3">
+                @if (lstCommittees != null && lstCommittees.Count != 0)
+                {
+
+                    foreach (var item in lstCommittees)
+                    {
+
+                        if (item.CommitteeCategoryId == CommitteeCategories.CommitteeCategoryId)
+                        {
+                            if (item.Designation != "President")
+                            {
+                                <div class="col-md-6">
+                                    <div class="aws-committee-card pos-relative child">
+                                        @if (item.ProfileImage != null && item.ProfileImage != "")
+                                        {
+                                            <div class="aws-committee-icon-bar"><img class="aws-committee-icon" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="img"></div>
+                                        }
+                                        else
+                                        {
+                                            <div class="aws-committee-icon-bar"><img class="aws-committee-icon" src="Content/User/images/President.png" alt="img"></div>
+
+                                        }
+                                        <div class="aws-committee-cnt">
+                                            <div class="aws-title4">@item.Name</div>
+                                            <div class="aws-desgination">@item.Designation</div>
+                                            <div class="aws-desgination">@item.MobilePhone</div>
+                                            <div class="aws-desgination">@item.Email</div>
+                                        </div>
+                                        <button class="eye-btn" onclick="openCommitteePopup('@item.Name','@item.Description','@(item.ProfileImage != null && item.ProfileImage != "" ? imglocNormal + item.ProfileImage : "Content/User/images/President.png")')">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                }
+            </div>
+            i++;
+        }
+    }
+    else
+    {
+        <h4 class="sec-title2 t-t-c font22 m-5" style="text-align:center;">No Records found..</h4>
+    }
+}
+else
+{
+    <h4 class="sec-title2 t-t-c font22 m-5" style="text-align:center;">No Records found..</h4>
+}
+
+
+<style>
+    #RenewalAlert {
+        background-color: #000000a1;
+    }
+
+    /* ===== COMMITTEE POPUP STYLES ===== */
+    .committee-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+        .committee-overlay.active {
+            display: flex;
+        }
+
+    .popup {
+        background: #fff;
+        border-radius: 20px;
+        padding: 0;
+        width: 90%;
+        max-width: 500px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    .popup-top {
+        background: linear-gradient(135deg, #8b0000 0%, #c0392b 50%, #8b0000 100%);
+        height: 110px;
+        position: relative;
+    }
+
+        .popup-top::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: #fff;
+            border-radius: 50% 50% 0 0 / 30px 30px 0 0;
+        }
+
+    .popup-close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        background: rgba(255,255,255,0.2);
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        color: #fff;
+        z-index: 10;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+    }
+
+        .popup-close:hover {
+            background: rgba(255,255,255,0.35);
+        }
+
+    .popup-avatar-wrap {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        overflow: hidden;
+        margin: -55px auto 14px;
+        background: #f0f0f0;
+        position: relative;
+        z-index: 2;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+        .popup-avatar-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .popup-body {
+        padding: 0 2rem 2rem;
+    }
+
+    .popup-name {
+        font-size: 22px;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 8px;
+        letter-spacing: 0.3px;
+    }
+
+    .popup-divider {
+        width: 50px;
+        height: 3px;
+        background: linear-gradient(90deg, #8b0000, #c0392b);
+        margin: 0 auto 14px;
+        border-radius: 2px;
+    }
+
+    .popup-desig {
+        font-size: 14px;
+        color: #888;
+        background: #f8f8f8;
+        border-radius: 20px;
+        padding: 6px 18px;
+        display: inline-block;
+        margin-bottom: 6px;
+    }
+
+    /* ===== EYE BUTTON ===== */
+    .eye-btn {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #e53935;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 17px;
+    }
+
+        .eye-btn:hover {
+            background: #c62828;
+        }
+</style>
+

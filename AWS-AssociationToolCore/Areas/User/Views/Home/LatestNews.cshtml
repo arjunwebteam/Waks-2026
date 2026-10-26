@@ -1,0 +1,45 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var lstNews = ViewBag.lstNews as List<AWS_AssociationToolCore.Entities.News>;
+
+    var userAgent = Context.Request.Headers["User-Agent"].ToString();
+    var IsMobile = userAgent.Contains("Mobi") || userAgent.Contains("Android");
+
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+}
+<div class="container">
+    <div class="row gx-0 justify-center align-items">
+        <div class="col-md-12">
+            <div class="latest-block d-inline-flex w-100 align-items">
+                <div class="latest-hd-wrap"><span class="latest-hd">News & Updates<img src="Content/User/images/group.png"></span> </div>
+                <div class="latest-content">
+                    <div class="news">
+                      
+                        <ul class="latestnew-li">
+                            @if (lstNews != null && lstNews.Count != 0)
+                            {
+                                foreach (var item in lstNews)
+                                {
+                                    
+                                        <li><a href="#">@item.Title</a></li>
+                                   
+
+
+                                }
+                            }
+                            else
+                            {
+                                <li><a href="">AWS Telugu Association | Preserving Andhra Culture & Heritage in the USA</a></li>
+
+                            }
+                        </ul>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

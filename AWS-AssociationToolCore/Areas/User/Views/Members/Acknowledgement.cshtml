@@ -1,0 +1,120 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+
+    AWS_AssociationToolCore.Entities.Members objMembers = ViewBag.objMembers;
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Acknowledgment | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Thank you for supporting the " + objAppInfo.SiteName + ". Your contribution is appreciated";
+    ViewBag.MetaKeywords = objAppInfo.SiteName + " acknowledgment, thank you Telugu support, appreciation message, donation acknowledgment";
+
+    ViewBag.PageHeading = "Acknowledgment";
+
+}
+<script type="text/javascript">
+    //Disable browser Back button [Start]
+    function preventBack() { window.history.forward(); }
+    setTimeout("preventBack()", 0);
+    window.onunload = function () { null };
+    //Disable browser Back button [End]
+</script>
+
+    <div class="aws-acknowledgement-sec">
+
+        <div class="aws-acknowledgement-box ">
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="printer-top"></div>
+                    <div class="paper-container">
+                        <div class="printer-bottom"></div>
+                        <div class="paper">
+                            <div class="main-contents">
+                                <div class="success-icon">&#10004;</div>
+                                <div class="aws-title2 mb-2 text-success text-center">Payment Completed</div>
+                                <div class="success-description">
+                                    Thank you for your payment towards
+                                    <span style="color: #ad1115; margin-left: 5px;">@objMembers.MembershipType</span>
+                                    Membership Fee of the <b>@objAppInfo.SiteName</b>.
+                                </div>
+                                <hr style="opacity: 0.1;">
+                                <div class="order-details px-lg-5">
+                                    <div class="row gy-0">
+
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Name</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objMembers.FirstName</div>
+                                        </div>
+                                       
+                                            <div class="col-5 ">
+                                                <div class="aws-title5 text-start">Transaction Id</div>
+                                            </div>
+                                        
+
+                                            <div class="col-7">
+                                                @if (objMembers.objMembershipOrder.PaymentMethod == "Cash/Cheque")
+                                                {
+                                                    <div class="text-start">@(objMembers.objMembershipOrder.TransactionId != null && objMembers.objMembershipOrder.TransactionId != "" ? objMembers.objMembershipOrder.TransactionId : "Paid in Cash/Cheque")</div>
+                                                }
+                                                else if (objMembers.objMembershipOrder.PaymentMethod == "Zelle")
+                                                {
+                                                    <div class="text-start">@objMembers.Zelle
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="text-start">@(objMembers.objMembershipOrder.TransactionId != null && objMembers.objMembershipOrder.TransactionId != "" ? objMembers.objMembershipOrder.TransactionId : "N/A")</div>
+                                                }
+                                            </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Email</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objMembers.Email</div>
+                                        </div>
+                                       
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Payment Status </div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objMembers.objMembershipOrder.PaymentStatus </div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Payment Date</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@(objMembers.objMembershipOrder.OrderDate != null && objMembers.objMembershipOrder.OrderDate != DateTime.MinValue ? objMembers.objMembershipOrder.OrderDate.ToString("MM/dd/yyyy") : "N/A")</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Amount</div>
+                                        </div>
+                                    <div class="col-7">
+                                       @*  @if (HttpContext.Session.GetString("TotalAmount") is string totalAmount && totalAmount != "")
+                                        {
+                                            <div class="text-start">$@totalAmount</div>
+                                        }
+                                        else
+                                        {
+                                            <div class="text-start">$@objMembers.MemberAmount</div>
+                                        } *@
+                                        <div class="text-start">$@objMembers.MemberAmount</div>
+                                    </div>
+
+                                    </div>
+                                </div>
+                                <div class="order-footer">Thank you!</div>
+                            </div>
+                            <div class="jagged-edge"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+  

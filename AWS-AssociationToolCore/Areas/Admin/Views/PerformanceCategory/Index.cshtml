@@ -1,0 +1,315 @@
+﻿@using System.Configuration;
+@{
+
+    ViewBag.Pageheading = "Performance Category";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    Int64 ChapterId = ViewBag.ChapterId;
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+    bool IsAdd = Convert.ToBoolean(Context.Session.GetString("IsAdd"));
+
+    Int64 Mid = ViewBag.mid;
+
+}
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+@*<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>*@
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#wPerformanceCategory, #PerformanceCategory').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('#wPerformanceCategory').addClass('active');
+        PagerClickBind();
+    });
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        PerformanceCategoryBind(1);
+    }
+
+    function PerformanceCategoryBind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#keyword').val();
+        var ChapterId = $('#ChapterId').val();
+        $.ajax({
+            url: '@Url.Action("PerformanceCategorysList", "PerformanceCategory")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid' },
+            success: function (result) {
+                $('#divPerformanceCategory').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            PerformanceCategoryBind($(this).text());
+        });
+    }
+
+    function EditPerformanceCategory(PerformanceCategoryID) {
+        $.ajax({
+            url: '@Url.Action("EditPerformanceCategory", "PerformanceCategory")',
+            type: 'POST',
+            data: { PerformanceCategoryID: PerformanceCategoryID },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objPerformanceCategory = result.data;
+                    $('#PerformanceCategoryID').val(objPerformanceCategory.PerformanceCategoryID);
+                    $('#CategoryName').val(objPerformanceCategory.CategoryName);
+                    $('#MemberAmount').val(objPerformanceCategory.MemberAmount);
+                    $('#NonMemberAmount').val(objPerformanceCategory.NonMemberAmount);
+                    $('#OrderNo').val(objPerformanceCategory.OrderNo);
+                    $('#IsActive').val(objPerformanceCategory.IsActive);
+
+
+                    $('#spanPerformanceCategoryID').html('');
+                    $('#spanCategoryName').html('');
+                    $('#spanMemberAmount').html('');
+                    $('#spanNonMemberAmount').html('');
+                    $('#spanOrderNo').html('');
+                    $('#spanIsActive').html('');
+
+
+                    $('#CategoryName').focus().removeClass("validate");
+                    $('#OrderNo').focus().removeClass("validate");
+                    $('#lbltitle').html('Edit Performance Category');
+                    $("#AddPerformanceCategory").modal('show');
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+    function Add() {
+        clearInnerPageCategory();
+        $("#AddPerformanceCategory").modal('show');
+        $('#lbltitle').html('Add Performance Category');
+    }
+
+    function clearInnerPageCategory() {
+        $('#PerformanceCategoryID').val('0');
+        $('#CategoryName').val('');
+        $('#MemberAmount').val('');
+        $('#NonMemberAmount').val('');
+        $('#OrderNo').val('');
+        $('#spanCategoryName').html('');
+        $('#spanOrderNo').html('');
+        $('#spanMemberAmount').html('');
+        $('#spanNonMemberAmount').html('');
+        $('#CategoryName').focus().removeClass("validate");
+        $('#OrderNo').focus().removeClass("validate");
+        $('#MemberAmount').focus().removeClass("validate");
+        $('#NonMemberAmount').focus().removeClass("validate");
+    }
+
+    $(document).ready(function () {
+      
+        var validateForm=$("#FormWebBanners").validate({
+            rules: {
+                CategoryName: "required",
+                MemberAmount: "required",
+                NonMemberAmount: "required",
+            },
+            messages: {
+                CategoryName: "Please Enter The Category Name",
+                MemberAmount: "Please Enter The Member Amount",
+                NonMemberAmount: "Please Enter The Non-Member Amount",
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+            },
+        });
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormWebBanners')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+    });
+
+    function ResetValidateClass() {
+        $('#CategoryName').removeClass("validate");
+        $('#OrderNo').removeClass("validate");
+        $('#MemberAmount').removeClass("validate");
+        $('#NonMemberAmount').removeClass("validate");
+    }
+
+    function ClearSearch() {
+        $('#keyword').val('');
+        PerformanceCategoryBind(1);
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type : "GET",
+            url  : '@Url.Action("PerformanceCategorysList", "PerformanceCategory")',
+            data : {
+                Mid    : '@Mid'
+
+            },
+            success: function (data) {
+                $("#divPerformanceCategory").html(data);
+            },
+            error: function () {
+                $("#divPerformanceCategory").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    });
+</script>
+<input type="hidden" id="hdnimgvalidate" value="0" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="PerformanceCategoryID" />
+<input id="hdnsortorder" type="hidden" value="ASC" />
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+            <div class="col-lg-3 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Search </label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Category Name">
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="btn-align">
+                    <button type="button" class="btn btn-primary px-3" onclick="PerformanceCategoryBind(1);">Search</button>
+                    <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                </div>
+            </div>
+            <div class="col-lg-3 col-4 text-end ms-auto">
+                <div class="btn-align">
+                    @if (IsAdd == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+                    {
+                        <button type="button" class="btn btn-primary" onclick="Add();">Add Performance Category</button>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="AddPerformanceCategory" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("AddPerformanceCategory", "PerformanceCategory", FormMethod.Post, new { enctype = "multipart/form-data", style = "margin-bottom:0", @id = "FormWebBanners", @name = "FormWebBanners" }))
+            {
+                <input type="hidden" id="PerformanceCategoryID" name="PerformanceCategoryID" value="0" />
+
+                if (objAppInfo.chapterStatus == "No")
+                {
+                    <input id="ChapterId" name="ChapterId" type="hidden" value="1" />
+                }
+           
+                <input type="hidden" id="Mid" name="Mid" value="@Mid" />
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Category Name<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="CategoryName" name="CategoryName" placeholder="Category Name" onkeypress="return Common.isChar(event)">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Member Amount<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="MemberAmount" name="MemberAmount" placeholder="Member Amount" onkeypress="return Common.isNumberKey(event)">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Non-Member Amount<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="NonMemberAmount" name="NonMemberAmount" placeholder="Non-Member Amount" onkeypress="return Common.isNumberKey(event)">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Order No</label>
+                                    <input type="text" class="form-control" onkeypress="return Common.isNumberKey(event)" id="OrderNo" name="OrderNo" maxlength="2" placeholder="Display Order">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>}
+        </div>
+    </div>
+
+    <div id="divPerformanceCategory" class="clearfix">
+  
+</div>
+</div>

@@ -1,0 +1,237 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    string ChapterName = ViewBag.cname;
+    int _qstatus = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _AppInfo.GetAppInfoDetails(ref _qstatus);
+    AWS_AssociationToolCore.Entities.Members objMember = ViewBag.objMember;
+    ViewBag.Title = "Subscription Cancelled";
+    ViewBag.PageHeading = "Cancel Subscription";
+}
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("ProfileMenu", "Members")',
+            data: { Type: 'CancelSubscription' },
+            success: function (data) {
+                $("#divProfileMenuList").html(data);
+            },
+            error: function () {
+                $("#divProfileMenuList").html('<p class="text-danger">Failed to load menu.</p>');
+            }
+        });
+    });
+</script>
+<style>
+    .cancel-success-wrap {
+        max-width: 580px;
+        margin: 0 auto;
+        padding: 10px 0 30px;
+    }
+    /* ── Green success banner ── */
+    .cancel-success-banner {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 10px;
+        padding: 14px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #155724;
+    }
+
+        .cancel-success-banner i {
+            font-size: 22px;
+            color: #28a745;
+            flex-shrink: 0;
+        }
+    /* ── Receipt card ── */
+    .receipt-card {
+        border: 1.5px solid #e0e0e0;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        background: #fff;
+    }
+
+    .receipt-header {
+        background: linear-gradient(135deg, #c0392b, #e74c3c);
+        color: #fff;
+        text-align: center;
+        padding: 22px 20px 18px;
+    }
+
+        .receipt-header h5 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 8px 0 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .receipt-header small {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+    .receipt-divider {
+        border-top: 2px dashed #e0e0e0;
+        margin: 0 20px;
+    }
+
+    .receipt-section-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #c0392b;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        padding: 14px 20px 6px;
+    }
+
+    .receipt-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 20px;
+        border-bottom: 1px solid #f5f5f5;
+    }
+
+        .receipt-row:last-child {
+            border-bottom: none;
+        }
+
+    .receipt-label {
+        font-size: 13px;
+        color: #212020;
+        font-family: 'Poppins-Medium';
+    }
+
+    .receipt-value {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+        text-align: right;
+    }
+
+    .receipt-badge-cancelled {
+        background: #f8d7da;
+        color: #721c24;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .receipt-footer {
+        background: #fafafa;
+        text-align: center;
+        padding: 14px 20px;
+        font-size: 12px;
+        color: #aaa;
+        border-top: 1px solid #f0f0f0;
+    }
+    /* ── Back button ── */
+    .cancel-back-btn {
+        display: block;
+        width: 100%;
+        margin-top: 18px;
+        background: #c0392b;
+        color: #fff !important;
+        text-align: center;
+        padding: 11px;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+
+        .cancel-back-btn:hover {
+            background: #962d22;
+            color: #fff !important;
+        }
+</style>
+
+<div class="aws-profile-left-sec">
+    <div id="divProfileMenuList">
+        <div class="aws-profile-img">
+            @if (!string.IsNullOrEmpty(objMember?.ProfileImage))
+            {
+                <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage(
+                                         objAppInfo.AdminImageUrl + "MemberProfileImages/" + objMember.ProfileImage,
+                                         "Content/user/images/com-main.png")"
+                 alt="Profile" class="border-radius10 profshd" width="159" height="159" />
+                        }
+            else
+            {
+                <img src="Content/user/images/com-main.png"
+                     alt="Profile" class="border-radius10 profshd" width="159" height="159" />
+            }
+        </div>
+    </div>
+</div>
+
+<div class="aws-profile-right-sec">
+    <div class="aws-title">
+        Cancel Subscription
+        <div class="cmn-event-btn">
+           
+        </div>
+    </div>
+    <div class="aws-bdr"></div>
+
+    <div class="cancel-success-wrap">
+
+        @* ── Receipt card ── *@
+        <div class="receipt-card">
+
+            <div class="receipt-header">
+                <i class="bi bi-receipt-cutoff" style="font-size:34px;"></i>
+                <h5>Subscription Cancellation Receipt</h5>
+                <small>@DateTime.Now.ToString("MMMM dd, yyyy")</small>
+            </div>
+            <div class="receipt-divider"></div>
+
+            <div class="receipt-section-title">
+                <i class="bi bi-credit-card me-1"></i> Subscription Details
+            </div>
+ 
+            <div class="receipt-row">
+                <span class="receipt-label">Payment Method</span>
+                <span class="receipt-value">
+                    @objMember?.objMembershipOrder?.PaymentMethod
+                </span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Subscription Amount </span>
+                <span class="receipt-value" style="color:#c0392b; font-weight:700;">
+                    $@objMember?.MemberAmount
+                </span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Cancelled On</span>
+                <span class="receipt-value">@DateTime.Now.ToString("MM/dd/yyyy")</span>
+            </div>
+            <div class="receipt-row">
+                <span class="receipt-label">Status</span>
+                <span class="receipt-value">
+                    <span class="receipt-badge-cancelled">
+                        ●                     Cancelled
+                    </span>
+                </span>
+            </div>
+
+
+<div class="receipt-footer" style="color: red;font-size: 15px;">
+    <strong>
+        Want to take a new membership subscription.? <br> Go to Subscription Details tab and click Renew.
+    </strong>
+</div>
+        </div>
+
+
+    </div>
+</div>

@@ -1,0 +1,80 @@
+﻿@{ Layout = null;}
+@{
+
+    ViewBag.Title = "ServicesDonationsList";
+
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    Int64 Items = ViewBag.items;
+
+    Int64 TotalPages = Total / Items;
+    var ChapterName = ViewBag.ChapterName;
+
+    if (Total > (Items * TotalPages))
+    {
+        TotalPages = TotalPages + 1;
+    }
+    List<AWS_AssociationToolCore.Entities.ServiceDonations> lstServiceDonations = ViewBag.lstServiceDonations;
+}
+
+
+<div class="cus-about-sec member_list">
+    <div class="row g-3">
+
+        <div class="col-12 ">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-stripped  member_table">
+                    <thead>
+                        <tr>
+                            @*<th>S.No</th>*@
+                            <th>Donor Id</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Amount</th>
+                            <th>Donation Category</th>
+
+
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (lstServiceDonations != null && lstServiceDonations.Count != 0)
+                        {
+                            Int64 i = 1;
+                            foreach (var item in lstServiceDonations)
+                            {
+                                <tr>
+
+                                    <td>@item.ServiceId</td>
+                                    <td>@item.FirstName</td>
+                                    <td>@item.LastName</td>
+                                    <td>@item.Amount</td>
+                                    <td>@item.DonationCause</td>
+
+
+
+
+
+                                </tr>
+                                i++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="norecords" colspan="7">No Records Found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPagingFE((Int64)ViewBag.items, ref Total, (Int64)ViewBag.PageNo, "pagination pagination-right border-b b-p10"))
+
+@*@Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPagingFE((Int64)ViewBag.items, ref Total, (Int64)ViewBag.PageNo, "pagination pagination-right border-b b-p10"))*@

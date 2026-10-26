@@ -1,0 +1,77 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var lstSponsors = (List<AWS_AssociationToolCore.Entities.Sponsors>)ViewBag.lstSponsors;
+    var lstSponsorCategories = (List<AWS_AssociationToolCore.Entities.SponsorCategories>)ViewBag.lstSponsorCategories;
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+
+    var imglocNormal = objAppInfo.BaseUrl + "Content/Sponsors/";
+
+    ViewBag.Title = "Sponsors | " + objAppInfo.SiteName + " – Supporting Our Community & Culture";
+    ViewBag.MetaDescription = "Meet the sponsors who support our " + objAppInfo.SiteName + ".Partner with us to promote Telugu culture, events, and community initiatives while gaining brand visibility.";
+
+    ViewBag.PageHeading = "Sponsors";
+
+    AWS_AssociationToolCore.BLL.InnerPages _InnerPages = new AWS_AssociationToolCore.BLL.InnerPages();
+}
+
+<div class="aws-sponsers-sec">
+    @if (lstSponsorCategories != null && lstSponsorCategories.Count != 0 && lstSponsors.Count != 0)
+    {
+        int i = 1;
+        foreach (var SponsorCategories in lstSponsorCategories)
+        {
+            if (lstSponsors != null && lstSponsors.Count != 0 && SponsorCategories.SponsorsCount != 0)
+            {
+                <div class="aws-sponser-head mb-2 " @(i > 1 ? "mt-3 mt-md-4" : "")>@SponsorCategories.CategoryName</div>
+            }
+
+            if (lstSponsors != null && lstSponsors.Count != 0)
+            {
+                <div class="aws-sponsers-grid ">
+                    @foreach (var item in lstSponsors)
+                    {
+                        if (item.SponsorCategoryId == SponsorCategories.SponsorCategoryId)
+                        {
+                            <div class="aws-sponser-box">
+                                @if (item.LogoUrl != "")
+                                {
+
+                                    @if (item.RedirectUrl != null && item.RedirectUrl != "")
+                                    {
+                                        <a href="@item.RedirectUrl" target="@item.Target">
+                                            <img src="@(imglocNormal + item.LogoUrl)" alt="">
+                                        </a>
+                                    }
+                                    else
+                                    {
+
+                                        <img src="@(imglocNormal + item.LogoUrl)" alt="">
+
+                                    }
+                                }
+                                else
+                                {
+                                    <img  src="@(imglocNormal + "no-imagefinal.jpg")">
+
+                                }
+                            </div>
+
+                        }
+                    }
+
+                </div>
+            }
+            i++;
+        }
+    }
+</div>
+
+

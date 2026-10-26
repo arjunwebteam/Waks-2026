@@ -1,0 +1,142 @@
+﻿@{
+    ViewBag.Title = "AddCommittee";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    var cssloc = System.Configuration.ConfigurationManager.AppSettings["adminsiteurl"] + "Content/Admin/front-end-style.css";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    List<AWS_AssociationToolCore.Entities.ServiceCategories> lstServiceCategories = ViewBag.lstServiceCategories;
+    List<AWS_AssociationToolCore.Entities.ServiceTypes> lstServiceTypes = ViewBag.lstServiceTypes;
+    AWS_AssociationToolCore.Entities.Services objServices = ViewBag.objServices;
+
+}
+
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wServices, #ServiceCategories').addClass('active');
+        $('#InnerPages').addClass('red-t');
+        $('.closable').append('<span id="lblclose" class="closelink" title="Close"></span>');
+        //  $("#ExpiryDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-100:+0", altFormat: 'mm/dd/yy' });
+        // $("#ExpiryDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-100:+0", altFormat: 'mm/dd/yy', dateFormat: "mm/dd/yy" });
+      
+    });
+</script>
+
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>View Services</h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li><a href="@Url.Action("Index", "Services")"><i class="fa fa-print"></i>Services</a></li>
+        <li class="active">View Services</li>
+    </ol>
+</div>
+<!--end breadcumb -->
+
+<input type="hidden" id="hdnimgvalidate" value="0" />
+<div class="content">
+    <div class="box">
+        <!-- /.box-header -->
+        <div class="nav-tabs-custom">
+
+            <div class="clearfix sepH_b"></div>
+
+            <div id="divmessage">
+                @if (TempData["message"] != null)
+                {@Html.Raw(TempData["message"].ToString())}
+
+                @if (ViewBag.message != null)
+                {@Html.Raw(ViewBag.message.ToString())}
+            </div>
+
+            <div class="validation">
+                <!-- /.box-header -->
+
+                @using (Html.BeginForm("AddService", "Services", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Chapters : </label>
+                                @objServices.ChapterName
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Service Categories : </label>
+
+                                @objServices.CategoryName
+
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Service Types :</label>
+                                @objServices.ServiceType
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Service Title :</label>
+                                @objServices.ServiceTitle
+                           </div>
+                        </div>
+                        <div class="row">
+
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Organised By :</label>
+                                @objServices.OrganisedBy
+
+                            </div>
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Purpose :</label>
+                                @objServices.Purpose
+
+                            </div>
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Short Description :</label>
+                                @objServices.ShortDescription
+
+                            </div>
+
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Expiry Date :</label>
+
+                                @(objServices.ExpiryDate == DateTime.MinValue?"N/A": objServices.ExpiryDate.ToString("MM-dd-yyyy"))
+                            </div>
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Estimation Amount :</label>
+                                @objServices.EstimationAmount
+
+                            </div>
+
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Service Status :</label>
+                                @objServices.ServiceStatus
+
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div class='box-body'>
+                        <label>Description </label>
+                        @objServices.Description
+                    </div>
+                    <div class="box">
+                        <!-- /.box-header -->
+                        <div class="box-body text-right">
+                           <a class="btn btn-info" href="@Url.Action("Index", "Services")">Cancel</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

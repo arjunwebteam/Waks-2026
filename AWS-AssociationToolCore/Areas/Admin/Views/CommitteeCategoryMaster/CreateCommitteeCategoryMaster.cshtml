@@ -1,0 +1,333 @@
+﻿@{
+    ViewBag.Title = "Create Committee Category - " + (Context.Session.GetString("SiteName") ?? "");
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    ViewBag.Pageheading = "Add Committee";
+
+
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster = ViewBag.lstCommitteeCategoryMaster;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster2 = ViewBag.lstCommitteeCategoryMaster2;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster3 = ViewBag.lstCommitteeCategoryMaster3;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster4 = ViewBag.lstCommitteeCategoryMaster4;
+    Int64 mid = ViewBag.mid;
+    Int64 ChapterId = ViewBag.ChapterId;
+
+
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+
+    int status = 0;
+
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        //MenuItemBind();
+        //  $('#wCommitteeCategoryMaster').addClass('active');
+        $('#wWebPages, #wCommitteeCategoryMaster').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+
+    function ValidateCommitteeCategoryMaster() {
+        if ($('#ChapterId').val() == '') { $('#ChapterId').focus().addClass("validate"); return false; } else { $('#ChapterId').removeClass("validate"); }
+        if ($('#InstituteId').val() == '') { $('#InstituteId').focus().addClass("validate"); return false; } else { $('#InstituteId').removeClass("validate"); }
+        if ($('#CategoryName').val() == '') { $('#CategoryName').focus().addClass("validate"); return false; } else { $('#CategoryName').removeClass("validate"); }
+
+        return true;
+    }
+
+
+ 
+
+    function MenuItemBind() {
+        var ChapterId = $('#ChapterId').val();
+        $.ajax({
+            url: '@Url.Action("CommitteeCategoryMasterBylist", "CommitteeCategoryMaster")',
+            type: 'POST',
+            data: { ChapterId: ChapterId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var sb = "<option value=\"0\">---- Root Level ----</option>";
+                    CommitteeCategoryMaster = result.data;
+                    CommitteeCategoryMaster2 = result.data2;
+                    CommitteeCategoryMaster3 = result.data3;
+                    CommitteeCategoryMaster4 = result.data4;
+                    if (CommitteeCategoryMaster != null) {
+                        for (var i = 0; i < CommitteeCategoryMaster.length; i++) {
+                            sb = sb + "<option  value=\"" + CommitteeCategoryMaster[i].CommitteeCategoryId + "\">" + CommitteeCategoryMaster[i].CategoryName + "</option>";
+                            if (CommitteeCategoryMaster2 != null) {
+                                for (var j = 0; j < CommitteeCategoryMaster2.length; j++) {
+                                    if (CommitteeCategoryMaster[i].CommitteeCategoryId == CommitteeCategoryMaster2[j].PageParentId) {
+                                        sb = sb + "<option  value=\"" + CommitteeCategoryMaster2[j].CommitteeCategoryId + "\">| " + CommitteeCategoryMaster2[j].CategoryName + "</option>";
+                                        if (CommitteeCategoryMaster3 != null) {
+                                            for (var k = 0; k < CommitteeCategoryMaster3.length; k++) {
+                                                if (CommitteeCategoryMaster2[j].CommitteeCategoryId == CommitteeCategoryMaster3[k].PageParentId) {
+                                                    sb = sb + "<option  value=\"" + CommitteeCategoryMaster3[k].CommitteeCategoryId + "\">| | " + CommitteeCategoryMaster3[k].CategoryName + "</option>";
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    $('#PageParentId').html(sb);
+                }
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('#wCommitteeCategoryMaster').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+
+
+</script>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+
+<div class="content">
+    @using (Html.BeginForm("CreateCommitteeCategoryMaster", "CommitteeCategoryMaster", FormMethod.Post, new { enctype = "multipart/form-data", @id = "FormCommitteeCategoryMaster", @name = "FormCommitteeCategoryMaster" }))
+    {
+    <div class="box validation">
+
+
+        @if (objAppInfo.chapterStatus == "No")
+        {
+            <input type="hidden" value="1" name="ChapterIds" id="ChapterIds" />
+        }
+        else
+        {
+            <input type="hidden" value="" name="ChapterIds" id="ChapterIds" />
+
+        }
+
+        <input type="hidden" value="@ChapterId" name="ChapterId" id="ChapterId" />
+
+        <input id="mid" name="mid" type="hidden" value="@mid" />
+        <div class="card">
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Add Committee Category <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="CategoryName" id="CategoryName" placeholder="" onkeypress="return Common.isCharWithSpace(event, this)">
+                            </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">YearId <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="YearId" id="YearId" placeholder="" onkeypress="return Common.isNumberKey(event)" maxlength="4">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Display Order </label>
+                            <input type="text" class="form-control" name="Position" id="Position" onkeypress="return Common.isNumberKey(event)" placeholder="" maxlength="3">
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Parent Menu Item</label>
+                            <select class="single-select" id="PageParentId" name="PageParentId">
+                                <option value="0">---- Root Level ----</option>
+                                @if (lstCommitteeCategoryMaster != null && lstCommitteeCategoryMaster.Count != 0)
+                                {
+                                    foreach (var item in lstCommitteeCategoryMaster)
+                                    {
+                                        <option value="@(item.CommitteeCategoryId)">@item.CategoryName</option>
+
+                                        if (lstCommitteeCategoryMaster2 != null && lstCommitteeCategoryMaster2.Count != 0)
+                                        {
+                                            foreach (var item2 in lstCommitteeCategoryMaster2)
+                                            {
+                                                if (item2.PageParentId == item.CommitteeCategoryId)
+                                                {
+                                                    <option value="@(item2.CommitteeCategoryId)">| @item2.CategoryName</option>
+
+                                                    if (lstCommitteeCategoryMaster3 != null && lstCommitteeCategoryMaster3.Count != 0)
+                                                    {
+                                                        foreach (var item3 in lstCommitteeCategoryMaster3)
+                                                        {
+                                                            if (item3.PageParentId == item2.CommitteeCategoryId)
+                                                            {
+                                                                <option value="@item3.CommitteeCategoryId">| | @item3.CategoryName</option>
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
+        @if (objAppInfo.chapterStatus == "Yes")
+        {
+
+
+            <div class="card">
+                <div class="card-body">
+
+                    <div class="box validation">
+                        <!-- /.box-header -->
+                        <div class="box-header">
+                            <h3 class="box-title dis-in mb-2">Chapters </h3>
+                        </div>
+                        <div class="box-body">
+
+                            @if (lstChapters != null && lstChapters.Count != 0)
+                            {
+                                int i = 1;
+                                <div class="row">
+                                    @foreach (var item in lstChapters)
+                                    {
+                                        if (item.ChapterName != "NATS Global")
+                                        {
+
+                                            <div class="col-md-3 col-xs-6 col-xxl-2">
+                                                <span class="radiostyle part-4 mb-2 d-block">
+                                                    <input type="checkbox" @*@(i == item.ChapterId ? "checked=checked" : "")*@ name="ChapterNamecheckbox" id="ChapterNamecheckbox-@i" class="flat-red" value="@item.ChapterId"> @item.ChapterName
+                                                </span>
+                                            </div>
+                                        }
+                                        i++;
+                                    }
+                                </div>
+                            }
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        }
+
+
+    </div>
+
+
+        if (objAppInfo.chapterStatus == "Yes")
+        {
+            <div class="row">
+                <div class="col-lg-2 col-3 text-end ms-auto">
+                    <button type="submit" onclick="return ChapterNameBind();" class="btn btn-success px-3 " value="submit">Submit</button>
+                    <a class="btn btn-primary px-3" href="@Url.Action("Index", "CommitteeCategoryMaster", new { mid = mid })">Cancel</a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-lg-2 col-3 text-end ms-auto">
+                    <button type="submit"  class="btn btn-success px-3 " value="submit">Submit</button>
+                    <a class="btn btn-primary px-3" href="@Url.Action("Index", "CommitteeCategoryMaster", new { mid = mid })">Cancel</a>
+                </div>
+            </div>
+
+        }
+
+    }
+    <!-- /.box-body -->
+    <!-- /.content -->
+</div>
+<script>
+    $(document).ready(function () {
+        $("#FormCommitteeCategoryMaster").validate({
+            rules: {
+                CategoryName: "required",
+                YearId: "required",
+                PageParentId: "required",
+            },
+            messages: {
+                CategoryName: "Please Enter Your Committee Category",
+                YearId: "Please Enter Category Year",
+                PageParentId: "please Select Parent menu ",
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+
+
+    function ChapterNameBind() {
+       
+        var ChapterNamecheckboxs = Common.GetCheckBoxValue('ChapterNamecheckbox');
+
+        $('#ChapterIds').val(ChapterNamecheckboxs);
+       
+
+        if (ChapterNamecheckboxs == "") {
+            alert("Please select atleast one Chapter.");
+            return false;
+        }
+
+    }
+
+
+
+</script>
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+</script>

@@ -1,0 +1,823 @@
+﻿@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+
+@{
+    ViewBag.Title = "EventUser";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    var objCulturalRegistrations = (AWS_AssociationToolCore.Entities.CulturalRegistrations)ViewBag.objCulturalRegistrations;
+    ViewBag.pageHeading = "Edit Cultural Registration";
+
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    int status = 0;
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    List<AWS_AssociationToolCore.Entities.PaymentMethods> lstPaymentMethod = new List<AWS_AssociationToolCore.Entities.PaymentMethods>();
+    List<AWS_AssociationToolCore.Entities.PaymentStatus> lstPaymentStatus = new List<AWS_AssociationToolCore.Entities.PaymentStatus>();
+    lstPaymentMethod = ViewBag.lstpaymentmethods;
+    lstPaymentStatus = ViewBag.lstpaymentstatus;
+
+    List<AWS_AssociationToolCore.Entities.PerformanceCategory> lstPerformanceCategory =
+        ViewBag.lstPerformanceCategory ?? new List<AWS_AssociationToolCore.Entities.PerformanceCategory>();
+
+   // var imglocNormal = Session["BaseUrl"].ToString() + "Content/CulturalRegistration/";
+    var imglocNormal = objAppInfo.BaseUrl + "Content/CulturalRegistration/";
+
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+    //List<AWS_AssociationToolCore.Entities.EventRegistrationHistory> lstRegistrationHistory = ViewBag.lstRegistrationHistory;
+
+
+    var Test = objPhotosImageSettings.Photosize; // Assuming objPhotosImageSettings.Eventsize is a string
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+
+        // Now you can use value1 and value2 as integers
+    }
+    else
+    {
+        // Handle the case where the split didn't produce two parts
+        // This could happen if the input string doesn't contain '*'
+        // or if there are more than one '*' characters in the string
+    }
+
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    //Int64 Total = (Int64)ViewBag.total;
+    //var PageNo = (Int64)ViewBag.pageno;
+    //var Items = (Int64)ViewBag.items;
+
+}
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+        font-size: 17px;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+<script>
+    $(document).ready(function () {
+        PaymentMethodBind()
+        //$('#ChequeHolderNamehide').hide()
+        //$('#ZellePartnerNamehide').hide()
+        $('#MEvents').addClass('active');
+        $('#ServicesHistoryhide').hide();
+    });
+    function Validate() {
+        if ($('#FirstName').val() == '') { $('#spanFirstName').html('Required.'); $('#FirstName').focus().addClass("red-border"); return false; } else { $('#spanFirstName').html(''); $('#FirstName').focus().removeClass("red-border"); }
+        if ($('#LastName').val() == '') { $('#spanLastName').html('Required.'); $('#LastName').focus().addClass("red-border"); return false; } else { $('#spanLastName').html(''); $('#LastName').focus().removeClass("red-border"); }
+        if ($('#Email').val() == '') { $('#spanEmail').html('Required.'); $('#Email').focus().addClass("red-border"); return false; } else { $('#spanEmail').html(''); $('#Email').focus().removeClass("red-border"); }
+        if (!Common.CheckEmail($('#Email').val())) { $('#spanEmail').html('Invalid email address.'); $('#Email').focus().addClass("red-border"); return false; } else { $('#spanEmail').html(''); $('#Email').focus().removeClass("red-border"); }
+        return true;
+    }
+        function AAAmemberBind()           { $('#aaamemberhide').toggle($('#AAALifetimeMember').val() === 'No'); }
+    function AAAInstagramBind()        { $('#AAAInstagramhide').toggle($('#AAAInstagram').val() === 'No'); }
+      function generateRows() {
+        var count = parseInt($('#NumberofParticipants').val()) || 0;
+        var current = $('.child-row').length;
+        if (count > current) { for (var i = current; i < count; i++) { addRow(i); } }
+        else if (count < current) { $('.child-row').slice(count).remove(); }
+    }
+    //function PaymentMethodBind() {
+
+    //    var PaymentMethod = $('#PaymentMethodId').val();
+    //    if (PaymentMethod == 3) {
+    //        $('#ChequeHolderNamehide').show()
+    //        $('#ZellePartnerNamehide').hide()
+    //    }
+    //    else if (PaymentMethod == 6) {
+    //        $('#ChequeHolderNamehide').hide()
+    //        $('#ZellePartnerNamehide').show()
+    //    }
+    //    else {
+    //        $('#ChequeHolderNamehide').hide()
+    //        $('#ZellePartnerNamehide').hide()
+    //    }
+    //}
+        function ParticipantAgeGroupbind() { $('#ddlParticipantAgeGroup').val($('#ParticipantAgeGroup').val()); }
+            function generateRows() {
+        var count = parseInt($('#NumberofParticipants').val()) || 0;
+        var current = $('.child-row').length;
+        if (count > current) { for (var i = current; i < count; i++) { addRow(i); } }
+        else if (count < current) { $('.child-row').slice(count).remove(); }
+    }
+        function awsAddRow() { addRow($('.child-row').length); }
+    function addRow(index) {
+        var newRow = '<div class="child-row row gx-2 align-items-center">' +
+            '<div class="col-md-4"><fieldset><legend class="float-none w-auto px-1">First Name</legend>' +
+            '<input class="input-box" type="text" name="[' + index + '].FirstName" placeholder="First Name"></fieldset></div>' +
+            '<div class="col-md-3"><fieldset><legend class="float-none w-auto px-1">Last Name</legend>' +
+            '<input class="input-box" type="text" name="[' + index + '].LastName" placeholder="Last Name"></fieldset></div>' +
+            '<div class="col-md-3"><fieldset><legend class="float-none w-auto px-1">Email</legend>' +
+            '<input class="input-box" type="text" name="[' + index + '].Email" placeholder="Email"></fieldset></div>' +
+            '<div class="col-md-2"><a class="aws-remove-btn" onclick="deleteRow(this)"><i class="bi bi-trash3"></i> Remove</a></div>' +
+            '</div>';
+        $('#childinfo').append(newRow);
+    }
+    function PaymentMethodBind() {
+      
+        var PaymentMethod = document.getElementById("PaymentMethodId").value;
+
+        //var PaymentMethod = $('#PaymentMethodId').val();
+        if (PaymentMethod == 3) {
+
+            $('#ChequeHolderNamehide').show()
+            $('#ZellePartnerNamehide').hide()
+        }
+        else if (PaymentMethod == 6) {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').show()
+        }
+        else {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').hide()
+        }
+    }
+
+    function paymentbind(type) {
+        $('#PaymentType').val(type);
+    }
+    function scrollToSection() {
+        $('#ServicesHistoryhide').show();
+        const targetElement = document.getElementById("ServicesHistoryhide");
+        if (targetElement) {
+            const offset = 100; // Adjust as needed for headers
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: "smooth"
+            });
+        } else {
+            console.error("Element with id 'DonationHistoryhide' not found.");
+        }
+    }
+</script>
+<!-- breadcumb -->
+<!-- end breadcumb -->
+
+<div class="content">
+    <!-- Main content -->
+    <div class="clearfix sepH_b"></div>
+
+
+    @using (Html.BeginForm("UpdateCulturalRegistrations", "CulturalRegistrations", FormMethod.Post, new { enctype = "multipart/form-data", @id = "FormAddEvents", @name = "FormAddEvents" }))
+    {
+        <input type="hidden" id="CulturalRegistrationId" name="CulturalRegistrationId" value="@objCulturalRegistrations.CulturalRegistrationId" />
+        <input type="hidden" name="ddlPerformanceCategory" id="ddlPerformanceCategory" value="" />
+        <input type="hidden" name="ParticipantAgeGroup" id="ddlParticipantAgeGroup" value="" />
+        <input type="hidden" id="PerformanceCategory" name="PerformanceCategory" />
+        <input type="hidden" id="EventId" name="EventId" value="@objCulturalRegistrations.EventId" />
+        <input type="hidden" id="PaymentType" name="PaymentType" value="" />
+        <input type="hidden" id="AmountPaid" name="AmountPaid" value="@objCulturalRegistrations.AmountPaid" />
+        <input type="hidden" value="@ViewBag.mid" name="mid" id="mid" />
+        <div class="card">
+            <div class="card-body">
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in"> Event Name : <span style="color:red;">@objCulturalRegistrations.EventName</span></h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">First Name :<span class="text-danger"></span></label>
+                            <input type="text" id="FirstName" name="FirstName" value="@objCulturalRegistrations.FirstName" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Last Name :<span class="text-danger"></span></label>
+                            <input type="text" id="LastName" name="LastName" value="@objCulturalRegistrations.LastName" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Mobile Number  :<span class="text-danger"></span></label>
+                            <input type="text" id="PhoneNo" name="PhoneNo" value="@objCulturalRegistrations.PhoneNo" onclick="Common.isNumberKey();" onpaste="handlePaste(event);" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label"> Email :<span class="text-danger"></span></label>
+                            <input type="text" id="Email" name="Email" value="@objCulturalRegistrations.Email" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Address Line:<span class="text-danger"></span></label>
+                            <input type="text" id="Address1" value="@objCulturalRegistrations.Address1" name="Address1" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">City :<span class="text-danger"></span></label>
+                            <input type="text" id="City" value="@objCulturalRegistrations.City" name="City" class="form-control"  readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">State :<span class="text-danger"></span></label>
+                            <select class="form-control" id="State" name="State" readonly>
+                                <option value="" selected="selected">--Select--</option>
+                                <option @(objCulturalRegistrations.State == "Alabama" ? "selected=selected" : "") value="Alabama">Alabama</option>
+                                <option @(objCulturalRegistrations.State == "Alaska" ? "selected=selected" : "") value="Alaska">Alaska</option>
+                                <option @(objCulturalRegistrations.State == "Arizona" ? "selected=selected" : "") value="Arizona">Arizona</option>
+                                <option @(objCulturalRegistrations.State == "Arkansas" ? "selected=selected" : "") value="Arkansas">Arkansas</option>
+                                <option @(objCulturalRegistrations.State == "California" ? "selected=selected" : "") value="California">California</option>
+                                <option @(objCulturalRegistrations.State == "Colorado" ? "selected=selected" : "") value="Colorado">Colorado</option>
+                                <option @(objCulturalRegistrations.State == "Connecticut" ? "selected=selected" : "") value="Connecticut">Connecticut</option>
+                                <option @(objCulturalRegistrations.State == "Delaware" ? "selected=selected" : "") value="Delaware">Delaware</option>
+                                <option @(objCulturalRegistrations.State == "Florida" ? "selected=selected" : "") value="Florida">Florida</option>
+                                <option @(objCulturalRegistrations.State == "Georgia" ? "selected=selected" : "") value="Georgia">Georgia</option>
+                                <option @(objCulturalRegistrations.State == "Hawaii" ? "selected=selected" : "") value="Hawaii">Hawaii</option>
+                                <option @(objCulturalRegistrations.State == "Idaho" ? "selected=selected" : "") value="Idaho">Idaho</option>
+                                <option @(objCulturalRegistrations.State == "Illinois" ? "selected=selected" : "") value="Illinois">Illinois</option>
+                                <option @(objCulturalRegistrations.State == "Indiana" ? "selected=selected" : "") value="Indiana">Indiana</option>
+                                <option @(objCulturalRegistrations.State == "Iowa" ? "selected=selected" : "") value="Iowa">Iowa</option>
+                                <option @(objCulturalRegistrations.State == "Kansas" ? "selected=selected" : "") value="Kansas">Kansas</option>
+                                <option @(objCulturalRegistrations.State == "Kentucky" ? "selected=selected" : "") value="Kentucky">Kentucky</option>
+                                <option @(objCulturalRegistrations.State == "Louisiana" ? "selected=selected" : "") value="Louisiana">Louisiana</option>
+                                <option @(objCulturalRegistrations.State == "Maine" ? "selected=selected" : "") value="Maine">Maine</option>
+                                <option @(objCulturalRegistrations.State == "Maryland" ? "selected=selected" : "") value="Maryland">Maryland</option>
+                                <option @(objCulturalRegistrations.State == "Massachusetts" ? "selected=selected" : "") value="Massachusetts">Massachusetts</option>
+                                <option @(objCulturalRegistrations.State == "Michigan" ? "selected=selected" : "") value="Michigan">Michigan</option>
+                                <option @(objCulturalRegistrations.State == "Minnesota" ? "selected=selected" : "") value="Minnesota">Minnesota</option>
+                                <option @(objCulturalRegistrations.State == "Mississippi" ? "selected=selected" : "") value="Mississippi">Mississippi</option>
+                                <option @(objCulturalRegistrations.State == "Missouri" ? "selected=selected" : "") value="Missouri">Missouri</option>
+                                <option @(objCulturalRegistrations.State == "Montana" ? "selected=selected" : "") value="Montana">Montana</option>
+                                <option @(objCulturalRegistrations.State == "Nebraska" ? "selected=selected" : "") value="Nebraska">Nebraska</option>
+                                <option @(objCulturalRegistrations.State == "Nevada" ? "selected=selected" : "") value="Nevada">Nevada</option>
+                                <option @(objCulturalRegistrations.State == "New Hampshire" ? "selected=selected" : "") value="New Hampshire">New Hampshire</option>
+                                <option @(objCulturalRegistrations.State == "New Jersey" ? "selected=selected" : "") value="New Jersey">New Jersey</option>
+                                <option @(objCulturalRegistrations.State == "New Mexico" ? "selected=selected" : "") value="New Mexico">New Mexico</option>
+                                <option @(objCulturalRegistrations.State == "New York" ? "selected=selected" : "") value="New York">New York</option>
+                                <option @(objCulturalRegistrations.State == "North Carolina" ? "selected=selected" : "") value="Maryland">North Carolina</option>
+                                <option @(objCulturalRegistrations.State == "North Dakota" ? "selected=selected" : "") value="North Dakota">North Dakota</option>
+                                <option @(objCulturalRegistrations.State == "Ohio" ? "selected=selected" : "") value="Ohio">Ohio</option>
+                                <option @(objCulturalRegistrations.State == "Oklahoma" ? "selected=selected" : "") value="Oklahoma">Oklahoma</option>
+                                <option @(objCulturalRegistrations.State == "Oregon" ? "selected=selected" : "") value="Oregon">Oregon</option>
+                                <option @(objCulturalRegistrations.State == "Pennsylvania" ? "selected=selected" : "") value="Pennsylvania">Pennsylvania</option>
+                                <option @(objCulturalRegistrations.State == "Rhode Island" ? "selected=selected" : "") value="Rhode Island">Rhode Island</option>
+                                <option @(objCulturalRegistrations.State == "South Carolina" ? "selected=selected" : "") value="South Carolina">South Carolina</option>
+                                <option @(objCulturalRegistrations.State == "South Dakota" ? "selected=selected" : "") value="South Dakota">South Dakota</option>
+                                <option @(objCulturalRegistrations.State == "Tennessee" ? "selected=selected" : "") value="Tennessee">Tennessee</option>
+                                <option @(objCulturalRegistrations.State == "Texas" ? "selected=selected" : "") value="Texas">Texas</option>
+                                <option @(objCulturalRegistrations.State == "North Dakota" ? "selected=selected" : "") value="North Dakota">North Dakota</option>
+                                <option @(objCulturalRegistrations.State == "Utah" ? "selected=selected" : "") value="Utah">Utah</option>
+                                <option @(objCulturalRegistrations.State == "Vermont" ? "selected=selected" : "") value="Vermont">Vermont</option>
+                                <option @(objCulturalRegistrations.State == "Virginia" ? "selected=selected" : "") value="Virginia">Virginia</option>
+                                <option @(objCulturalRegistrations.State == "Washington" ? "selected=selected" : "") value="Washington">Washington</option>
+                                <option @(objCulturalRegistrations.State == "West Virginia" ? "selected=selected" : "") value="West Virginia">West Virginia</option>
+                                <option @(objCulturalRegistrations.State == "Wisconsin" ? "selected=selected" : "") value="Wisconsin">Wisconsin</option>
+                                <option @(objCulturalRegistrations.State == "Wyoming" ? "selected=selected" : "") value="Wyoming">Wyoming</option>
+                                <option @(objCulturalRegistrations.State == "Other" ? "selected=selected" : "") value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Zip Code:<span class="text-danger"></span></label>
+                            <input type="text" id="ZipCode" value="@objCulturalRegistrations.ZipCode" name="ZipCode" class="form-control" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-body">
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in"> Program Information</h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Choreographer/Coordinator Name  :<span class="text-danger"></span></label>
+                            <input type="text" id="CoordinatorName" name="CoordinatorName" value="@objCulturalRegistrations.CoordinatorName" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">ContactPhone Number  :<span class="text-danger"></span></label>
+                            <input type="text" id="ContactPhone" name="ContactPhone" value="@objCulturalRegistrations.ContactPhone" onclick="Common.isNumberKey();" onpaste="handlePaste(event);" class="form-control" readonly>
+                        </div>
+                    </div>
+                
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Organization/School Name  :<span class="text-danger"></span></label>
+                            <input type="text" id="OrganizationName" name="OrganizationName" value="@objCulturalRegistrations.OrganizationName" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label"> Contact Email ID :<span class="text-danger"></span></label>
+                            <input type="text" id="ContactEmail" name="ContactEmail" value="@objCulturalRegistrations.ContactEmail" class="form-control" readonly>
+                        </div>
+                    </div>
+                   
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in"> Performance Details</h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">
+                                Performance Category :<span class="text-danger"></span>
+                            </label>
+                            <input type="text" id="PerformanceCategory" name="PerformanceCategory" value="@objCulturalRegistrations.PerformanceCategory" class="form-control" readonly>
+
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Name of the Performance :<span class="text-danger"></span></label>
+                            <input type="text" id="NameofthePerformance" name="NameofthePerformance" value="@objCulturalRegistrations.NameofthePerformance" class="form-control" readonly>
+                        </div>
+                    </div>
+                  
+
+                        <!-- Performance Duration -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+
+                                <label class="form-label">
+                                    Performance Duration (Max 5 mins) :
+                                    <span class="text-danger"></span>
+                                </label>
+                            <input type="text" id="PerformanceDuration" name="PerformanceDuration" value="@objCulturalRegistrations.PerformanceDuration" class="form-control" readonly>
+
+                               
+
+                            </div>
+                        </div>
+
+                        <!-- Number of Participants -->
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+
+                                <label class="form-label">
+                                    Number of Participants :
+                                    <span class="text-danger"></span>
+                                </label>
+
+
+                            <input type="text" id="NumberofParticipants" name="NumberofParticipants" value="@objCulturalRegistrations.NumberofParticipants" class="form-control" readonly>
+
+
+                            </div>
+                        </div>
+
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+
+                            <label class="form-label">
+                                Participant Age Group:
+                                <span class="text-danger"></span>
+                            </label>
+
+                          
+                            <input type="text" id="ParticipantAgeGroup" name="ParticipantAgeGroup" value="@objCulturalRegistrations.ParticipantAgeGroup" class="form-control" readonly>
+
+                               
+
+
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Special Requirements  :<span class="text-danger"></span></label>
+                            <input type="text" id="SpecialRequirements" name="SpecialRequirements" value="@objCulturalRegistrations.SpecialRequirements" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">
+                                Brief Description of the Performance
+                                :<span class="text-danger"></span>
+                            </label>
+                            <input type="text" id="BriefDescriptionofthePerformance" name="BriefDescriptionofthePerformance" value="@objCulturalRegistrations.BriefDescriptionofthePerformance" class="form-control" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr class="mN" />
+        if (objCulturalRegistrations.lstCulturalParticipants != null && objCulturalRegistrations.lstCulturalParticipants.Count != 0)
+        {
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in">Particpatnts</h3>
+                </div>
+                <table cellspacing="0" cellpadding="0" border="0" class="tbl membership" width="100%">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span9 omb table_vam table-black tvm">
+                                    <thead>
+                                        <tr>
+                                            <th width="180">First Name</th>
+                                            <th width="180">Last Name</th>
+                                            <th width="100" align="center">( Age )</th>
+                                            <th width="180" align="center">Parents Name</th>
+
+                                        </tr>
+                                        @if (objCulturalRegistrations.lstCulturalParticipants != null && objCulturalRegistrations.lstCulturalParticipants.Count != 0)
+                                        {
+                                            Int64 i = 0;
+                                            foreach (var Item in objCulturalRegistrations.lstCulturalParticipants)
+                                            {
+                                                <input id="ParticipantID-@(i)" name="[@(i)].ParticipantID" value="@(Item.ParticipantID)" type="hidden" />
+                                                <tr>
+                                                    <td width="180">
+                                                        <label class="t-p5 black-t">@Item.FirstName</label>
+                                                    </td>
+                                                    <td width="110" align="center">
+                                                        <label class="t-p5 black-t">@Item.LastName</label>
+                                                    </td>
+                                                    <td width="180" align="center">
+                                                        <label class="t-p5 black-t">@Item.Age</label>
+                                                    </td>
+                                                    <td width="180" align="center">
+                                                        <label class="t-p5 black-t">@Item.Email]</label>
+                                                    </td>
+                                                </tr>
+                                                i++;
+                                            }
+                                        }
+
+                                    </thead>
+                                </table>
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <hr class="mN" />
+        }
+
+
+        <div class="card">
+            <div class="card-body">
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in"> Payment Details</h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <div>
+                                <label>&nbsp;</label>
+                            </div>
+                            <label>Amount Paid :</label>
+                            <span style="color:#ff0000"> $ @objCulturalRegistrations.AmountPaid <span id="payamount"></span></span>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <label>Payment Method :<span class="text-danger">*</span></label>
+                        <select class="form-control" name="PaymentMethodId" id="PaymentMethodId" onchange="PaymentMethodBind();">
+                            @if (lstPaymentMethod != null)
+                            {
+                                <option value="">Select</option>
+                                foreach (var item in lstPaymentMethod)
+                                {
+                                    <option @(item.PaymentMethodId == objCulturalRegistrations.PaymentMethodId ? "selected=selected" : "") value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                                }
+                            }
+                        </select>
+                        <span class="field-validation-error" id="spanPaymentMethodId"></span>
+                    </div>
+                    
+                 
+                    <div class="col-lg-3 col-md-6">
+                        <label>Payment Status :<span class="text-danger">*</span></label>
+                        <select class="form-control" name="PaymentStatusId" id="PaymentStatusId">
+                            @if (lstPaymentStatus != null)
+                            {
+                                <option value="">Select</option>
+                                foreach (var item in lstPaymentStatus)
+                                {
+                                    <option onclick="paymentbind('@item.PaymentStatus1');" @(item.PaymentStatusId == objCulturalRegistrations.PaymentStatusId ? "selected=selected" : "") value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                                }
+                            }
+                        </select>
+                        <span class="field-validation-error" id="spanPaymentStatusId"></span>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">TransactionId:<span class="text-danger">*</span></label>
+                            <input type="text" id="TransactionId" value="@objCulturalRegistrations.TransactionId" class="form-control" name="TransactionId">
+                        </div>
+                    </div>
+
+                  
+
+
+
+                    <div id="ChequeHolderNamehide">
+
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <label class="dk-t poppins-regular">Cheque Receipt Image :</label>
+                                <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objCulturalRegistrations.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+
+                            </div>
+                @*             <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label class="dk-t poppins-regular"> Cheque Image :  </label>
+                                <img style="width:100%; max-width:151px;" title="@objCulturalRegistrations.FirstName" alt="@objCulturalRegistrations.LastName" src="@AWS_AssociationToolCore.BLL.Common.GetImagePath(imglocNormal, (objCulturalRegistrations.ReceiptUrl != null && objCulturalRegistrations.ReceiptUrl != "" ? objCulturalRegistrations.ReceiptUrl : "N/A"), "~/Content/User/images/no-imagefinal.jpg")" class="borwhite5 border-radius shadow" />
+
+                            </div> *@
+
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Cheque Holder Name  :</label>
+                                <input type="text" id="ChequeHolderName" value="@objCulturalRegistrations.ChequeHolderName" class="form-control" name="ChequeHolderName">
+                                <span class="field-validation-error" id="spanTransactionId"></span>
+                            </div>
+
+                        </div>
+                    </div>
+
+
+                    <div id="ZellePartnerNamehide">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6">
+                                <label>Zelle Id   :</label>
+                                <input type="text" id="Zelle" value="@objCulturalRegistrations.Zelle" class="form-control" name="Zelle">
+
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <label>Zelle PartnerName :</label>
+                                <input type="text" id="ZellePartnerName" value="@objCulturalRegistrations.ZellePartnerName" class="form-control" name="ZellePartnerName">
+
+                            </div>
+
+                            <div class="col-lg-3 col-md-6">
+                                <label class="dk-t poppins-regular"> Zelle Receipt Image :  </label>
+@*                                 <img style="width:100%; max-width:151px;" title="@objCulturalRegistrations.FirstName" alt="@objCulturalRegistrations.LastName" src="@AWS_AssociationToolCore.BLL.Common.GetImagePath(imglocNormal, (objCulturalRegistrations.ReceiptUrl != null && objCulturalRegistrations.ReceiptUrl != "" ? objCulturalRegistrations.ReceiptUrl : "N/A"), "~/Content/User/images/no-imagefinal.jpg")" class="borwhite5 border-radius shadow" />
+ *@                                <div class="col-lg-3 col-md-6">
+                                    <label class="dk-t poppins-regular">Cheque Receipt Image :</label>
+                                    <img class="fl_img" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + objCulturalRegistrations.ReceiptUrl, imglocNormal + "no-imagefinal.jpg"))" alt="" width="60%">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+                </div>
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6 d-none">
+                        <div class="input-box">
+                            <label class="form-label">Modified By  :<span class="text-danger">*</span></label>
+                            <input type="text" id="UpdatedBy" value="@User.Identity?.Name" name="UpdatedBy" class="form-control" readonly>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 d-none">
+                        <div class="input-box">
+                            <label class="form-label">Modified Date  :<span class="text-danger">*</span></label>
+                            <input type="text" id="UpdatedTime" value="@DateTime.UtcNow.ToString("MM/dd/yyyy HH:mm:ss")" name="UpdatedTime" class="form-control" readonly>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 ">
+                        <div class="input-box">
+                            <label>&nbsp;</label>
+                            <label class="form-label" style="margin-top: 29px;">Last Modified by :<span class="text-danger"> @objCulturalRegistrations.UpdatedBy</span></label>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label" style="margin-top: 29px;">Last Modified Date :<span class="text-danger"> @objCulturalRegistrations.UpdatedDate</span></label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-3 col-3 text-end ms-auto">
+                <button type="submit" id="add" name="add" class="btn btn-success px-3"> Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Index", "CulturalRegistrations", new { EventId = objCulturalRegistrations.EventId,mid=ViewBag.mid})">Cancel</a>
+            </div>
+        </div>
+
+    }
+</div>
+
+
+@*<div class="card" style="margin-top: 15px;" id="ServicesHistoryhide">
+    <div class="card-body">
+        <div class="box-header">
+            <h3 class="box-title dis-in">Log History</h3>
+        </div>
+        <div class="table-responsive">
+            <table width="100%" class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th width="3%" style="padding: 8px 6px;">S.No</th>
+
+
+                        <th width="13%" style="text-align:left;">
+                            <a onclick="javascript:sortresult('FirstName');" class="white-t-u" style="color: black">
+                                First Name
+                                @if (sortcolumn == "FirstName")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+                        <th width="13%" style="text-align:left;">
+                            <a onclick="javascript:sortresult('LastName');" class="white-t-u" style="color: black">
+                                Last Name
+                                @if (sortcolumn == "LastName")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+
+                        <th width="20%" style="text-align:left; padding: 8px 6px">
+                            <a onclick="javascript:sortresult('Email');" class="white-t-u" style="color: black">
+                                Email-Id @if (sortcolumn == "Email")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+                        <th style="text-align:left" width="10%">Phone Number</th>
+                        <th style="text-align:left" width="10%">City</th>
+                        <th style="text-align:left" width="10%">State</th>
+                        <th style="text-align:left" width="10%">Zip Code</th>
+                        <th style="text-align:left" width="10%">Amount</th>
+                        <th style="text-align:left" width="10%">TransactionId</th>
+                        <th style="text-align:left" width="10%">Payment Method</th>
+                        <th style="text-align:left" width="10%">Payment Status</th>
+                        <th style="text-align:left" width="10%">Address1</th>
+                        <th style="text-align:left" width="10%">Address2</th>
+                        <th style="text-align:left" width="10%">Last Modified By</th>
+
+                        <th style="text-align: center; padding: 8px 6px" width="14%">
+                            <a onclick="javascript:sortresult('UpdatedDate');" class="white-t-u" style="color: black">
+
+                                Last Modified Date @if (sortcolumn == "UpdatedDate")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+
+
+
+
+                    </tr>
+                </thead>
+                
+            </table>
+        </div>
+
+    </div>
+</div>*@
+<script>
+    $(document).ready(function () {
+        $("#FormAddEvents").validate({
+            rules: {
+                PaymentMethodId: "required",
+                PaymentStatusId: "required",
+                TransactionId: "required",
+                Address: "required",
+                DocumentUrl: "required",
+              
+                //FirstName: "required",
+                //LastName: "required",
+                //Email: {
+                //    required: true,
+                //    email: {
+                //        depends: function (element) {
+                //            // Only validate if SpouseEmail is not null
+                //            return $(element).val() !== null;
+                //        },
+                //        messages: "Please Enter Valid Email Address"
+                //    }
+                //},
+                //Address: "required",
+
+                //City: "required",
+                //State: "required",
+                //ZipCode: "required",
+
+            },
+            messages: {
+                PaymentMethodId: "Please Select Your Payment Method",
+                PaymentStatusId: "Please Select Your Payment Status ",
+                TransactionId: "Please Enter Your Transaction Id ",
+                Address: "Please Enter Your Country ",
+                DocumentUrl: "Please Enter Your Comment ",
+               
+                //FirstName: "Please Enter Your First Name",
+                //LastName: "Please Enter Your Last Name ",
+
+                //Email: {
+                //    required: "Please Enter Your Event Contact Email",
+                //    validate_email: "Please Enter Valid Email Address",
+
+                //},
+                //Address: "Please Enter Your Address",
+
+                //City: {
+                //    required: "Please Enter Your City"
+                //},
+                //State: {
+                //    required: "Please Enter Your State"
+                //},
+                //ZipCode: {
+                //    required: "Please Enter Your ZipCode"
+                //},
+            },
+
+
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormAddEvents')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+
+
+    });
+
+
+</script>

@@ -1,0 +1,99 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Title = "Services - Telugu Association Tool";
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var lstServices = (List<AWS_AssociationToolCore.Entities.Services>)ViewBag.lstServices;
+    var lstServicesS = (List<AWS_AssociationToolCore.Entities.Donors>)ViewBag.lstServicesS;
+    var ServiceimglocNormal = objAppInfo.AdminImageUrl + "ServiceImages/Images/";
+
+    var Year = ViewBag.Year;
+    var ChapterName = ViewBag.cname;
+
+    Int64 Total = (Int64)ViewBag.total;
+    Int64 PageNo = (Int64)ViewBag.pageno;
+
+    Int64 Items = ViewBag.items;
+
+    Int64 TotalPages = Total / Items;
+
+    if (Total > (Items * TotalPages))
+    {
+        TotalPages = TotalPages + 1;
+    }
+
+}
+
+<input id="TotalPages" type="hidden" value="1" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedDate" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+<input id="hdnuserid" type="hidden" value="0" />
+<div class="cmn-inner-head t-t-c">
+    Donor List
+</div>
+<div class="cus-about-sec member_list">
+    <div class="row g-3">
+        <div class="col-sm-6 col-xl-4">
+            <input type="text" class="w-100 " placeholder="Search by First Name / Last Name">
+        </div>
+    
+       
+        <div class="col-xl-3 text-end">
+            <input type="button" value="Search" class="btn_success" onclick="Membersbind();">
+            <input type="reset" value="Clear" class="btn_danger" onclick="ClearSearch();">
+        </div>
+    </div>
+</div>
+<div class="cus-about-sec member_list">
+    <div class="row g-3">
+
+        <div class="col-12 ">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-stripped  member_table">
+                    <thead>
+                        <tr>
+                            <th>Donor Id</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Amount</th>
+                            <th>Donation Category</th>
+                           
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @if (lstServicesS != null && lstServicesS.Count != 0)
+                        {
+                            Int64 i = 1;
+                            foreach (var item in lstServicesS)
+                            {
+                        <tr>
+
+                            <td>@item.DonorId</td>
+                            <td>@item.FirstName</td>
+                            <td>@item.LastName</td>
+                            <td>@item.Amount</td>
+                            <td>@item.DonationCause</td>
+                          
+                        </tr>
+                                i++;
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td class="norecords" colspan="7">No Records Found.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

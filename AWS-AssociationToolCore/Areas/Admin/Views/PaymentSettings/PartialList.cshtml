@@ -1,0 +1,666 @@
+﻿@{ Layout = null;}
+@{
+    Int64 PageNo = ViewBag.pageno;
+    var PageItems = ViewBag.iterms;
+    Int64 Total = ViewBag.total;
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+
+    List<AWS_AssociationToolCore.Entities.PaymentSettings> lstPaymentSettings = ViewBag.lstPaymentSettings;
+
+    List<AWS_AssociationToolCore.Entities.PaymentMethods> lstPaymentMethods = ViewBag.lstPaymentMethods;
+
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+}
+
+
+<style>
+    .form-control:focus, .form-check-input:focus, .btn:focus {
+        box-shadow: none !important;
+        border-color: #ced4da !important;
+    }
+
+    .p_field_set label, .p_field_set input {
+        width: 100%;
+    }
+
+    .p_field_set {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        margin-bottom: 15px;
+    }
+
+        .p_field_set input {
+            padding-block: 10px;
+        }
+
+        .p_field_set label {
+            font-size: 14px;
+        }
+
+    .form-switch .form-check-input {
+        height: 25px;
+        width: 50px;
+    }
+
+    .payment_card {
+        border: 1px solid #ddd;
+        border-radius: 5px !important;
+        height:100%;
+    }
+
+    @@media screen and (max-width:490px) {
+        .p_field_set {
+            flex-direction: column;
+        }
+    }
+</style>
+
+
+
+@*<script>
+        document.addEventListener("DOMContentLoaded", function () {
+            document.querySelectorAll(".mode-toggle").forEach(function (toggle) {
+                toggle.addEventListener("change", function () {
+                    var id = this.dataset.id;
+                    var isTestMode = this.checked;
+
+                    // Toggle visibility
+                    document.querySelector(`.online-mode-${id}`).classList.toggle("d-none", isTestMode);
+                    document.querySelector(`.test-mode-${id}`).classList.toggle("d-none", !isTestMode);
+
+                    // Update hidden fields
+                    var form = this.closest("form");
+                    form.querySelector(`#AccountType_${id}`).value = isTestMode ? "Test" : "Online";
+                    var settingId = isTestMode ?
+                        document.getElementById(`PaymentSettingId_Test_${id}`).value :
+                        document.getElementById(`PaymentSettingId_Online_${id}`).value;
+                    form.querySelector(`#PaymentSettingId_${id}`).value = settingId;
+                });
+            });
+        });
+    </script>*@
+
+
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".mode-toggle").forEach(function (toggle) {
+            toggle.addEventListener("change", function (event) {
+                // Wait for the DOM to register the checkbox state change
+                setTimeout(() => {
+                    var id = toggle.dataset.id;
+                    var isTestMode = toggle.checked;
+
+                    // Toggle input sections
+                    document.querySelector(`.online-mode-${id}`).classList.toggle("d-none", isTestMode);
+                    document.querySelector(`.test-mode-${id}`).classList.toggle("d-none", !isTestMode);
+
+                    // Update hidden fields
+                    var form = toggle.closest("form");
+                    form.querySelector(`#AccountType_${id}`).value = isTestMode ? "Online" : "Test";
+
+                    var settingId = isTestMode
+                        ? document.getElementById(`PaymentSettingId_Test_${id}`).value
+                        : document.getElementById(`PaymentSettingId_Online_${id}`).value;
+                    form.querySelector(`#PaymentSettingId_${id}`).value = settingId;
+
+                    // Update mode label (Live/Test) and class
+                    const statusDisplay = form.closest('.payment_card').querySelector('.account-status-display');
+                    if (isTestMode) {
+                        statusDisplay.textContent = "Test";
+                        statusDisplay.classList.remove("bg-light-success");
+                        statusDisplay.classList.add("bg-light-danger");
+                    } else {
+                        statusDisplay.textContent = "Live";
+                        statusDisplay.classList.remove("bg-light-danger");
+                        statusDisplay.classList.add("bg-light-success");
+                    }
+                }, 0); // Delay to allow checkbox state to settle
+            });
+        });
+    });
+
+
+
+</script>
+
+
+<div class="card-body">
+    <div class="container mb-5">
+
+        <div class="row g-4">
+            @foreach (var method in lstPaymentMethods)
+            {
+                var onlineSetting = lstPaymentSettings.FirstOrDefault(s => s.PaymentMethodId == method.PaymentMethodId && s.AccountType == "Online");
+                var testSetting = lstPaymentSettings.FirstOrDefault(s => s.PaymentMethodId == method.PaymentMethodId && s.AccountType == "Test");
+                var uniqueId = method.PaymentMethodId;
+                var safeTestSetting = testSetting;
+                bool isTestMode = true;
+                Int64 paymentSettingId = 0;
+                var selectedSetting = isTestMode ? testSetting : onlineSetting;
+                if (testSetting != null && testSetting.IsActive == true)
+                {
+                    paymentSettingId = testSetting.PaymentSettingId;
+                }
+                else if (onlineSetting != null && onlineSetting.IsActive == true)
+                {
+                    paymentSettingId = onlineSetting.PaymentSettingId;
+                }
+ 
+
+            <div class="col-md-6">
+                <div class="payment_card bordered rounded-4 p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            @if (method.PaymentMethod == "PayPal")
+                            {
+
+                                <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="Paypal" width="36">
+
+                            }
+
+                            @if (method.PaymentMethod == "AuthorizeNet")
+                            {
+
+                                <img src="Content/User/images/credit-card.png" alt="Credit Card" width="36">
+
+                            }
+                            @if (method.PaymentMethod == "Stripe")
+                            {
+
+                                <img src="https://cdn.iconscout.com/icon/free/png-256/stripe-2-498440.png" alt="Stripe" width="36">
+
+                            }
+                            @if (method.PaymentMethod == "Swire Pay")
+                            {
+
+                                <img src="https://cdn.iconscout.com/icon/free/png-256/stripe-2-498440.png" alt="Swire Pay" width="36">
+
+                            }
+
+                            @if (method.PaymentMethod == "Zelle")
+                            {
+
+                                <img src="Content/User/images/zelle.png" alt="Zelle" width="36">
+
+                            }
+
+                            @if (method.PaymentMethod == "Cash/Cheque")
+                            {
+
+                                <img src="Content/User/images/cash-cheque.png" alt="Cash/Cheque" width="36">
+
+                            }
+
+
+                            <h5 class="mb-0 fw-semibold text-dark">@method.PaymentMethod</h5>
+                        </div>
+                        <div>
+                            <div class="d-flex gap-4 flex-wrap">
+                                <div style="line-height:28px" class=" @(method.IsActive ? "bg-light-success px-2" : "bg-light-danger px-2")"> @(method.IsActive ? "Enabled" : "Disabled")</div>
+                                <div class="form-check form-switch m-0">
+                                    <input class="form-check-input fs-5" type="checkbox" onclick="PaymentMethodsStatus(@method.PaymentMethodId)" @(method.IsActive ? "checked" : "") role="switch" id="paypalSwitch_@uniqueId">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    @using (Html.BeginForm("UpdateAppInfo", "PaymentSettings", FormMethod.Post, new { enctype = "multipart/form-data", style = "margin-bottom:0", id = "SponsorForm_" + uniqueId }))
+                    {
+                        @*<input type="hidden" name="PaymentSettingId" id="PaymentSettingId_@uniqueId" value="@(onlineSetting != null ? onlineSetting.PaymentSettingId : 0)" />*@
+
+                        <input type="hidden" name="PaymentSettingId" id="PaymentSettingId_@uniqueId" value="@paymentSettingId" />
+
+                        <input type="hidden" name="PaymentMethodId" value="@method.PaymentMethodId" />
+                        <input type="hidden" name="AccountType" id="AccountType_@uniqueId" value="Online" />
+
+                        <input type="hidden" id="PaymentSettingId_Online_@uniqueId" value="@(onlineSetting != null ? onlineSetting.PaymentSettingId : 0)" />
+                        <input type="hidden" id="PaymentSettingId_Test_@uniqueId" value="@(testSetting != null ? testSetting.PaymentSettingId : 0)" />
+
+                        <input id="mid" name="mid" value="@ViewBag.mid" type="hidden" />
+
+                        <!-- ONLINE Fields -->
+                        if (onlineSetting != null && onlineSetting.IsActive == true)
+                        {
+                <div class="mode-section online-mode-@uniqueId">
+                    <div class="p_field_set">
+                        @if (method.PaymentMethod == "Stripe" || method.PaymentMethod == "Swire Pay")
+                        {
+                            <label class="form-label">@method.PaymentMethod Apikey </label>
+                        }
+                        else if (method.PaymentMethod == "Cash/Cheque")
+                        {
+                            <label class="form-label">@method.PaymentMethod Name </label>
+                        }
+                        else if (method.PaymentMethod == "Zelle")
+                        {
+                            <label class="form-label">@method.PaymentMethod Name </label>
+
+                        }
+                          else if (method.PaymentMethod == "Square")
+                        {
+                                            <label class="form-label">@method.PaymentMethod ApplicationId </label>
+
+                        }
+                        else
+                        {
+                            <label class="form-label">@method.PaymentMethod  Client Id </label>
+
+                        }
+                        <input type="text" class="form-control" placeholder="" name="PaymentUrl" value="@onlineSetting.PaymentUrl">
+                    </div>
+
+                    @if (method.PaymentMethod != "Stripe" && method.PaymentMethod != "Swire Pay" && method.PaymentMethod != "Cash/Cheque")
+                    {
+                        <div class="p_field_set">
+
+                            @if (method.PaymentMethod == "Stripe" || method.PaymentMethod == "Swire Pay")
+                            {
+                                <label class="form-label">@method.PaymentMethod Apikey </label>
+                            }
+                            else if (method.PaymentMethod == "Cash/Cheque")
+                            {
+                                <label class="form-label">@method.PaymentMethod Name </label>
+                            }
+
+                            else if (method.PaymentMethod == "Zelle")
+                            {
+                                <label class="form-label">@method.PaymentMethod Emai </label>
+
+                            }
+                            else if (method.PaymentMethod == "Square")
+                            {
+                                                <label class="form-label">@method.PaymentMethod Access Token No </label>
+
+                            }
+                            else
+                            {
+                                <label class="form-label">@method.PaymentMethod  Client Secret</label>
+
+                            }
+
+
+                            <input type="text" class="form-control" placeholder="" name="SuccessUrl" value="@onlineSetting.SuccessUrl">
+
+
+                        </div>
+                    }
+
+
+                    @if (method.PaymentMethod == "AuthorizeNet")
+                    {
+                        <div class="p_field_set">
+                            <label class="form-label">PARTNER</label>
+
+                            <input type="text" class="form-control" placeholder="" name="NotifyUrl" value="@onlineSetting.NotifyUrl">
+
+                        </div>
+                        <div class="p_field_set">
+                            <label class="form-label">PWD</label>
+
+                            <input type="text" class="form-control" placeholder="" name="TokenNo" value="@onlineSetting.TokenNo">
+
+                        </div>
+
+                    }
+
+                                    @if (method.PaymentMethod == "Square")
+                                    {
+                                        <div class="p_field_set">
+                                            <label class="form-label">Location Id</label>
+
+                                            <input type="text" class="form-control" placeholder="" name="TokenNo" value="@onlineSetting.TokenNo">
+
+                                        </div>
+                                       
+
+                                    }
+                    </div>
+                        }
+
+
+
+                        <!-- TEST Fields -->
+                        if (safeTestSetting != null && safeTestSetting.IsActive == true)
+                        {
+                <div class="mode-section test-mode-@uniqueId ">
+                    <div class="p_field_set">
+
+                        @if (method.PaymentMethod == "Stripe" || method.PaymentMethod == "Swire Pay")
+                        {
+                            <label class="form-label">@method.PaymentMethod Apikey </label>
+                        }
+                        else if (method.PaymentMethod == "Cash/Cheque")
+                        {
+                            <label class="form-label">@method.PaymentMethod Name </label>
+                        }
+                        else if (method.PaymentMethod == "Zelle")
+                        {
+                            <label class="form-label">@method.PaymentMethod Name</label>
+
+                        }
+                                        else if (method.PaymentMethod == "Square")
+                                        {
+                                            <label class="form-label">@method.PaymentMethod Application Id </label>
+
+                                        }
+                        else
+                        {
+                            <label class="form-label">@method.PaymentMethod  Client Id </label>
+
+                        }
+
+                        <input type="text" class="form-control" placeholder="Sandbox Client Id" name="PaymentUrl" value="@(safeTestSetting != null && safeTestSetting.PaymentUrl != null ? safeTestSetting.PaymentUrl : "N/A")">
+
+
+
+
+
+
+
+
+
+                    </div>
+                    @if (method.PaymentMethod != "Stripe" && method.PaymentMethod != "Swire Pay" && method.PaymentMethod != "Cash/Cheque")
+                    {
+
+
+
+                        <div class="p_field_set">
+
+                            @if (method.PaymentMethod == "Stripe" || method.PaymentMethod == "Swire Pay")
+                            {
+                                <label class="form-label">@method.PaymentMethod Apikey </label>
+                            }
+                            else if (method.PaymentMethod == "Cash/Cheque")
+                            {
+                                <label class="form-label">@method.PaymentMethod Name </label>
+                            }
+
+                            else if (method.PaymentMethod == "Zelle")
+                            {
+                                <label class="form-label">@method.PaymentMethod Emai </label>
+
+                            }
+                            else
+                            {
+                                <label class="form-label">@method.PaymentMethod  Client Secret </label>
+
+                            }
+                            <input type="text" class="form-control" placeholder="Sandbox Client Secret" name="SuccessUrl" value="@testSetting.SuccessUrl">
+                        </div>
+
+                    }
+
+
+                    @if (method.PaymentMethod == "AuthorizeNet")
+                    {
+                        <div class="p_field_set">
+                            <label class="form-label">PARTNER</label>
+
+                            <input type="text" class="form-control" placeholder="" name="NotifyUrl" value="@testSetting.NotifyUrl">
+
+                        </div>
+                        <div class="p_field_set">
+                            <label class="form-label">PWD</label>
+
+                            <input type="text" class="form-control" placeholder="" name="TokenNo" value="@testSetting.TokenNo">
+
+                        </div>
+
+                    }
+                                    @if (method.PaymentMethod == "Square")
+                                    {
+                                        <div class="p_field_set">
+                                            <label class="form-label">Location Id</label>
+
+                                            <input type="text" class="form-control" placeholder="" name="TokenNo" value="@onlineSetting.TokenNo">
+
+                                        </div>
+
+
+                                    }
+                </div>
+                        }
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <label class="form-label mb-0"> Mode</label>
+                            <div class="d-flex gap-4 flex-wrap">
+
+
+
+
+                                @if (testSetting != null && testSetting.IsActive == true)
+                                {
+                                    <div style="line-height:28px"
+                                         class="account-status-display @(testSetting.AccountType == "Online" ? "bg-light-success px-2" : "bg-light-danger px-2")">
+                                        @(testSetting.AccountType == "Online" ? "Online" : "Test")
+                                    </div> }
+                                else if (onlineSetting != null && onlineSetting.IsActive == true)
+                                {
+                                    <div style="line-height:28px"
+                                         class="account-status-display @(onlineSetting.AccountType == "Online" ? "bg-light-success px-2" : "bg-light-danger px-2")">
+                                        @(onlineSetting.AccountType == "Online" ? "Online" : "Test")
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="line-height:28px" class="account-status-display bg-light-warning px-2">
+                                        N/A
+                                    </div>}
+
+
+
+
+
+                                <div class="form-check form-switch m-0">
+                                    @if (testSetting != null && testSetting.IsActive == true)
+                                    {
+                                        <input class="form-check-input fs-5 mode-toggle"
+                                               type="checkbox"
+                                               role="switch"
+                                               id="sandboxSwitch_@uniqueId"
+                                               data-id="@uniqueId"
+                                               data-setting-id="@testSetting.PaymentSettingId"
+                                               data-test-account-type="@testSetting.AccountType" />
+                                    }
+                                    else if (onlineSetting != null && onlineSetting.IsActive == true)
+                                    {
+                                        <input class="form-check-input fs-5 mode-toggle"
+                                               type="checkbox"
+                                               role="switch"
+                                               id="sandboxSwitch_@uniqueId"
+                                               data-id="@uniqueId"
+                                               data-setting-id="@onlineSetting.PaymentSettingId"
+                                               data-online-account-type="@onlineSetting.AccountType"
+                                               @(onlineSetting.IsActive == true ? "checked" : "") />
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">Save</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+            </div>
+
+    </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+    function PaymentSettingstatus(PaymentSettingId) {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("PaymentSettingstatus", "PaymentSettings")',  // the URL of the controller action method
+            data: { PaymentSettingId: PaymentSettingId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+
+                if (result.ok) {
+
+                    $('#divmessage').html(result.data);
+                    $('#message').hide();
+                    $('#divmessage').show();
+                    Onload($('#hdnPageNo').val());
+                }
+                else {
+                    $('#message').hide();
+                    $('#divmessage').html(result.data);
+                    $('#divmessage').show();
+                }
+            }
+        });
+    }
+
+    function Delete(Id) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("Delete", "PaymentSettings")', // the URL of the controller action method
+                data: { Id: Id }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+
+                    $('#message').hide();
+                    $("#divmessage").html(result.data);
+                    Onload($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $('#message').hide();
+                    $("#divmessage").html(result.data);
+                    // do something with error
+                }
+            });
+        }
+    }
+
+
+     function PaymentMethodsStatus(PaymentMethodId) {
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("PaymentMethodstatus", "PaymentSettings")',  // the URL of the controller action method
+                data: { PaymentMethodId: PaymentMethodId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+
+
+                    //$("#divmessage").html(result.data);
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    Onload($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+    }
+
+
+    //$(document).on('change', '.mode-toggle', function () {
+    //    var isChecked = $(this).is(':checked');
+    //    var uniqueId = $(this).data('id');
+    //    var accountType = isChecked ? 'Online' : 'Test';
+
+    //    var paymentSettingId = isChecked
+    //        ? $('#PaymentSettingId_Online_' + uniqueId).val()
+    //        : $('#PaymentSettingId_Test_' + uniqueId).val();
+
+    //    PaymentMode(paymentSettingId, accountType, uniqueId);
+    //});
+
+
+    //$(document).on('change', '.mode-toggle', function () {
+    //    var isChecked = $(this).is(':checked');
+    //    var uniqueId = $(this).data('id');
+    //    var accountType = isChecked ? 'Online' : 'Test';
+
+    //    // Set the hidden input value based on the uniqueId
+    //    $('#AccountType_' + uniqueId).val(accountType);
+
+    //    var paymentSettingId = isChecked
+    //        ? $('#PaymentSettingId_Online_' + uniqueId).val()
+    //        : $('#PaymentSettingId_Test_' + uniqueId).val();
+    //    if (accountType == 'Online') {
+    //        $('#PaymentSettingId_' + uniqueId).val($('#PaymentSettingId_Online_' + uniqueId).val());
+    //    }
+    //    else if (accountType == 'Test') {
+    //        $('#PaymentSettingId_' + uniqueId).val($('#PaymentSettingId_Test_' + uniqueId).val());
+    //    }
+
+    //    PaymentMode(paymentSettingId, accountType, uniqueId);
+    //});
+
+
+    let paymentModeTimeout;
+    $(document).off('change', '.mode-toggle').on('change', '.mode-toggle', function () {
+        clearTimeout(paymentModeTimeout);
+
+        var $this = $(this);
+        paymentModeTimeout = setTimeout(function () {
+            var isChecked = $this.is(':checked');
+            var uniqueId = $this.data('id');
+            var accountType = isChecked ? 'Online' : 'Test';
+
+            $('#AccountType_' + uniqueId).val(accountType);
+
+            var paymentSettingId = isChecked
+                ? $('#PaymentSettingId_Online_' + uniqueId).val()
+                : $('#PaymentSettingId_Test_' + uniqueId).val();
+
+            $('#PaymentSettingId_' + uniqueId).val(paymentSettingId);
+
+            PaymentMode(paymentSettingId, accountType, uniqueId);
+        }, 300); // delay in ms
+    });
+
+
+
+    function PaymentMode(PaymentSettingId, AccountType, uniqueId) {
+    $.ajax({
+        type: "POST",
+        url: '@Url.Action("UpdateMode", "PaymentSettings")',
+        data: { PaymentSettingId: PaymentSettingId, AccountType: AccountType, PaymentMethodId: uniqueId },
+        success: function (result) {
+           showLobiboxNotification(result.messageType, result.message);
+            $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+            Onload($('#hdnPageNo').val(), PaymentSettingId, AccountType, uniqueId);
+        },
+        error: function (req, status, error) {
+            $("#divmessage").html("An error occurred.");
+            $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        }
+    });
+}
+
+</script>
+
+
+

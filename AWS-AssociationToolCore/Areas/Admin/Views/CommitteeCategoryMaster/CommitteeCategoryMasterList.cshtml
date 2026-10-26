@@ -1,0 +1,261 @@
+﻿@{
+    Layout = null;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster = ViewBag.lstCommitteeCategoryMaster;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster2 = ViewBag.lstCommitteeCategoryMaster2;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster3 = ViewBag.lstCommitteeCategoryMaster3;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategoryMaster4 = ViewBag.lstCommitteeCategoryMaster4;
+    var adminurl = Context.Session.GetString("BaseUrl") ?? "";
+
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+
+}
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>
+
+@{
+
+    if (Context.User.Identity != null &&
+        Context.User.Identity.IsAuthenticated &&
+        Context.Session != null)
+    {
+        // ✅ Try Session first
+        userRole = Context.Session.GetString("userrole") ?? "";
+
+        // ✅ Fallback to Claims if Session empty
+        if (string.IsNullOrEmpty(userRole))
+        {
+            userRole = Context.User.FindFirst("userrole")?.Value
+                    ?? Context.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                    ?? "";
+        }
+    }
+}
+@{
+    if (ViewBag.total != null)
+    {
+        Int64 total = (Int64)ViewBag.total;
+
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="30%" style="padding-left: 20px">Committee Name</th>
+                    <th width="10%" style="text-align:center;">Year</th>
+
+                    <th width="10%" style="text-align:center;">Display Order</th>
+
+                    <th width="8%" style="text-align:center;">#</th>
+                    <th width="10%" style="text-align:center;">Status</th>
+                    <th width="8%" style="text-align:center;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (total != 0)
+                {
+                    if (lstCommitteeCategoryMaster != null && lstCommitteeCategoryMaster.Count != 0)
+                    {
+                        foreach (var item in lstCommitteeCategoryMaster)
+                        {
+                            <tr>
+                                <td><span style="display: inline-block; padding-left: 10px;">@item.CategoryName </span></td>
+                                <td style="text-align:center;"><b>@item.YearId</b></td>
+                                @if (item.Position != 0)
+                                {
+                                    <td style="text-align:center">@item.Position</td>
+                                }
+                                else
+                                {
+                                    <td></td>
+                                }
+                                <td style="text-align:center;"><a class="aws-h-a" href="@Url.Action("Index", "CommitteeMember", new { CommitteeCategoryId = item.CommitteeCategoryId, mid = ViewBag.Mid })" style="font-weight:bold;">Members (@item.SubMenuItemCount)</a></td>
+                                <td style="text-align:center;">
+                                    <div class="menu-hover">
+                                        @{
+                                            var isChecked = item.IsActive ? "checked" : "";
+                                        }
+                                        @{
+                                            var titleValue = item.IsActive ? "Active" : "Disabled";
+                                        }
+
+                                        <div>
+                                            <label class="switch" title="@titleValue">
+                                                <input type="checkbox" onclick="CommitteeCategoryMasterStatus(@item.CommitteeCategoryId)" @isChecked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="text-align:center;" class="gap-3">
+                                    @if (IsEdit == true)
+                                    {
+                                        <a class="text-warning cursor-pointer" href="@Url.Action("EditCommitteeCategoryMaster", "CommitteeCategoryMaster", new { CommitteeCategoryId = item.CommitteeCategoryId, mid = ViewBag.Mid, ChapterId = ViewBag.ChapterId })" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                    }
+
+                                    @if (IsDelete == true)
+                                    {
+                                        if (item.SubMenuItemCount == 0)
+                                        {
+                                            <a class="text-danger cursor-pointer" onclick="javascript:CommitteeCategoryMasterDelete(@item.CommitteeCategoryId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                        }
+                                        else
+                                        {
+                                            <a class="sepV_a disable-alpha cursor-pointer" style="color: #79818b" title="This committee has members"><i class="bi bi-trash-fill"></i></a>
+                                        }
+                                    }
+
+                                </td>
+                            </tr>
+                            if (lstCommitteeCategoryMaster2 != null && lstCommitteeCategoryMaster2.Count != 0)
+                            {
+                                foreach (var item2 in lstCommitteeCategoryMaster2)
+                                {
+                                    if (item2.PageParentId == item.CommitteeCategoryId)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span style="display: inline-block; padding-left: 20px;">
+                                                    <img src="Content/images/indicater.gif" />
+                                                    @item2.CategoryName
+                                                </span>
+                                            </td>
+
+                                            <td style="text-align:center;"><b>@item2.YearId</b></td>
+
+                                            <td style="text-align:center;">@item2.Position</td>
+
+                                            <td style="text-align:center;"><a class="aws-h-a" href="@Url.Action("Index", "CommitteeMember", new { CommitteeCategoryId = item2.CommitteeCategoryId, mid = ViewBag.Mid })" style="font-weight:bold;">Members (@item2.SubMenuItemCount)</a></td>
+
+
+
+                                            <td style="text-align:center;">
+                                                <div class="menu-hover">
+                                                    @{
+                                                        var isChecked2 = item.IsActive ? "checked" : "";
+                                                    }
+                                                    @{
+                                                        var titleValue1 = item.IsActive ? "Active" : "Disabled";
+                                                    }
+
+                                                    <div>
+                                                        <label class="switch" title="@titleValue1">
+                                                            <input type="checkbox" onclick="CommitteeCategoryMasterStatus(@item2.CommitteeCategoryId)" @isChecked2>
+                                                            <span class="slider"></span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td style="text-align:center;">
+                                                @if (IsEdit == true)
+                                                {
+
+                                                    <a class="text-warning cursor-pointer" href="@Url.Action("EditCommitteeCategoryMaster", "CommitteeCategoryMaster", new { CommitteeCategoryId = item2.CommitteeCategoryId, mid = ViewBag.Mid, ChapterId = ViewBag.ChapterId })" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                                }
+
+                                                @if (IsDelete == true)
+                                                {
+                                                    if (item2.SubMenuItemCount == 0)
+                                                    {
+                                                        <a class="text-danger cursor-pointer" onclick="javascript:CommitteeCategoryMasterDelete(@item2.CommitteeCategoryId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a class="sepV_a disable-alpha cursor-pointer" style="color: #79818b" title="This committee has members"><i class="bi bi-trash-fill"></i></a>
+                                                    }
+                                                }
+                                            </td>
+                                        </tr>
+
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                }
+            </tbody>
+        </table>
+
+        <script type="text/javascript">
+            function CommitteeCategoryMasterStatus(CommitteeCategoryId) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("CommitteeCategoryMasterStatus", "CommitteeCategoryMaster")', // the URL of the controller action method
+                    data: { CommitteeCategoryId: CommitteeCategoryId }, // optional data
+                    datatype: "JSON",
+                    success: function (result) {
+                        showLobiboxNotification(result.messageType, result.message);
+                        if (result.ok) {
+                           // $('#divmessage').html(result.data);
+                           // $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                            //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                            CommitteeCategoryMasterBind();
+                        }
+                        else {
+                           // $('#divmessage').html(result.data);
+                           // $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                           // $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                        }
+                    }
+                });
+            }
+
+            function CommitteeCategoryMasterDelete(CommitteeCategoryId) {
+                           var val2 = confirm("Do you want to delete this record?");
+                if (val2) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("DeleteCommitteeMember", "CommitteeCategoryMaster")', // the URL of the controller action method
+                        data: { CommitteeCategoryId: CommitteeCategoryId }, // optional data
+                        datatype: "JSON",
+                        success: function (result) {
+                            showLobiboxNotification(result.messageType, result.message);
+                            if (result.ok) {
+                               // $('#divmessage').html(result.data);
+                                //$('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                                //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                                CommitteeCategoryMasterBind();
+                            }
+                            else {
+                               // $('#divmessage').html(result.data);
+                               // $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                               // $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                            }
+                        }
+                    });
+                    }
+
+
+                        }
+        </script>
+    }
+}
+
+
+
+<!-- Delete Confirmation Modal -->

@@ -1,0 +1,231 @@
+﻿@{
+    ViewBag.Pageheading = "Promo Codes";
+
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var userRole = "";
+
+    // HttpContext ctx = HttpContext.Current;
+    // HttpCookie authCookie = HttpContext.Current.Request.Cookies["UserCookie"];
+
+    // FormsAuthenticationTicket authTicket;
+
+    // if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null && Context.Session != null)
+    // {
+    //     authTicket = FormsAuthentication.Decrypt(authCookie.Value);
+    //     userRole = authTicket.UserData;
+    // }
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+
+}
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("PromoCodesList", "PromoCodes")',
+            data: {
+                IsEdit    : '@ViewBag.IsEdit',
+                IsView    : '@ViewBag.IsView',
+                IsDelete  : '@ViewBag.IsDelete',
+                IsExport  : '@ViewBag.IsExport',
+                IsAdd     : '@ViewBag.IsAdd',
+                Mid       : '@ViewBag.mid',
+                ChapterId : '@(ViewBag.ChapterId == null || ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId)'
+            },
+            success: function (data) {
+                $("#divbind").html(data);
+            },
+            error: function () {
+                $("#divbind").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#wPromoCodes').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+       // $("#StartDate,#EndDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-50:+50", altFormat: 'dd/mm/yy', dateFormat: "dd/mm/yy" });
+        //$("#StartDate").datepicker({ altField: "#StartDate", altFormat: "mm/dd/yy", changeYear: true, changeMonth: true });
+       // $("#EndDate").datepicker({ altField: "#EndDate", altFormat: "mm/dd/yy", changeYear: true, changeMonth: true });
+        PagerClickBind();
+
+    });
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        PromoCodesBind(1);
+    }
+
+    function PromoCodesBind(Pageno) {
+
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $.trim($('#txtsearch').val().trim());
+        var StartDate = $('#StartDate').val();
+        var EndDate = $('#EndDate').val();
+
+        $.ajax({
+            url: '@Url.Action("PromoCodesList", "PromoCodes")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, StartDate: StartDate, EndDate: EndDate, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid'},
+            success: function (result) {
+                $('#divbind').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function DeletePromoCodes(PromoCodeId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeletePromoCodes", "PromoCodes")',  // the URL of the controller action method
+                data: { PromoCodeId: PromoCodeId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    //$("#divmessage").html(result.data);
+                    //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    PromoCodesBind($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            PromoCodesBind($(this).text());
+        });
+    }
+
+
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        $('#PromoCode').val('');
+        $('#StartDate').val('');
+        $('#EndDate').val('');
+        $('#hdnPageNo').val(1);
+        PromoCodesBind(1);
+    }
+</script>
+
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedDate" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+
+
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Search <span class="text-danger"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Promo Card Name">
+                        @*<input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">*@
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 col-8" style="display:none">
+                <label class="form-label">Start Date <span class="text-danger"></span></label>
+                <div class="input-box">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control aws-date" name="StartDate" id="StartDate" placeholder="StartDate">
+                        @*<input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">*@
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 col-8" style="display:none">
+                <div class="input-box">
+                    <label class="form-label">End Date <span class="text-danger"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control aws-date" name="EndDate" id="EndDate" placeholder="EndDate">
+                        @*<input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">*@
+
+                    </div>
+                    @*<label class="form-label">Search by Role Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Role Name">*@
+                </div>
+            </div>
+ 
+            <div class="col-lg-2 col-2" id="clearhide">
+                <div>
+                    <label>&nbsp;</label>
+                </div>
+                <button type="button" class="btn btn-primary px-3" onclick="PromoCodesBind(1);">Search</button>
+                <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+            </div>
+
+            <div class="col-lg-2 col-4 text-end ms-auto">
+                <div class="btn-align">
+                    @if (IsAdd == true )
+                    {
+                        <a class="btn btn-primary" href="@Url.Action("AddPromoCodes", "PromoCodes", new { mid = Mid})">Add Promo Code</a>
+                    }
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <!--end breadcrumb-->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+
+
+
+
+
+    <div id="divbind" class="clearfix">
+
+    </div>
+</div>
+
+
+<script>
+    $(document).ready(function () {
+
+        //Date Picker
+
+        $(function () {
+            $("#StartDate,#EndDate").datepicker({
+
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: 'dd/mm/yy'
+            });
+        });
+
+
+
+    });
+</script>

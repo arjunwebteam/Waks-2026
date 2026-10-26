@@ -1,0 +1,104 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    AWS_AssociationToolCore.Entities.CulturalRegistrations objCulturalRegistrations = ViewBag.objCulturalRegistrations;
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Acknowledgment | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Thank you for supporting the " + objAppInfo.SiteName + ". Your contribution is appreciated";
+    ViewBag.MetaKeywords = objAppInfo.SiteName + " acknowledgment, thank you Telugu support, appreciation message, donation acknowledgment";
+
+    ViewBag.PageHeading = "Acknowledgment";
+
+}
+<script type="text/javascript">
+    //Disable browser Back button [Start]
+    function preventBack() { window.history.forward(); }
+    setTimeout("preventBack()", 0);
+    window.onunload = function () { null };
+    //Disable browser Back button [End]
+</script>
+
+    <div class="aws-acknowledgement-sec">
+
+        <div class="aws-acknowledgement-box ">
+            <div class="row justify-content-center">
+                <div class="col-md-7">
+                    <div class="printer-top"></div>
+                    <div class="paper-container">
+                        <div class="printer-bottom"></div>
+                        <div class="paper">
+                            <div class="main-contents">
+                                <div class="success-icon">&#10004;</div>
+                                <div class="aws-title2 mb-2 text-success text-center">Payment Completed</div>
+                                <div class="success-description">
+                                    Thank you for your payment towards
+                                    <span style="color: #ad1115; margin-left: 5px;">@objCulturalRegistrations.PerformanceCategory</span>
+                                    of the
+                                    <b style="margin-left: 5px;">@objAppInfo.SiteName</b>.
+                                </div>
+                                <hr style="opacity: 0.1;">
+                                <div class="order-details px-lg-5">
+                                    <div class="row gy-0">
+
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Name</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objCulturalRegistrations.FirstName</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Transaction Id</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objCulturalRegistrations.TransactionId</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Email</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objCulturalRegistrations.Email</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">PaymentStatus </div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objCulturalRegistrations.PaymentStatus </div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Payment Date</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objCulturalRegistrations.PaymentDate.ToString("MM/dd/yyyy")</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Amount</div>
+                                        </div>
+                                        <div class="col-7">
+                                           @*  @if (Session["AmountPaid"] != null && Session["AmountPaid"].ToString() != "")
+                                            {
+                                                <div class="text-start">$@Session["AmountPaid"]</div>
+                                            }
+                                            else
+                                            {
+                                               
+                                            } *@
+                                        <div class="text-start">$@objCulturalRegistrations.AmountPaid </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="order-footer">Thank you!</div>
+                            </div>
+                            <div class="jagged-edge"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+

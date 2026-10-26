@@ -1,0 +1,226 @@
+﻿@model IEnumerable<AWS_AssociationToolCore.Entities.PaymentSettings>
+@{
+    ViewBag.Title = "Index";
+    ViewBag.Pageheading = "Payment Settings";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+}
+
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("PartialList", "PaymentSettings")',
+            data: {
+                IsEdit    : '@ViewBag.IsEdit',
+                IsView    : '@ViewBag.IsView',
+                IsDelete  : '@ViewBag.IsDelete',
+                IsExport  : '@ViewBag.IsExport',
+                IsAdd     : '@ViewBag.IsAdd',
+                Mid       : '@ViewBag.mid',
+                ChapterId : '@(ViewBag.ChapterId == null || ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId)'
+            },
+            success: function (data) {
+                $("#divbind").html(data);
+            },
+            error: function () {
+                $("#divbind").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+
+<input type="hidden" id="hdnPageNo" value="1" />
+<input type="hidden" id="hdnPaymentSettingId" value="0" />
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+
+            <div class="col-lg-2 col-4 text-end ms-auto">
+                <div>
+                    <a class="btn  btn-primary" href="@Url.Action("Add", "PaymentSettings", new { mid = Mid })">Add  New Settings</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="divbind" class="clearfix">
+
+    </div>
+</div>
+
+<div class="modal fade" id="PaymentSettingView" tabindex="-1" role="dialog" aria-hidden="true" style="display: none;">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title"><span id="vbltitle"></span></h4>
+
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <div class="modal-body validation">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-6">
+                        <label>Payment Method </label>
+                        : <span id="lblPaymentMethod" class="font13 t-t-c"></span>
+                        <br />
+                        <label>Payment Url </label>
+                        : <span id="lblPaymentUrl" class="font13"></span>
+                        <br />
+                        <label>Payment Email </label>
+                        : <span id="lblPaymentEmail" class="font13 t-t-c"></span>
+                        <br />
+                        <label>Currency Code </label>
+                        : <span id="lblCurrencyCode" class="font13 t-t-c"></span>
+                        <br />
+                        <label>Success Url </label>
+                        : <span id="lblSuccessUrl" class="font13 t-t-c"></span>
+                        <br />
+                        <label>Cancel Url </label>
+                        : <span id="lblCancelUrl" class="font13 t-t-c"></span>
+                        <br />
+                        <label>Notify URL </label>
+                        : <span id="lblNotifyURL" class="font13 t-t-c"></span>
+                        <br />
+                        <label>Token No </label>
+                        : <span id="lblTokenNo" class="font13 t-t-c"></span>
+                        <br />
+                        <label>Account Type </label>
+                        : <span id="lblAccountType" class="font13 t-t-c"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer clearfix">
+                <a href="@Url.Action("Index", "PaymentSettings", new { mid = ViewBag.mid })" class="btn btn-primary" data-bs-dismiss="modal">Cancel</a>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wSettings').addClass('active');
+        $('#wPaymentSettings').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+    $(document).ready(function () {
+        PagerClickBind();
+        IsActive();
+        $('.closable').append('<span id="lblclose" class="closelink" title="Close"></span>');
+        $('#PaymentSettings').addClass('active');
+
+    });
+
+    function IsActive() {
+        $('#statustrue').removeClass('active');
+        $('#statusfalse').removeClass('active');
+        if ($('#hdnsorting').val() == "true") {
+            $('#statustrue').addClass('active');
+
+            $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        }
+        else {
+            $('#statusfalse').addClass('active');
+            $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        }
+    }
+
+    function isNumberKey(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode
+        if (charCode > 31 && (charCode < 48 || charCode > 57))
+            return false;
+
+        return true;
+    }
+
+    function Onload(pageno, PaymentSettingId, AccountType, uniqueId) {
+        var pageno = Common.Pageno(pageno);
+        var search = $('#txtsearch').val();
+
+
+        $.ajax({
+            url: '@Url.Action("PartialList", "PaymentSettings")',
+            type: 'GET',
+            cache: false,
+            data: { search: search, PageNo: $('#hdnPageNo').val(), PageItems: $('#txtitems').val(), IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid' },
+            success: function (result) {
+                $('#divbind').html(result);
+                PagerClickBind();
+
+                $('#PaymentSettingId_' + uniqueId).val(PaymentSettingId);
+                $('#AccountType_' + uniqueId).val(AccountType);
+            }
+        });
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Onload($(this).text(), $('#hdnsorting').val());
+        });
+    }
+
+    function validate(Id) {
+        if (Id == "") {
+            alert("Please select atleast one Item.");
+            return false;
+        }
+        return true;
+    }
+
+    function PaymentSettingView(Id) {
+        $.ajax({
+            url: '@Url.Action("View", "PaymentSettings")',
+            type: 'POST',
+            data: { Id: Id },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objPaymentSettings = result.data;
+                    $('#lblPaymentMethod').html(objPaymentSettings.PaymentMethod);
+                    $('#lblPaymentUrl').html(objPaymentSettings.PaymentUrl);
+                    $('#lblPaymentEmail').html(objPaymentSettings.PaymentEmail);
+                    $('#lblCurrencyCode').html(objPaymentSettings.CurrencyCode);
+                    $('#lblSuccessUrl').html(objPaymentSettings.SuccessUrl);
+                    $('#lblCancelUrl').html(objPaymentSettings.CancelUrl);
+                    $('#lblNotifyURL').html(objPaymentSettings.NotifyUrl);
+                    $('#lblTokenNo').html(objPaymentSettings.TokenNo);
+                    $('#lblAccountType').html(objPaymentSettings.AccountType);
+                    $('#PaymentSettingView').modal('show');
+
+                    $('#vbltitle').html('View Payment Settings');
+
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                }
+            }
+        });
+    }
+    function SearchClear() {
+        $('#txtsearch').val('');
+        Onload(1);
+    }
+
+</script>
+
+
+
+

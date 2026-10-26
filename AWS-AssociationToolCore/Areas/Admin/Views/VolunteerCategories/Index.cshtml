@@ -1,0 +1,454 @@
+﻿@{
+    ViewBag.Title = "Index";
+    ViewBag.Pageheading = "Volunteer Categories";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    Int64 ChapterId = ViewBag.ChapterId;
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wVolunteer, #wVolunteerCategories').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        PagerClickBind();
+
+    });
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            VolunteerCategoriesBind($(this).text());
+        });
+    }
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        VolunteerCategoriesBind(1);
+    }
+
+    function Add() {
+        $('#AddDonor-Category').modal('show');
+        $('#lbltitle').html('Add Volunteer Category');
+    }
+
+    function clearVolunteerCategories() {
+        $('#VolunteerCategoryId').val('');
+        $('#CategoryName').val('');
+        $('#OrderNo').val('');
+        $('#spanCategoryName').html('');
+        $("#AddVolunteerCategories").dialog("close");
+        $('#CategoryName').focus().removeClass("validate");
+        $('#OrderNo').focus().removeClass("validate");
+    }
+
+
+    function VolunteerCategoriesBind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#keyword').val();
+        var ChapterId = $('#ddlChapterId').val();
+
+
+        $.ajax({
+            url: '@Url.Action("VolunteerCategoriesList", "VolunteerCategories")',
+            type: 'GET',
+            cache: false,
+            data: { ChapterId: ChapterId, Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid' },
+            success: function (result) {
+                $('#divVolunteerCategories').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function VolunteerCategoriesView(VolunteerCategoryId) {
+
+        $.ajax({
+            url: '@Url.Action("ViewVolunteerCategory", "VolunteerCategories")',
+            type: 'POST',
+            data: { VolunteerCategoryId: VolunteerCategoryId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objVolunteerCategories = result.data;
+                    $('#Vlbltitle').html('View Volunteer Category');
+                    $('#VlblName').val(objVolunteerCategories.CategoryName);
+                    $('#VlblOrder').val(objVolunteerCategories.OrderNo);
+                    $('#VolunteerCategoriesView').modal('show');
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+    }
+
+    function VolunteerCategoriesEdit(VolunteerCategoryId) {
+        $.ajax({
+            url: '@Url.Action("EditVolunteerCategory", "VolunteerCategories")',
+            type: 'POST',
+            data: { VolunteerCategoryId: VolunteerCategoryId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objVolunteerCategories = result.data;
+                    $('#VolunteerCategoryId').val(objVolunteerCategories.VolunteerCategoryId);
+                    $('#CategoryName').val(objVolunteerCategories.CategoryName);
+                    $('#OrderNo').val(objVolunteerCategories.OrderNo);
+                    $('#ChapterId').val(objVolunteerCategories.ChapterId);
+                    $('#VolunteerHours').val(objVolunteerCategories.VolunteerHours);
+                    $('#Type').val(objVolunteerCategories.Type);
+
+
+                    $('#lbltitle').html('Edit Volunteer Category');
+
+                    $('#CategoryName').focus().removeClass("validate");
+                    $('#OrderNo').focus().removeClass("validate");
+
+                    $('#AddDonor-Category').modal('show');
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+    }
+
+    function Delete(VolunteerCategoryId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteVolunteerCategory", "VolunteerCategories")',  // the URL of the controller action method
+                data: { VolunteerCategoryId: VolunteerCategoryId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    VolunteerCategoriesBind($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function ResetValidateClass() {
+        $('#CategoryName').removeClass("validate");
+    }
+    function ClearSearch() {
+        //$('#ddlChapterId').val('');
+        $('#keyword').val('');
+        //$('#ddlChapterId').val('').trigger('change');
+        //$('#ddlChapterId').val(1);
+        VolunteerCategoriesBind(1);
+    }
+
+</script>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="OrderNo" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+            @if (objAppInfo.chapterStatus == "Yes")
+            {
+
+
+                <div class="col-lg-2 col-md-6 col-8">
+                    <div class="input-box">
+                        <label class="form-label"> <span class="text-danger"></span>Search by Chapter</label>
+                        <div class="input-group">
+                            <select class="form-control" id="ddlChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+
+
+                                @if (lstChapters != null && lstChapters.Count != 0)
+                                {
+                                    foreach (var item in lstChapters)
+                                    {
+                                        <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                    }
+                                }
+
+
+                            </select>
+                            @*<span class="input-group-text pointer" style="cursor:pointer" onclick="MenuItemsBind(1);" id="basic-addon1"><i class="bi bi-search"></i></span>*@
+                        </div>
+                    </div>
+                </div>
+            }
+
+                <div class="col-lg-2 col-md-6 col-8">
+                    <div class="input-box">
+                        <label class="form-label">Search by <span class="text-danger"></span></label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Category Name">
+
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="btn-align">
+                        <button type="button" class="btn btn-primary px-3" onclick="VolunteerCategoriesBind(1);">Search</button>
+                        <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                    </div>
+                </div>
+                @if (IsAdd == true )
+                {
+                    <div class="col-lg-2 col-4 text-end ms-auto">
+                        <div class="btn-align">
+                            <button type="button" class="btn btn-primary" onclick="Add();">Add Volunteer Category</button>
+                        </div>
+                    </div>
+                }
+            </div>
+    </div>
+    <div class="modal fade" id="AddDonor-Category" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("AddVolunteerCategory", "VolunteerCategories", FormMethod.Post, new { @id = "FormWebBanners", @name = "FormWebBanners" }))
+            {
+                <input type="hidden" id="VolunteerCategoryId" name="VolunteerCategoryId" value="0" />
+                <input type="hidden" id="mid" name="mid" value="@Mid" />
+                if (objAppInfo.chapterStatus == "No")
+                {
+                    <input id="ChapterId" name="ChapterId" type="hidden" value="1" />
+                }
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-2">
+                    <div class="col-lg-12 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Category Name : <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="CategoryName" name="CategoryName" onkeypress="return Common.isChar(event)" placeholder="Category Name">
+                        </div>
+                    </div>
+                    @if (objAppInfo.chapterStatus == "Yes")
+                    {
+                        <div class="col-lg-12 col-md-6">
+                            <div class="input-box">
+
+                                <label>Chapters :</label>
+                                @*<select class="form-control" id="ChapterId" name="ChapterId">*@
+                                <select class="form-control" id="ChapterId" name="ChapterId" style="@(ChapterId != 0 ? "pointer-events:none;" : "")">
+
+                                    <option value="">-- Select --</option>
+                                    @if (lstChapters != null && lstChapters.Count != 0)
+                                    {
+                                        foreach (var item in lstChapters)
+                                        {
+                                            <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+                        </div>
+                    }
+
+
+               @*      <div class="col-lg-12 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label"> Volunteer Hours : </label>
+                            <input type="text" class="form-control" id="VolunteerHours" name="VolunteerHours" placeholder="Volunteer Hours" onkeypress="return Common.isNumberKey(event)">
+                        </div>
+                    </div> *@
+
+                    <div class="col-lg-12 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label"> Order No : </label>
+                            <input type="text" class="form-control" id="OrderNo" name="OrderNo" placeholder="Order No" onkeypress="return Common.isNumberKey(event)">
+                        </div>
+                    </div>
+                  <div class="col-lg-12 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Interests On Type : <span class="text-danger">*</span></label>
+                                <select class="form-control" name="Type" id="Type" placeholder="Type">
+                                    <option value="">-- Select Type ---</option>
+                                    <option  value="Waks">Waks</option>
+                                    <option  value="Kannada Shaale">Interests Kannada Shaale</option>
+                                  
+                                       
+                                </select>
+                            </div>
+                        </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+        </div>
+            }
+        </div>
+    </div>
+    <div id="divVolunteerCategories" class="box-body table-responsive">
+      
+    </div>
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type : "GET",
+                url  : '@Url.Action("VolunteerCategoriesList", "VolunteerCategories")',
+                data : {
+                    IsEdit    : '@IsEdit',
+                    IsView    : '@IsView',
+                    IsDelete  : '@IsDelete',
+                    IsExport  : '@IsExport',
+                    IsAdd     : '@IsAdd',
+                    Mid       : '@Mid',
+                    ChapterId : '@(ChapterId == 0 ? 1 : ChapterId)'
+                },
+                success: function (data) {
+                    $("#divVolunteerCategories").html(data);
+                },
+                error: function () {
+                    $("#divVolunteerCategories").html('<p class="text-danger">Failed to load.</p>');
+                }
+            });
+        });
+    </script>
+</div>
+
+
+        <div class="modal fade" id="VolunteerCategoriesView" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title"><span id="Vlbltitle"></span></h4>
+                    </div>
+                    <div class="modal-body validation">
+                        <div class="row">
+                            <div class="col-xs-12 col-lg-12">
+                                <label>Category Name :</label>
+                                <span id="VlblName"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12 col-lg-12">
+                                <label>Order No </label>
+                                <span id="VlblOrder"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer clearfix">
+                        <a class="btn btn-primary pull-left modal-close-button" data-dismiss="modal">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        
+
+            $(document).ready(function () {
+                var validateForm = $("#FormWebBanners").validate({
+                    rules: {
+                        CategoryName: "required",
+                        Type: "required",
+                       
+                    },
+                    messages: {
+                        CategoryName: "Category Name is required",
+                        Type: "Select Type is required",
+                    },
+                    submitHandler: function (form) {
+                        var response = grecaptcha.getResponse();
+                        if ('Yes' == 'Yes') {
+                            if (response.length === 0) {
+                                alert('Please confirm that you are not a robot.');
+                            }
+                            else {
+                                form.submit();
+                            }
+                        }
+                        else {
+                            form.submit();
+                        }
+                    },
+
+                    errorElement: "div",
+                    errorPlacement: function (error, element) {
+                        // Add the `invalid-feedback` class to the error element
+                        error.addClass("invalid-feedback");
+
+                        if (element.prop("type") === "checkbox") {
+                            error.insertAfter(element.parent("label"));
+                        } else {
+                            error.insertAfter(element);
+                        }
+
+                        // Move the error element after the fieldset element
+                        if (element.closest(".input-box").length) {
+                            element.closest(".input-box").after(error);
+                        }
+                    },
+                    highlight: function (element, errorClass, validClass) {
+                        // Highlight the input, textarea, or select element with the `is-invalid` class
+                        var $element = $(element);
+                        if ($element.is('input, textarea, select')) {
+                            $element.addClass("is-invalid").removeClass("is-valid");
+                        }
+
+
+                    },
+                    unhighlight: function (element, errorClass, validClass) {
+                        // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                        var $element = $(element);
+                        if ($element.is('input, textarea, select')) {
+                            $element.addClass("is-valid").removeClass("is-invalid");
+                        }
+
+                    },
+
+
+                });
+
+                $('.modal').on('hidden.bs.modal', function () {
+                    // Reset form fields
+                    $('#FormWebBanners')[0].reset();
+
+                    // Reset form validations
+                    validateForm.resetForm();
+
+                    // Clear validation classes
+                    $('.modal').find('.error').removeClass('is-valid is-invalid');
+                    $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+                });
+            });
+
+
+        </script>
+

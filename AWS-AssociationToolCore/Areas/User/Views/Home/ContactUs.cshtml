@@ -1,0 +1,387 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var objAppInfo = (AWS_AssociationToolCore.Entities.AppInfo)ViewBag.objAppInfo;
+
+    AWS_AssociationToolCore.Entities.InnerPages objInnerPageMap = ViewBag.objInnerPageMap;
+
+    ViewBag.Title = "Contact Us | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Get in touch with the " + objAppInfo.SiteName + "for inquiries, events, and support.";
+
+    ViewBag.PageHeading = "Contact Us";
+
+    var ChapterId = ViewBag.ChapterId;
+
+    var cname = ViewBag.cname;
+
+    AWS_AssociationToolCore.Entities.PageDetails MenuPageDetails = ViewBag.objMenuPageDetails;
+    AWS_AssociationToolCore.BLL.PageDetails _PageDetails = new AWS_AssociationToolCore.BLL.PageDetails();
+    Int64 ActiveId = 0;
+    AWS_AssociationToolCore.Entities.PageDetails objPageDetails = new AWS_AssociationToolCore.Entities.PageDetails();
+
+    if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+    {
+        ActiveId = MenuPageDetails.PageParentId;
+    }
+    else
+    {
+        ActiveId = MenuPageDetails.MenuItemId;
+    }
+    string IDPath = "";
+    Int64 MenuItemId = 0;
+    string PageUrl = "";
+    Int64 status1 = 0;
+
+    var capcha = objAppInfo.ShowCapcha;
+    objPageDetails = _PageDetails.GetPageDetailsListById(ChapterId, MenuItemId, ref IDPath, "Contact Us Content", PageUrl, ref status1);
+
+    //string secreatkey = objAppInfo.CapchaSiteKey;
+}
+
+
+<script src='https://www.google.com/recaptcha/api.js' type="text/javascript"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("Honeypot").setAttribute("name", "TrapField_" + Math.random().toString(36).substring(2, 8));
+    });
+</script>
+<script>
+     function PhoneNochange(event) {
+
+        if (event.keyCode == 8 || event.keyCode == 46) {
+            return;
+        }
+
+        var ph = $('#PhoneNo').val().replace(/\D/g, '');
+
+        if (ph.length > 7) {
+            $('#PhoneNo').val(
+                ph.substring(0, 4) + ' ' +
+                ph.substring(4, 7) + ' ' +
+                ph.substring(7, 10)
+            );
+        }
+        else if (ph.length > 4) {
+            $('#PhoneNo').val(
+                ph.substring(0, 4) + ' ' +
+                ph.substring(4)
+            );
+        }
+        else {
+            $('#PhoneNo').val(ph);
+        }
+    }
+    $(document).ready(function () {
+
+        // Format Australian mobile number: 0421 151 439
+        function formatPhone(value) {
+
+            var phone = value.replace(/\D/g, '');
+
+            // Limit to 10 digits
+            phone = phone.substring(0, 10);
+
+            if (phone.length > 7) {
+                return phone.substring(0, 4) + " " +
+                       phone.substring(4, 7) + " " +
+                       phone.substring(7, 10);
+            }
+
+            if (phone.length > 4) {
+                return phone.substring(0, 4) + " " +
+                       phone.substring(4);
+            }
+
+            return phone;
+        }
+
+        // Format while typing
+        $("#PhoneNo").on("input", function () {
+            $(this).val(formatPhone($(this).val()));
+        });
+    $.validator.addMethod("phoneFormat", function (value, element) {
+
+        console.log("Original:", value);
+
+        var phone = value.replace(/\D/g, '');
+
+        console.log("Digits:", phone);
+
+        return this.optional(element) || /^0[234789]\d{8}$/.test(phone);
+
+    }, "Please enter a valid Australian phone number");
+
+        // Email Validation
+        $.validator.addMethod("validate_email", function (value, element) {
+            return this.optional(element) ||
+                /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(value);
+        }, "Please enter valid email address");
+
+        // Form Validation
+        $("#ContactForm").validate({
+
+            rules: {
+                Name: {
+                    required: true
+                },
+                Email: {
+                    required: true,
+                    validate_email: true
+                },
+                PhoneNo: {
+        required: true,
+        phoneFormat: true
+    },
+                Description: {
+                    required: true
+                },
+                recaptcha: {
+                    required: function () {
+                        var capcha = '@capcha';
+                        return capcha === "Yes" &&
+                            $("#recaptchaResponse").val().trim() === "";
+                    }
+                }
+            },
+
+            messages: {
+
+                Name: "Please enter your first name",
+
+                Email: {
+                    required: "Please enter your email address",
+                    validate_email: "Please enter valid email address"
+                },
+
+  PhoneNo: {
+    required: "Please enter mobile number",
+    phoneFormat: "Please enter a valid Australian phone number"
+},
+
+                Description: "Please enter your comments",
+
+                recaptcha: {
+                    required: "Please confirm that you are not a robot."
+                }
+            },
+
+            errorElement: "em",
+
+            errorPlacement: function (error, element) {
+
+                error.addClass("help-block");
+
+                if (element.attr("name") == "recaptcha") {
+                    error.insertAfter(".g-recaptcha");
+                }
+                else {
+                    error.insertAfter(element);
+                }
+            },
+
+            highlight: function (element) {
+                $(element).parents("fieldset")
+                    .addClass("has-error")
+                    .removeClass("has-success");
+            },
+
+            unhighlight: function (element) {
+                $(element).parents("fieldset")
+                    .removeClass("has-error")
+                    .addClass("has-success");
+            }
+
+        });
+
+    });
+
+    function onRecaptchaSuccess(token) {
+        $("#recaptchaResponse").val(token);
+        $("#recaptchaResponse").valid();
+    }
+</script>
+
+
+@*     <div class="row g-3">
+        <div class="col-sm-6 col-lg-6 col-xl-4 ">
+            <div class="aws_contact_de_set">
+                <div class="aws_contact_icon_set">
+                    <span class="aws_icon_set">
+                        <i class="bi bi-telephone-fill"></i>
+                    </span>
+                </div>
+                <div class="ps-2">
+                    <div class="aws_adds_set">Phone Number </div>
+                    <p class="mb-0">@objAppInfo.CompanyPhone </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-6 col-xl-4 ">
+            <div class="aws_contact_de_set">
+                <div class="aws_contact_icon_set">
+                    <span class="aws_icon_set">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </span>
+                </div>
+                <div class="ps-2">
+                    <div class="aws_adds_set">Location </div>
+                    <p class="mb-0">@objAppInfo.CompanyAddress</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-6 col-xl-4 ">
+            <div class="aws_contact_de_set">
+                <div class="aws_contact_icon_set">
+                    <span class="aws_icon_set">
+                        <i class="bi bi-envelope-fill"></i>
+                    </span>
+                </div>
+                <div class="ps-2">
+                    <div class="aws_adds_set">Email Us </div>
+                    <p class="mb-0">@objAppInfo.CompanyEmail </p>
+                </div>
+            </div>
+
+        </div>
+    </div> *@
+<!-- Leadership Contact Section -->
+<!-- Leadership Contact Section -->
+
+    <div class="row g-3">
+    @if (objPageDetails.PageDetailId != 0 && objPageDetails.Description != "")
+    {
+        @Html.Raw(objPageDetails.Description.Replace("src=\"/Content/", "src=\"" + objAppInfo.AdminSiteUrl.ToString() + "Content/"))
+    }
+    else
+    {
+
+        <h4 class="sec-title2 t-t-c font22" style="text-align:center;">Content Will Update Soon..</h4>
+    }
+    </div>
+
+    <div class="pt-4">
+        <div class="text-center">
+        <h4 class="aws-title2 ">Communicate With WAKS</h4>
+            <p class="mb-0">We appreciate your interest and look forward to connecting with you!</p>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class=" p-lg-4 p-3">
+                    <div class="aws-form">
+                        @using (Html.BeginForm("ContactUs", "Home", FormMethod.Post, new { name = "ContactForm", id = "ContactForm" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            string secreatkey = objAppInfo.CapchaSiteKey;
+
+                            <input type="hidden" id="cname" name="cname" value="@cname" />
+                          
+                            <input type="hidden" name="ValidationCode" value="@ViewBag.ValidationCode" />
+                            @*<input type="hidden" id="recaptchaToken" name="recaptchaToken" />*@
+                            <input type="text" name="email2" style="display:none" />
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <fieldset class="">
+                                        <legend class="float-none w-auto px-1">Name <span class="input-imp">*</span></legend>
+                                        <input class="input-box" type="text" name="Name" id="Name" placeholder="First Name">
+                                    </fieldset>
+                                </div>
+                                <div class="col-md-6">
+                                    <fieldset class="">
+                                        <legend class="float-none w-auto px-1">
+                                            Email Id <span class="input-imp">*</span>
+                                        </legend>
+                                        <input class="input-box" type="text" name="Email" id="Email" placeholder="Email Id">
+                                    </fieldset>
+                                </div>
+                                <div class="col-md-12">
+                                    <fieldset class="">
+                                        <legend class="float-none w-auto px-1">
+                                            Mobile Number<span class="input-imp">*</span>
+                                        </legend>
+                                    <input class="input-box" type="text" name="PhoneNo" maxlength="15" id="PhoneNo" onkeypress="PhoneNochange(event); return Common.isNumberKey(event);" placeholder="0421 151 439">
+                                    </fieldset>
+                                    <span id="spanPhone"
+                                          style="color:#ff3737;font-family: 'Poppins-Regular';font-style: normal;font-size: 13px;text-transform: capitalize;line-height: 20px;display: none;"></span>
+                                </div>
+                                <div class="col-md-12">
+                                    <fieldset class="cus-filedset">
+                                        <legend class="float-none w-auto px-1">Comments<span class="input-imp">*</span></legend>
+                                        <textarea class="input-box" name="Description" id="Description"
+                                                  placeholder="Comments"></textarea>
+                                    </fieldset>
+                                </div>
+                                @*@if (objAppInfo.CAPTCHA == "Yes")
+        {
+            <div class="col-md-6">
+                <div class="">
+                    <div class="g-recaptcha"
+                         data-sitekey="@secreatkey">
+
+                    </div>
+                </div>
+            </div>
+        }*@
+
+
+                                <!-- Honeypot field -->
+                                @*<div style="display: none;">
+            <label for="website">Website (Honeypot):</label>
+            <input type="text" id="website" name="website" />
+        </div>*@
+                                @*<input type="hidden" id="Honeypot" name="Honeypot" />
+                                <div class="col-md-12">
+                                    <div class="text-end">
+                                        <button class="aws-btn" type="submit">Submit</button>
+                                    </div>
+                                </div>*@
+
+
+
+
+                                <div class="row align-items-center">
+                                    @if (objAppInfo.CAPTCHA == "Yes")
+                                    {
+                                        <div class="col-md-6">
+                                            <div class="">
+                                                <div class="g-recaptcha"
+                                                     data-sitekey="@secreatkey" data-callback="onRecaptchaSuccess">
+                                                     
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+
+                                    <div class="col-md-6">
+                                        <input type="hidden" id="Honeypot" name="Honeypot" />
+
+
+                                        <div class="text-end form_btn">
+                                            <button class="aws-btn" type="submit" id="submit-button">Submit</button>
+                                        </div>
+
+                                    </div>
+                               
+
+                                </div>
+
+                            <div class="clearfix mt-4">
+                                <input type="hidden" id="recaptchaResponse" name="recaptcha">
+                            </div>
+                               
+
+                            </div>
+                        }
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+
+

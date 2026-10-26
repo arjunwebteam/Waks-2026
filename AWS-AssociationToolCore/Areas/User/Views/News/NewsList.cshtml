@@ -1,0 +1,74 @@
+﻿@using System.Configuration;
+@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+    string Category = ViewBag.Category;
+    //var imgloc = ConfigurationManager.AppSettings["adminimgurl"] + "news/";
+    List<AWS_AssociationToolCore.Entities.News> lstNews = ViewBag.NewsList;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+    var imgloc = objAppInfo.BaseUrl + "Content/news/";
+    var NewsId = ViewBag.NewsId;
+    var Type = ViewBag.Type;
+}
+
+@if (lstNews != null && lstNews.Count != 0)
+{
+
+
+    if (lstNews != null && lstNews.Count != 0)
+    {
+        foreach (var item in lstNews)
+        {
+            <div class="aws-inner-content1">
+                <div class="row align-items-center">
+
+                    <div class="col-md-8">
+                        <div class="new__page ">
+
+                            <h2 class="section-title txt-up title">@item.Title</h2>
+                            <ul class="new__page__li">
+                                <li><i class="bi bi-arrow-right-short"></i>@item.NewsText</li>
+                            </ul>
+                            @*<h5 class="mb-0">Thanks Telugu Association  Success...</h5>*@
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="new__page text-center ">
+                           
+                            <img class="d-block w-100" src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imgloc + item.ImageUrl, imgloc + "NO-NEWS.jpg"))" alt="@item.Title">
+
+                            @*<img class="new__img" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imgloc + item.ImageUrl), imgloc + "no-image.jpeg")" alt="@item.Title">*@
+                        </div>
+                    </div>
+
+</div>
+                </div>
+
+                    }
+
+                    }
+
+                    }
+                    @*}
+                        else
+                        {
+                            <div class="cus-about-sec">
+                                                    <h4 class="sec-title2 t-t-c font22" style="text-align:center;">Content Will Update Soon..</h4>
+
+                            </div>
+                        }*@
+
+
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPagingFE((Int64)ViewBag.items, ref Total, (Int64)ViewBag.PageNo, "pagination pagination-right border-b b-p10"))
+
+                 

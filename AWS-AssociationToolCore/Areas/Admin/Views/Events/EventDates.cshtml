@@ -1,0 +1,45 @@
+﻿@{Layout = null;
+    List<AWS_AssociationToolCore.Entities.EventDates> lstEventDates = ViewBag.lstEventDates;
+}
+
+@if (lstEventDates != null && lstEventDates.Count != 0)
+{
+    int i = 0;
+    <table width="100%" class="table table-bordered table-hover" id="tableDates">
+        <tbody>
+            <tr>
+                <th width="25%">Start Date</th>
+                <th width="25%">End Date</th>
+                <th width="15%"><a class="btn btn-danger btn-small" onclick="addDatesRow1();" style="color: #ffffff; padding-left: 15px;">Add</a></th>
+            </tr>
+            @foreach (var item in lstEventDates)
+            {
+                <tr id="view-@item.EventDatesId">
+                    <td>
+                        <label> @item.StartDate </label>
+                    </td>
+                    <td>
+                        <label> @item.EndDate </label>
+                    </td>
+                    <td>
+                        <a onclick="EventDatesEdit(@item.EventDatesId);" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+                        <a title="Delete" onclick="DeleteEventDates(@item.EventDatesId)" class="pagedelete"><i class="fa fa-trash-o"></i></a>
+                    </td>
+                </tr>
+                <tr id="Edit-@item.EventDatesId">
+                    <td>
+                        <input type="text" class="form-control b-m0" value="@item.StartDate" name="StartDate-@item.EventDatesId" style="height: 40px!important; min-height: 40px!important;" placeholder="Start Date" id="StartDate-@item.EventDatesId"><span class="errormsg" id="spanStartDate-0"></span>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control b-m0" value="@item.EndDate" name="EndDate-@item.EventDatesId" style="height: 40px!important; min-height: 40px!important;" placeholder="End Date" id="EndDate-@item.EventDatesId"><span class="errormsg" id="spanEndDate-0"></span>
+                    </td>
+                    <td>
+                        <a onclick="EventDatesEdit(@item.EventDatesId);" title="Edit"><i class="fa fa-pencil-square-o"></i></a>
+                        <a title="Delete" onclick="DeleteEventDates(@item.EventDatesId)" class="pagedelete"><i class="fa fa-trash-o"></i></a>
+                    </td>
+                </tr>
+                i++;
+            }
+        </tbody>
+    </table>
+}

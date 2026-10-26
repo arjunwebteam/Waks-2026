@@ -1,0 +1,288 @@
+﻿@{
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+
+    ViewBag.Title = "Photos - " +/* System.Configuration.ConfigurationManager.AppSettings["ApplicationName"]*/ objAppInfo.SiteName;
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var lstPhoto = (List<AWS_AssociationToolCore.Entities.Photos>)ViewBag.lstPhotos;
+    var lstPhotoCategories = (List<AWS_AssociationToolCore.Entities.PhotoCategories>)ViewBag.lstPhotoCategories;
+
+
+    //List<AWS_AssociationToolCore.Entities.PhotoCategories> lstPhotoCategoriess = ViewBag.lstPhotoCategoriess;
+
+
+
+
+    var imglocNormal = /*System.Configuration.ConfigurationManager.AppSettings["adminimgurl"] */objAppInfo.AdminImageUrl + "photogallery/normalphoto/";
+
+    var thumbphoto = /*System.Configuration.ConfigurationManager.AppSettings["adminimgurl"]*/objAppInfo.AdminImageUrl + "photogallery/thumbphoto/";
+    ViewBag.heading = "Photos";
+
+    string cname = ViewBag.cname;
+
+    AWS_AssociationToolCore.BLL.InnerPages _InnerPages = new AWS_AssociationToolCore.BLL.InnerPages();
+
+    //int Year = ViewBag.Year;
+    string CategoryName= ViewBag.CategoryName;
+}
+<script>
+    $(document).ready(function () {
+
+        $('#photoiframe').dialog
+            ({
+                autoOpen: false,
+                width: 840,
+                modal: true
+            });
+
+        FilterPhoto();
+    });
+
+    function iframe(Albumlink, Title) {
+        if (Albumlink != "") {
+            $('#photo').html(Albumlink);
+            $('#title').html(Title);
+            $('#photoiframe').dialog('open');
+        }
+        else {
+
+        }
+
+    }
+
+    function FilterPhoto() {
+        var id = $('#Year').val();
+        if (id == 'All') {
+            $('.catlist_class').show();
+        }
+        else {
+            $('.catlist_class').hide();
+            $('.pht-' + id).show();
+        }
+    }
+</script>
+
+<script type="text/javascript">
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            PhotosBind($(this).text());
+        });
+    }
+
+    function PhotosBind() {
+        var Year = $('#Sort').val();
+        var url = '@System.Configuration.ConfigurationManager.AppSettings["baseurl"]' + Year + '/photo-gallery';
+        window.location.href = url;
+    }
+</script>
+
+
+<link href="Content/User/css/magnific-popup.min.css" rel="stylesheet" />
+<script src="Scripts/User/jquery.magnific-popup.min.js"></script>
+<div class="aws-left-sec">
+
+    @*<div class="aws-title r-btn">
+        @CategoryName Gallery
+
+        
+        <div class="aws-bdr mt-0"></div>
+    </div>*@
+
+
+
+
+    <!-- content goes Here  -->
+    <div class="aws-photo-gallery-sec">
+
+        @if (lstPhotoCategories != null && lstPhotoCategories.Count != 0)
+        {
+            if (lstPhoto != null && lstPhoto.Count != 0)
+            {
+                int j = 0;
+                foreach (var PhotoCategory in lstPhotoCategories)
+                {
+                   
+                        <div class="d-flex align-items-center justify-content-between">
+                            @*<div class="aws-sponser-head pt-0">@PhotoCategory.CategoryName</div>*@
+                            @if (PhotoCategory.AlbumLink != null && PhotoCategory.AlbumLink != "")
+                            {
+
+                                <a href="@PhotoCategory.AlbumLink" target="_blank">
+                                    <div class="aws-btn mt-0" type="submit" style="border-radius: 10px;">View Album</div>
+
+                                </a>
+
+                            }
+                        </div>
+                   
+
+
+                    if (lstPhoto != null && lstPhoto.Count != 0)
+                    {
+                        int i = 1;
+                        <div class="aws-gallery-grid gallery_container">
+
+                            @foreach (var item in lstPhoto)
+                            {
+
+
+                                if (item.PhotoCategoryId == PhotoCategory.PhotoCategoryId)
+
+                                {
+                                    <div class="aws-gallery-box">
+
+
+                                        @*@if (item.AlbumLink != null && item.AlbumLink != "")
+                                            {
+
+                                                <a href="@item.AlbumLink" class="a-overlay" target="_blank"></a>
+                                                <img class="aws-gallery-icon w-100" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-imagefinal.jpg")">
+                                                <div class="aws-overlay">
+                                                    <div class="aws-text">
+                                                        <i class="bi bi-images"></i>
+                                                        <p class="text-center mb-0 pt-2 album_view">View Album</p>
+                                                    </div>
+                                                </div>
+
+
+                                            }*@
+                                        @*else
+                                            {*@
+                                        <a class="lightbox" href="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-imagefinal.jpg")">
+
+                                            <img class="aws-gallery-icon w-100" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ImageUrl), imglocNormal + "no-imagefinal.jpg")">
+
+                                        </a>
+
+
+                                        @*}*@
+                                    </div>
+
+                                }
+                            }
+
+                        </div>
+                        i++;
+                    }
+                }
+                j++;
+            }
+            else
+            {
+                <h4 class="sec-title2 t-t-c font22 m-5" style="text-align:center;">Photos Will Update Soon </h4>
+            }
+        }
+        else
+        {
+            <h4 class="sec-title2 t-t-c font22 m-5" style="text-align:center;">Photos Gallery Will Update Soon .</h4>
+        }
+    </div>
+
+    <!-- content End Here  -->
+
+</div>
+
+
+
+
+<script>
+    $(document).ready(function () {
+        // Hide all tab content except the active tab
+        $('.cus-tabs-content .cus-tab-pane').not('.active').hide();
+
+        // When a tab label is clicked
+        $('.cus-tab-label').click(function () {
+            // Remove the 'active' class from all tab labels
+            $('.cus-tab-label').removeClass('active');
+
+            // Add the 'active' class to the clicked tab label
+            $(this).addClass('active');
+
+            // Get the target tab ID from the data-tab attribute
+            var targetTab = $(this).data('tab');
+
+            // Hide all tab content
+            $('.cus-tabs-content .cus-tab-pane').hide();
+
+            // Show the target tab content
+            $('#' + targetTab).show();
+        });
+    });
+
+    function hideCheque() {
+        $('.cheque-hide').hide();
+    }
+
+
+    function ShowCheque() {
+        $('.cheque-hide').show();
+    }
+
+</script>
+
+<script>
+    /* Video Popup*/
+    $(document).ready(function () {
+        // Define App Namespace
+        var popup = {
+            // Initializer
+            init: function () {
+                popup.popupVideo();
+            },
+            popupVideo: function () {
+
+                $('.video_model').magnificPopup({
+                    // delegate: 'a',
+                    type: 'iframe',
+                    iframe: {
+                        patterns: {
+                            youtube: {
+                                index: 'youtu',
+                                id: function (url) {
+                                    // Extract video ID from URL
+                                    var match = url.match(/[^\w-]([-\w]{11})[^-\w]?/);
+                                    if (match && match[1]) {
+                                        return match[1];
+                                    }
+                                },
+                                src: 'https://www.youtube.com/embed/%id%?autoplay=1'
+                            },
+                            vimeo: {
+                                index: 'vimeo.com/',
+                                id: '/',
+                                src: 'https://player.vimeo.com/video/%id%?autoplay=1'
+                            }
+                            // Add more patterns for other video platforms if needed
+                        }
+                    },
+                    gallery: {
+                        enabled: true
+                    }
+                });
+
+                /* Image Popup*/
+                $('.gallery_container').magnificPopup({
+                    delegate: 'a',
+                    type: 'image',
+                    mainClass: 'mfp-fade',
+                    removalDelay: 160,
+                    preloader: false,
+                    fixedContentPos: false,
+                    gallery: {
+                        enabled: true
+                    }
+                });
+
+            }
+        };
+        popup.init($);
+    });
+</script>

@@ -1,0 +1,665 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    Layout = null;
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var location = Configuration["adminimgurl"] + "MemberProfileImages/";
+    var objEventUserInfo = (AWS_AssociationToolCore.Entities.EventUserInfo)ViewBag.objEventUserInfo;
+    List<AWS_AssociationToolCore.Entities.EventRegistrationCounts> lstEventRegistrationCounts = ViewBag.lstEventRegCounts;
+    List<AWS_AssociationToolCore.Entities.EventRegTickets> lstEventRegTickets = ViewBag.lstEventRegTickets;
+
+    var imglocNormal = Configuration["adminimgurl"] + "Content/CulturalEvent/";
+    var type = ViewBag.type;
+    var uid = ViewBag.uid;
+    var MembershipType = ViewBag.MembershipType;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@objEventUserInfo.EventName Ticket</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700&family=Source+Code+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(45deg, #0c0c1d, #1a1a2e, #16213e);
+            min-height: 100vh;
+            padding: 30px 20px;
+            font-family: 'Exo 2', sans-serif;
+        }
+
+        .main-bg {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* ===== DOWNLOAD BUTTON AREA ===== */
+        .download-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .download-arrow {
+            font-size: 2rem;
+            color: white;
+            animation: bounce 2s infinite;
+            margin-bottom: 10px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            font-size: 18px;
+            padding: 15px 50px;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* ===== TICKET WRAPPER ===== */
+        .ticket-wrapper {
+            margin-bottom: 30px;
+        }
+
+        /* ===== MAIN TICKET - HORIZONTAL LAYOUT LIKE IMAGE 1 ===== */
+        .ticket {
+            display: flex;
+            flex-direction: row;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            border: 3px solid #c8a84b;
+            min-height: 220px;
+        }
+
+        /* ===== LEFT SECTION - ORANGE ===== */
+        .ticket-left {
+            background: linear-gradient(135deg, #ffa200, #fa9f00);
+            width: 260px;
+            min-width: 260px;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+            border-right: 3px dashed rgba(255,255,255,0.4);
+        }
+
+            .ticket-left::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: -12px;
+                height: 100%;
+                width: 22px;
+/*                 background: radial-gradient(circle at 11px 20px, #1a1a2e 8px, transparent 8px);
+ */                background-size: 22px 35px;
+                z-index: 10;
+            }
+
+        .logo-img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 5px;
+        }
+
+        .organizer-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #7a1010;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .event-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            font-weight: 900;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .reg-badge {
+            background: rgba(255,255,255,0.25);
+            border: 1px dashed rgba(255,255,255,0.5);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-size: 0.8rem;
+            color: #7a1010;
+            font-weight: 600;
+        }
+
+        /* ===== MIDDLE SECTION - CREAM ===== */
+        .ticket-middle {
+            background: #fffdf7;
+            flex: 1;
+            padding: 20px 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 3px dashed #e6cdb3;
+            position: relative;
+        }
+
+            .ticket-middle::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                right: -12px;
+                height: 100%;
+                width: 22px;
+/*                 background: radial-gradient(circle at 11px 20px, #1a1a2e 8px, transparent 8px);
+ */                background-size: 22px 35px;
+                z-index: 10;
+            }
+
+        .field-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #922119;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .field-label i {
+                font-size: 0.75rem;
+            }
+
+        .field-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #2d0b5a;
+            margin-bottom: 14px;
+        }
+
+        .date-highlight {
+            background: linear-gradient(90deg, #ffa200, #fa9f00);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 14px;
+            letter-spacing: 1px;
+        }
+
+        .location-highlight {
+            background: #ffcc00;
+            color: #2d0b5a;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 14px;
+        }
+
+        .holder-name {
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #2d0b5a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* ===== RIGHT SECTION - LIGHT CREAM ===== */
+        .ticket-right {
+            background: #faf2eb;
+            width: 220px;
+            min-width: 220px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .ticket-number-box {
+            background: #fffdf7;
+            border: 2px dashed #9a8a5b;
+            border-radius: 10px;
+            padding: 12px 15px;
+            width: 100%;
+            position: relative;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+            .ticket-number-box::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 3px;
+                background: linear-gradient(90deg, #922119, #c8ac6a, #fa9f00);
+            }
+
+        .ticket-number-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: #922119;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .ticket-number-value {
+            font-family: 'Source Code Pro', monospace;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #2d0b5a;
+            letter-spacing: 3px;
+        }
+
+        .qr-img {
+            width: 110px;
+            height: 110px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @@keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+
+            40% {
+                transform: translateY(-10px);
+            }
+
+            60% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @@media (max-width: 768px) {
+            .ticket {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .ticket-left {
+                width: 100%;
+                min-width: 100%;
+                border-right: none;
+                border-bottom: 3px dashed rgba(255,255,255,0.4);
+                padding: 20px;
+            }
+
+                .ticket-left::after {
+                    display: none;
+                }
+
+            .ticket-middle {
+                border-right: none;
+                border-bottom: 3px dashed #e6cdb3;
+            }
+
+                .ticket-middle::after {
+                    display: none;
+                }
+
+            .ticket-right {
+                width: 100%;
+                min-width: 100%;
+            }
+
+            .holder-name {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-bg">
+
+        @if (lstEventRegTickets != null && lstEventRegTickets.Any())
+        {
+            var downloadticket = objAppInfo.UserSiteUrl + "Content/GeneratedTickets/EventTickets-Reg-" + objEventUserInfo.EventUserInfoId + ".pdf";
+
+            <script>
+                function downloadTicketPdf() {
+                    var url = '@downloadticket';
+                    window.location.href = url;
+                }
+            </script>
+
+            <div class="download-section">
+                <div class="download-arrow">⬇</div>
+                <a href="javascript:void(0)"
+                   onclick="downloadTicketPdf()"
+                   class="download-btn">
+                    📄 Download All Tickets as PDF
+                </a>
+            </div>
+
+            @foreach (var item1 in lstEventRegTickets)
+            {
+                var ticketRefCode = "WesternAustraliaKannadaSangha-Ticket-" + item1.EventRegTicketId;
+                var qrCodePath = objAppInfo.UserSiteUrl + "Content/QRCodeGeneration/QR-of-" + ticketRefCode + ".jpg";
+
+                <div class="ticket-wrapper">
+                    <div class="ticket"
+                         id="ticket-@item1.EventRegTicketId"
+                         data-qr-path="@qrCodePath">
+
+                        <!-- LEFT - Orange section -->
+                        <div class="ticket-left">
+                            <img src="@objAppInfo.UserSiteUrl/Content/User/images/logo.png"
+                                 alt="Logo" class="logo-img">
+                            <div class="organizer-name">Waks Association</div>
+                            <div class="event-name">@objEventUserInfo.EventName</div>
+                            <div class="reg-badge">@item1.RegistrationTitle</div>
+                        </div>
+
+                        <!-- MIDDLE - Info section -->
+                        <div class="ticket-middle">
+                            <div class="field-label">
+                                <i class="fas fa-calendar-alt"></i>
+                                Event Date and Time
+                            </div>
+                            <div class="date-highlight">
+                                @objEventUserInfo.StartDate.ToString("yyyy") -
+                                @objEventUserInfo.StartDate.ToString("MMM").ToUpper() -
+                                @objEventUserInfo.StartDate.ToString("dd")
+                                (@objEventUserInfo.StartDate.ToString("hh:mm tt"))
+                            </div>
+
+                            <div class="field-label">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Event Location
+                            </div>
+                            <div class="location-highlight">
+                                <i class="fas fa-building"></i>
+                                @objEventUserInfo.Location
+                            </div>
+
+                            <div class="field-label">
+                                <i class="fas fa-user"></i>
+                                Ticket Holder
+                            </div>
+                            <div class="holder-name">
+                                @objEventUserInfo.FirstName @objEventUserInfo.LastName
+                            </div>
+                        </div>
+
+                        <!-- RIGHT - Ticket number + QR -->
+                        <div class="ticket-right">
+                            <div class="ticket-number-box">
+                                <div class="ticket-number-label">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    Ticket Details
+                                </div>
+                                <div class="ticket-number-value">@item1.TicketId</div>
+                            </div>
+                            <img src="@qrCodePath" alt="QR Code" class="qr-img">
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Hidden individual download button -->
+                <div class="text-center mb-4" style="display:none;">
+                    <button type="button"
+                            class="btn btn-warning download-ticket-btn"
+                            data-ticket-id="@item1.EventRegTicketId"
+                            data-ticket-number="@item1.TicketId">
+                        Download Ticket Image
+                    </button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-warning text-center">
+                <p>No tickets available for this event.</p>
+            </div>
+        }
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dom-to-image/2.6.0/dom-to-image.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            /* ===== OPEN IN NEW WINDOW FOR iOS ===== */
+            function openImageInNewWindow(dataUrl, filename) {
+                const newWindow = window.open('', '_blank');
+                if (!newWindow) {
+                    alert('⚠️ Pop-up was blocked!\n\nPlease enable pop-ups and try again.');
+                    return false;
+                }
+                newWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>${filename}</title>
+                        <style>
+                            body {
+                                font-family: -apple-system, sans-serif;
+                                background: #667eea;
+                                min-height: 100vh;
+                                padding: 20px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            }
+                            .container {
+                                max-width: 900px;
+                                width: 100%;
+                                background: white;
+                                border-radius: 20px;
+                                padding: 30px;
+                            }
+                            h1 { text-align: center; margin-bottom: 20px; }
+                            img { max-width: 100%; border-radius: 12px; display: block; margin: 20px auto; }
+                            .tip {
+                                background: #fff3cd;
+                                border-left: 4px solid #ffc107;
+                                padding: 15px;
+                                border-radius: 8px;
+                                margin-top: 20px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1>🎫 Your Ticket is Ready!</h1>
+                            <img src="${dataUrl}" alt="${filename}" />
+                            <div class="tip">
+                                <strong>💡 Tip:</strong> Long press the image to save it, or take a screenshot.
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close();
+                return true;
+            }
+
+            /* ===== STANDARD DOWNLOAD FOR DESKTOP ===== */
+            function downloadStandard(dataUrl, filename) {
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                return true;
+            }
+
+            /* ===== CAPTURE USING DOM-TO-IMAGE ===== */
+            function captureTicketWithDomToImage(ticketElement) {
+                return new Promise((resolve, reject) => {
+                    const options = {
+                        quality: 1.0,
+                        bgcolor: '#ffffff',
+                        width: ticketElement.offsetWidth,
+                        height: ticketElement.offsetHeight,
+                        style: { transform: 'none', margin: '0', padding: '0' }
+                    };
+                    domtoimage.toPng(ticketElement, options)
+                        .then(resolve)
+                        .catch(reject);
+                });
+            }
+
+            /* ===== DOWNLOAD SINGLE TICKET ===== */
+            $('.download-ticket-btn').on('click', async function (e) {
+                e.preventDefault();
+                const btn = $(this);
+                const ticketId = btn.data('ticket-id');
+                const ticketNumber = btn.data('ticket-number');
+
+                btn.prop('disabled', true);
+                const originalText = btn.html();
+                btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Generating...');
+
+                try {
+                    const ticketElement = document.getElementById('ticket-' + ticketId);
+                    if (!ticketElement) throw new Error('Ticket element not found');
+
+                    const dataUrl = await captureTicketWithDomToImage(ticketElement);
+                    const eventName = '@objEventUserInfo.EventName'.replace(/\s+/g, '_');
+                    const userName = '@objEventUserInfo.FirstName'.replace(/\s+/g, '_') + '_' +
+                        '@objEventUserInfo.LastName'.replace(/\s+/g, '_');
+                    const filename = `${eventName}_Ticket_${userName}_${ticketNumber}_${new Date().getTime()}.png`;
+
+                    if (isIOS) {
+                        openImageInNewWindow(dataUrl, filename);
+                    } else {
+                        downloadStandard(dataUrl, filename);
+                    }
+
+                    btn.html('<i class="fas fa-check me-2"></i>Success!');
+                    setTimeout(() => {
+                        btn.prop('disabled', false);
+                        btn.html(originalText);
+                    }, 2000);
+
+                } catch (error) {
+                    alert('Failed to generate ticket image. Please try again.\nError: ' + error.message);
+                    btn.prop('disabled', false);
+                    btn.html(originalText);
+                }
+            });
+
+            /* ===== PDF DOWNLOAD ===== */
+            $('#downloadAllPdfBtn').on('click', async function (e) {
+                e.preventDefault();
+
+                const btn = $(this);
+                btn.prop('disabled', true);
+                const originalText = btn.html();
+                btn.html('<span class="spinner-border spinner-border-sm me-2"></span>Generating PDF...');
+
+                const ticketElements = document.querySelectorAll('[id^="ticket-"]');
+
+                if (ticketElements.length === 0) {
+                    alert('No tickets found');
+                    btn.prop('disabled', false);
+                    btn.html(originalText);
+                    return;
+                }
+
+                try {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF({
+                        orientation: 'landscape',
+                        unit: 'px',
+                        format: [1000, 400]
+                    });
+
+                    for (let i = 0; i < ticketElements.length; i++) {
+                        btn.html(`<span class="spinner-border spinner-border-sm me-2"></span>Processing ${i + 1}/${ticketElements.length}...`);
+
+                        const dataUrl = await captureTicketWithDomToImage(ticketElements[i]);
+                        if (i > 0) pdf.addPage();
+
+                        const img = new Image();
+                        img.src = dataUrl;
+                        await new Promise(resolve => { img.onload = resolve; });
+
+                        const imgWidth = pdf.internal.pageSize.getWidth() - 40;
+                        const imgHeight = (img.height * imgWidth) / img.width;
+                        const xPos = 20;
+                        const yPos = (pdf.internal.pageSize.getHeight() - imgHeight) / 2;
+
+                        pdf.addImage(dataUrl, 'PNG', xPos, yPos, imgWidth, imgHeight);
+                    }
+
+                    const eventName = '@objEventUserInfo.EventName'.replace(/\s+/g, '_');
+                    const userName = '@objEventUserInfo.FirstName'.replace(/\s+/g, '_') + '_' +
+                        '@objEventUserInfo.LastName'.replace(/\s+/g, '_');
+                    const filename = `${eventName}_All_Tickets_${userName}_${new Date().getTime()}.pdf`;
+
+                    if (isIOS) {
+                        const pdfData = pdf.output('dataurlstring');
+                        openImageInNewWindow(pdfData, filename);
+                    } else {
+                        pdf.save(filename);
+                    }
+
+                    btn.html('<i class="fas fa-check me-2"></i>Success!');
+                    setTimeout(() => {
+                        btn.prop('disabled', false);
+                        btn.html(originalText);
+                    }, 2000);
+
+                } catch (error) {
+                    alert('Failed to generate PDF. Please try again.');
+                    btn.prop('disabled', false);
+                    btn.html(originalText);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

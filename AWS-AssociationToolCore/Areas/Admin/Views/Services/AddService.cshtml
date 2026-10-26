@@ -1,0 +1,213 @@
+﻿@{
+    ViewBag.Title = "AddCommittee";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    var cssloc = System.Configuration.ConfigurationManager.AppSettings["adminsiteurl"] + "Content/Admin/front-end-style.css";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    List<AWS_AssociationToolCore.Entities.ServiceCategories> lstServiceCategories = ViewBag.lstServiceCategories;
+    List<AWS_AssociationToolCore.Entities.ServiceTypes> lstServiceTypes = ViewBag.lstServiceTypes;
+
+
+}
+
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wServices, #ServiceCategories').addClass('active');
+        $('#InnerPages').addClass('red-t');
+        $('.closable').append('<span id="lblclose" class="closelink" title="Close"></span>');
+       // $("#ExpiryDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-10:+10", altFormat: 'mm/dd/yy' });
+
+
+        $("#ExpiryDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-100:+10", altFormat: 'mm/dd/yy', dateFormat: "mm/dd/yy" });
+
+
+    });
+
+    function Validate() {
+
+        if ($.trim($('#ChapterId').val()) == '') { document.getElementsByName('ChapterId')[0].placeholder = 'Chapter Required'; $('#ChapterId').focus().addClass("validate"); return false; } else { $('#ChapterId').focus().removeClass("validate"); }
+        //if ($.trim($('#CategoryId').val()) == '') { document.getElementsByName('CategoryId')[0].placeholder = 'Category Required'; $('#CategoryId').focus().addClass("validate"); return false; } else { $('#CategoryId').focus().removeClass("validate"); }
+        if ($.trim($('#ServiceType').val()) == '') { document.getElementsByName('ServiceType')[0].placeholder = 'Service Type Required'; $('#ServiceType').focus().addClass("validate"); return false; } else { $('#ServiceType').focus().removeClass("validate"); }
+        if ($.trim($('#ServiceTitle').val()) == '') { document.getElementsByName('ServiceTitle')[0].placeholder = 'Service Title Required'; $('#ServiceTitle').focus().addClass("validate"); return false; } else { $('#ServiceTitle').focus().removeClass("validate"); }
+        if ($.trim($('#OrganisedBy').val()) == '') { document.getElementsByName('OrganisedBy')[0].placeholder = 'Organised Required'; $('#OrganisedBy').focus().addClass("validate"); return false; } else { $('#OrganisedBy').focus().removeClass("validate"); }
+        if ($.trim($('#Purpose').val()) == '') { document.getElementsByName('Purpose')[0].placeholder = 'Purpose Required'; $('#Purpose').focus().addClass("validate"); return false; } else { $('#Purpose').focus().removeClass("validate"); }
+
+       // if ($('#file').val() == "") { $('#spanfile').html('Required.'); $('#file'); return false; } else { $('#spanfile').html(''); }
+      //  if (!Common.isDocument($('#file').val())) { $('#spanfile').html('Sorry document is invalid. Only allowed extensions are:<b>doc, docx, txt, xls, xlsx, pdf</b>. <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#file'); return false; } else { $('#spanfile').html(''); }
+
+
+
+        //if ($('#file').val() != "") {
+        //    if (!Common.isImage($('#file').val())) { $('#spanfile').html('Sorry image is invalid. Only allowed extensions are:<b>jpg, png, PNG, gif, jpeg, JPEG</b>.'); $('#file').focus(); return false; } else { $('#spanfile').html(''); }
+        //    //if ($('#hdnimgvalidate').val() == '0') { $('#spanfile').html('Please select image with diemensions equal to 350 * 250.'); $('#file').focus(); return false; } else { $('#spanfile').html(''); }
+        //}
+        return true;
+    }
+
+
+</script>
+
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>Add Service</h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li><a href="@Url.Action("Index", "Services")"><i class="fa fa-print"></i>Services</a></li>
+        <li class="active">Add Service</li>
+    </ol>
+</div>
+<!--end breadcumb -->
+
+<input type="hidden" id="hdnimgvalidate" value="0" />
+<div class="content">
+    <div class="box">
+        <!-- /.box-header -->
+        <div class="nav-tabs-custom">
+           
+            <div class="clearfix sepH_b"></div>
+
+            <div id="divmessage">
+                @if (TempData["message"] != null)
+                {@Html.Raw(TempData["message"].ToString())}
+
+                @if (ViewBag.message != null)
+                {@Html.Raw(ViewBag.message.ToString())}
+            </div>
+
+            <div class="validation">
+                <!-- /.box-header -->
+
+                @using (Html.BeginForm("AddService", "Services", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    <input type="hidden" id="CategoryId" name="CategoryId" value="15" />
+                    @*<input type="hidden" id="ChapterId" name="ChapterId" value="1" />*@
+
+                    <div class="box-body">
+                        <div class="row">
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Chapters : <span class="red-t">*</span></label>
+                                <select class="form-control" id="ChapterId" name="ChapterId">
+                                    @if (lstChapters != null && lstChapters.Count != 0)
+                                    {
+                                        foreach (var item in lstChapters)
+                                        {
+                                            <option value="@item.ChapterId">@item.ChapterName</option>
+                                        }
+                                    }
+                                </select>
+                                <span id="spanChapterId" class="field-validation-error"></span>
+                                <b style="color: #f00; font-size: 12px">Note:(If Not Required any Chapter Default Select NATS Global)</b>
+                            </div>
+                            @*<div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Service Categories : <span class="red-t">*</span></label>
+                        <select class="form-control" id="CategoryId" name="CategoryId">
+                            <option value="">-- Select --</option>
+                            @if (lstServiceCategories != null && lstServiceCategories.Count != 0)
+                            {
+                                foreach (var item in lstServiceCategories)
+                                {
+                                    <option value="@item.ServiceCategoryId">@item.CategoryName</option>
+                                }
+                            }
+                        </select>
+                        <span id="spanServiceCategoryId" class="field-validation-error"></span>
+                    </div>*@
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Service Types :<span class="red-t">*</span></label>
+                                <select class="form-control" id="ServiceType" name="ServiceType">
+                                    <option value="">-- Select --</option>
+                                    @if (lstServiceTypes != null && lstServiceTypes.Count != 0)
+                                    {
+                                        foreach (var item in lstServiceTypes)
+                                        {
+                                            <option value="@item.ServiceType">@item.ServiceType</option>
+                                        }
+                                    }
+                                </select>
+                                <span id="spanServiceType" class="field-validation-error"></span>
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Service Title :<span class="red-t">*</span></label>
+                                <input type="text" class="form-control" value="" id="ServiceTitle" name="ServiceTitle">
+                                <span id="spanServiceTitle" class="field-validation-error"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Organised By :<span class="red-t">*</span></label>
+                                <input type="text" class="form-control" value="" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" id="OrganisedBy" name="OrganisedBy">
+
+                            </div>
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Purpose :<span class="red-t">*</span></label>
+                                <input type="text" class="form-control" value="" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" id="Purpose" name="Purpose">
+
+                            </div>
+                             
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Expiry Date :</label>
+                                <input type="text" class="form-control" value="" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" id="ExpiryDate" name="ExpiryDate">
+
+                            </div>
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Estimation Amount :</label>
+                                <input type="text" class="form-control" onkeypress="return Common.isNumberKey(event);" value="" onclick="ResetValidateClass();" id="EstimationAmount" name="EstimationAmount">
+
+                            </div>
+
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Service Status :</label>
+                                <select id="ServiceStatus" name="ServiceStatus" class="form-control">
+                                    <option value="">-- Select --</option>
+                                    <option value="New">New</option>
+                                    <option value="Running">Running</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Short Description :</label>
+                                <textarea type="text" id="ShortDescription" name="ShortDescription" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" class="form-control"></textarea>
+
+                            </div>
+                            <div class="col-xs-12 col-lg-3 col-sm-6">
+                                <label>Document Url:</label>
+                                <input type="file" id="file" name="file">
+                                <span id="spanfile" class="field-validation-error"></span>
+                                <div class="clearfix">
+                                    <b style="color: #f00; font-size: 14px">Note :</b>  File size should be  10 MB
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class='box-body'>
+                        <label>Description </label>
+                        <textarea rows="10" placeholder="Description *" name="Description" id="Description" cols="80" style="visibility: hidden; display: none;"></textarea><br />
+                        <span class="field-validation-error" id="spanDescription"></span>
+                        <script type="text/javascript">
+                            var editor = CKEDITOR.replace('Description', { contentsCss: '@(cssloc)' });
+                            CKFinder.setupCKEditor(editor, '@(System.Configuration.ConfigurationManager.AppSettings["baseurl"])ckfinder/');
+                        </script>
+                    </div>
+                    <div class="box">
+                        <!-- /.box-header -->
+                        <div class="box-body text-right">
+                            <input type="submit" value=" Submit " name="send" onclick="return Validate()" class="btn btn-primary">
+                            <a class="btn btn-info" href="@Url.Action("Index", "Services")">Cancel</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

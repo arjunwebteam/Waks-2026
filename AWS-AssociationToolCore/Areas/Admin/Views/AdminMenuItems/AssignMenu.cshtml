@@ -1,0 +1,403 @@
+﻿@{
+    ViewBag.Title = "AssignMenu";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    List<AWS_AssociationToolCore.Entities.Roles> lstRoles = ViewBag.lstRoles;
+    Int64 RoleId = ViewBag.RoleId;
+    Int64 UserId = ViewBag.UserId;
+    string UserName = ViewBag.UserName;
+    string RoleName = ViewBag.RoleName;
+    if (UserId != 0)
+    {
+        ViewBag.Pageheading = "Menu Access By User";
+
+    }
+    else
+    {
+        ViewBag.Pageheading = "Menu Access By Role";
+
+    }
+
+
+}
+
+<style type="text/css">
+    .SumoSelect > .CaptionCont {
+        min-height: 40px;
+    }
+
+    .SumoSelect {
+        line-height: 30px;
+    }
+
+        .SumoSelect.open .search-txt {
+            min-height: 40px;
+            font-size: 16px;
+        }
+</style>
+<script type="text/javascript">
+    $(document).ready(function () {
+        AssignMenuBind();
+        $('#wOthers, #wAssignMenu').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+    function AssignMenuBind() {
+        if (@UserId!= 0) {
+            var RoleId = @RoleId;
+
+        }
+        else {
+            var RoleId = $('#RoleId').val();
+
+        }
+        $('#Loadingdiv').show();
+        $('#divAssignMenuList').hide();
+        $.ajax({
+            url: '@Url.Action("GetAssignMenuList", "AdminMenuItems")',
+            type: 'GET',
+            cache: false,
+            data: { RoleId: RoleId, mid: '@ViewBag.mid', UserId:@UserId },
+            success: function (result) {
+                $('#divAssignMenuList').html(result);
+                $('#Loadingdiv').hide();
+                $('#divAssignMenuList').show();
+                $('.multiple-select').select2({
+                    theme: 'bootstrap4',
+                    width: $(this).data('width') ? $(this).data('width') : $(this).hasClass('w-100') ? '100%' : 'style',
+                    placeholder: $(this).data('placeholder'),
+                    allowClear: Boolean($(this).data('allow-clear')),
+                });
+
+            }
+        });
+        RolesGetByRoleId();
+    }
+
+      function AssignRoleUsers(j, rid, pid) {
+        var objuserroles = {};
+
+        // FIXED: proper RoleId selection
+        if (@UserId != 0) {
+            objuserroles.RoleId = @RoleId;
+        } else {
+            objuserroles.RoleId = $('#RoleId').val();
+        }
+
+        // Guard
+        if (!objuserroles.RoleId || objuserroles.RoleId == '0') {
+            alert('Please select a Role first.');
+            return;
+        }
+
+        objuserroles.IsAdd    = document.getElementById('IsAdd-' + j).checked;
+        objuserroles.IsEdit   = document.getElementById('IsEdit-' + j).checked;
+        objuserroles.IsView   = document.getElementById('IsView-' + j).checked;
+        objuserroles.IsDelete = document.getElementById('IsDelete-' + j).checked;
+        objuserroles.IsExport = document.getElementById('IsExport-' + j).checked;
+        objuserroles.ParentId = pid;
+        objuserroles.MenuId   = rid;
+        objuserroles.UserId   = @UserId;
+
+        $.ajax({
+            url: '@Url.Action("UpdateRoleBasedAccess", "AdminMenuItems")',
+            type: 'POST',
+            data: JSON.stringify(objuserroles),
+            contentType: 'application/json', // REQUIRED for [FromBody]
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                AssignMenuBind();
+            }
+        });
+    }
+    function PostRoleMenus() {
+        var EmployeeCompanyIds = $('#EmployeeCompanyIds').val();
+        var EmployeeCompanys = EmployeeCompanyIds.split(',');
+
+        var Menus = $('#Menus').val();
+        var Menus = Menus.split(',');
+        var message = '';
+        var i = 0;
+        if (EmployeeCompanys != null && EmployeeCompanys != '') {
+            for (var l = 0; l < EmployeeCompanys.length; l++) {
+                if (Menus != null && Menus != '') {
+                    for (var k = 0; k < Menus.length; k++) {
+                        $('#AssignedMenus').val('');
+                        $('#AssignedMenus').val($('#' + Menus[k] + '-AssignedMenus').val());
+
+                        var MenuIds = $('#AssignedMenus').val();
+
+                        var RoleId = $('#RoleId').val();
+                        if (MenuIds != '') {
+                            $.ajax({
+                                url: '@Url.Action("InsertRoleMenu", "AdminMenuItems")',
+                                type: 'POST',
+                                cache: false,
+                                data: { MenuIds: MenuIds, RoleId: RoleId, UserId: EmployeeCompanys[l] },
+                                success: function (result) {
+                                    message = result.data;
+                                }
+                            });
+                            i = 1;
+                        }
+
+                    }
+                }
+
+                  var values = $('#items').val();
+                        if (values != '') {
+                             $.ajax({
+                                url: '@Url.Action("InsertRoleMenu", "AdminMenuItems")',
+                                type: 'POST',
+                                cache: false,
+                                 data: { MenuIds: values, RoleId: RoleId, UserId: EmployeeCompanys[l] },
+                                success: function (result) {
+                                    message = result.data;
+                                }
+                            });
+                        }
+            }
+            if (i == 1) {
+                alert('Your Data Saved Successfully!');
+                AssignMenuBind();
+            }
+            else {
+                alert('Select any one Menu / Report');
+            }
+
+        }
+    }
+
+
+    function getCheckboxValues() {
+        // Select all checkboxes with the name "fruit"
+        var checkboxes = document.querySelectorAll('input[name="MenusItems"]:checked');
+
+        // Map the checked checkboxes to their values
+        var values = Array.from(checkboxes).map(function (checkbox) {
+            return checkbox.value;
+        });
+
+        // Join the values into a comma-separated string
+        var commaSeparatedValues = values.join(',');
+        $('#items').val(commaSeparatedValues);
+
+    }
+
+    function CloneRoleIds() {
+
+        var RoleId= $('#RoleId').val();
+        var RoleIds = $('#RoleIds').val();
+        if (RoleIds != '') {
+            $.ajax({
+                url: '@Url.Action("UpdateCloneRoleIds", "AdminMenuItems")',
+                type: 'POST',
+                data: { RoleId: RoleId, RoleIds: RoleIds },
+                datatype: "JSON",
+                //contentType: 'application/json',
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+
+                    if (result.ok) {
+                        //$("#divmessage").html(result.data);
+                        AssignMenuBind();
+
+                       // $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                       // $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    }
+                    else {
+                       // $("#divmessage").html(result.data);
+                        AssignMenuBind();
+                       // $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                      //  $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    }
+                }
+            });
+        }
+        else {
+            alert('Please Select Clone Role Name')
+        }
+    }
+
+    function SingleMenuUpdate(j, rid, pid, type) {
+        var RoleId;
+
+        // FIX: Check UserId value properly
+        if (@UserId != 0) {
+            RoleId = @RoleId;
+        } else {
+            RoleId = $('#RoleId').val();
+        }
+
+        // FIX: Guard - if no RoleId selected, stop
+        if (!RoleId || RoleId == '' || RoleId == '0') {
+            alert('Please select a Role first.');
+            return;
+        }
+
+        var objuserroles = {};
+        objuserroles.RoleId = RoleId;
+        objuserroles.UserId = @UserId;
+
+        var isadds = document.getElementById('IsAdd-' + j);
+        objuserroles.IsAdd = isadds ? isadds.checked : false;
+
+        var isedits = document.getElementById('IsEdit-' + j);
+        objuserroles.IsEdit = isedits ? isedits.checked : false;
+
+        var isviews = document.getElementById('IsView-' + j);
+        objuserroles.IsView = isviews ? isviews.checked : false;
+
+        var isdeletes = document.getElementById('IsDelete-' + j);
+        objuserroles.IsDelete = isdeletes ? isdeletes.checked : false;
+
+        var isexports = document.getElementById('IsExport-' + j);
+        objuserroles.IsExport = isexports ? isexports.checked : false;
+
+        objuserroles.ParentId = pid;
+        objuserroles.MenuId = rid;
+        objuserroles.Type = type;
+
+        console.log('SingleMenuUpdate payload:', objuserroles); // Debug
+
+        $.ajax({
+            url: '@Url.Action("SingleMenuUpdate", "AdminMenuItems")',
+            type: 'POST',
+            data: JSON.stringify(objuserroles),
+            datatype: "JSON",
+            contentType: 'application/json',
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                    AssignMenuBind();
+                } else {
+                    $("#divmessage").html(result.data);
+                    AssignMenuBind();
+                }
+            }
+        });
+    }    function RolesGetByRoleId(sid) {
+        var RoleId = $('#RoleId').val();
+        $.ajax({
+            url: '@Url.Action("RolesGetByRoleId", "Roles")',
+            type: 'POST',
+            data: { RoleId: RoleId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var sb = "<option value=\"\">-- Select --</option>";
+                    lstRolebind = result.data;
+                    if (lstRolebind != null) {
+                        for (var i = 0; i < lstRolebind.length; i++) {
+                            sb = sb + '<option value="' + lstRolebind[i].RoleId + '">' + lstRolebind[i].RoleName + '</option>';
+
+                        }
+                    }
+                    $('#RoleIds').html(sb);
+
+                }
+            }
+        });
+    }
+</script>
+<input type="hidden" value="" id="AssignedMenus" />
+
+
+
+
+
+<!-- /.box-header -->
+@if (UserId != 0)
+{
+
+    <div class="row gy-4 justify-content-center">
+        <div class="col-5">
+            <div class="card border shadow-none radius-10">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-box bg-light-primary border-0">
+                            <i class="bi bi-person text-primary"></i>
+                        </div>
+                        <div class="info">
+                            <h5 class="mb-1">@UserName</h5>
+                            <p class="mb-1">(@RoleName)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="content">
+        <div class="card">
+            <div class="card-body">
+                <div class="clearfix box-body">
+                    <div class="clearfix row">
+                        <div class="col-xs-12 col-lg-6 col-sm-12">
+                            <div class="clearfix" style="width: 300px; text-align: center; margin-left: auto; margin-right: auto;">
+                                <label style="font-size: 15px;">Choose Role</label>
+
+                                <select class="single-select" id="RoleId" name="RoleId" onchange="AssignMenuBind();" style="font-size: 17px !important; height: 60px; text-align: center; background-color: #ccc; ">
+                                    <option value="">--  Select Role  --</option>
+                                    @if (lstRoles != null && lstRoles.Count != 0)
+                                    {
+                                        foreach (var item in lstRoles)
+                                        {
+                                            <option @(item.RoleId == RoleId ? "selected=selected" : "") value="@item.RoleId">@item.RoleName</option>
+                                        }
+                                    }
+                                </select>
+
+                            </div>
+
+
+
+
+                        </div>
+                        <div class="col-xs-2 col-lg-4 col-sm-2">
+                            <div class="clearfix">
+                                <label style="font-size: 15px;">Clone Permissions from Other Role</label>
+
+                                <select class="single-select" id="RoleIds" name="RoleIds" style="font-size: 17px !important; height: 60px; text-align: center; background-color: #ccc; ">
+                                    <option value="" selected>--  Select Role  --</option>
+                                    @*@if (lstRoles != null && lstRoles.Count != 0)
+                                        {
+                                            foreach (var item in lstRoles)
+                                            {
+                                                <option value="@item.RoleId">@item.RoleName</option>
+                                            }
+                                        }*@
+                                </select>
+
+                            </div>
+
+
+
+
+                        </div>
+                        <div class="col-xs-2 col-lg-2 col-sm-2" style="margin-top: 0px;">
+                            <div>
+                                <label>&nbsp;</label>
+                            </div>
+
+                            <button type="button" class="btn btn-primary" onclick="CloneRoleIds();">Clone Permissions</button>
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+}
+
+
+
+
+<div id="divAssignMenuList" class="clearfix">
+</div>
+

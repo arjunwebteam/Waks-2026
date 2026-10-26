@@ -1,0 +1,47 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    AWS_AssociationToolCore.Entities.ServiceDonations objServiceDonations = ViewBag.objServiceDonations;
+
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+
+    // ✅ Store in session (if really needed)
+    HttpContextAccessor.HttpContext.Session.SetInt32("ChapterId", (int)chapterId);
+    HttpContextAccessor.HttpContext.Session.SetString("ChapterName", chapterName);
+}
+
+@if (HttpContextAccessor.HttpContext.Session.GetString("ChapterName").ToString() == "global")
+{
+    <section class="clearfix wrapper lates-gray-bg t-b-p30 mobile-t-b-p10">
+        <article class="clearfix inner-wrapper">
+            <article class="clearfix t-c">
+                <h4 class="clearfix m0 HandelGothic-Regular t-t-u font30 cheircol-t l-h22 letterspa1 mobile-font24 mobile-l-h16">Contributions </h4>
+                <img src="Content/User/images/orange-border.png" class="t-m12 b-m30 tabhorizontal-t-m10 tabhorizontal-b-m15" alt="Border" width="53" height="3" />
+            </article>
+            <article class="clearfix box-row">
+                <article class="clearfix box-6 ">
+                    <article class="clearfix chair-nam-bg shadow r-m20">
+                        <article class="clearfix t-p25 t-c border-radius2">
+                            <h2 class="clearfix m0 font26 t-c Impact white-t"> <a href="@Url.Action("FEServicesListByYear", "Services", new { cname = HttpContextAccessor.HttpContext.Session.GetString("ChapterName") })" class="white-t"> $ @Math.Round(Convert.ToDecimal(objServiceDonations.TotalAmount), 0).ToString("#,##0") </a> </h2>
+                            <h4 class="clearfix m0 HandelGothic-Regular font18 white-t l-h22 t-p15 b-p6 dontexmin">
+                                Life to Date Helpline Contributions
+                            </h4>
+                        </article>
+                    </article>
+                </article>
+                <article class="clearfix box-6">
+                    <article class="clearfix akshrdip-bg shadow l-m20">
+                        <article class="clearfix t-p25 t-c border-radius2 ">
+                            <h2 class="clearfix m0 font26 t-c Impact white-t"> <a href="@Url.Action("FEServicesListByYear", "Services", new { cname =  HttpContextAccessor.HttpContext.Session.GetString("ChapterName"), Year = (DateTime.UtcNow.Year) })" class="white-t"> $ @Math.Round(Convert.ToDecimal(objServiceDonations.YearTotalAmount), 0).ToString("#,##0") </a> </h2>
+                            <h4 class="clearfix m0 HandelGothic-Regular font18 white-t l-h22 t-p15 b-p6 dontexmin">
+                                Year to Date Helpline Contributions <span class="white-t">(@DateTime.UtcNow.Year)</span>
+                            </h4>
+                        </article>
+                    </article>
+                </article>
+            </article>
+        </article>
+    </section> 
+}

@@ -1,0 +1,345 @@
+﻿@using System.Configuration;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+
+
+
+
+    ViewBag.Pageheading = "News";
+    Int64 ChapterId = ViewBag.ChapterId;
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var imgloc = objAppInfo.BaseUrl +"Content/Admin/news/normalimages/";
+
+
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wNews, #wOthers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $(".date").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altFormat: 'mm/dd/yy' });
+
+        PagerClickBind();
+    });
+
+
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        NewsBind(1);
+    }
+
+    function NewsBind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#keyword').val();
+        var Type = $('#Type').val();
+        var ChapterId = $('#ChapterId').val();
+        // var ChapterId = 0;
+        @*if (@ChapterId != 0) {
+            ChapterId = @ChapterId;
+        }
+        else {
+
+        ChapterId = $('#ChapterId').val();
+
+        }*@
+
+        $.ajax({
+            url: '@Url.Action("NewsList", "News")',
+            type: 'GET',
+            cache: false,
+            data: { ChapterId:ChapterId,Type: Type, Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid' },
+            success: function (result) {
+                $('#divNews').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            NewsBind($(this).text());
+        });
+    }
+
+    function EditNews(NewsId) {
+        $.ajax({
+            url: '@Url.Action("EditNews", "News")',
+            type: 'POST',
+            data: { NewsId: NewsId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objNews = result.data;
+                    $('#NewsId').val(objNews.NewsId);
+                    $('#Title').val(objNews.Title);
+                    $('#NewsText').val(objNews.NewsText);
+                    $('#PostDate').val(Common.ConvertDate(objNews.PostDate));
+                    $('#DisplayOrder').val(objNews.DisplayOrder);
+                    $('#ExpiryDate').val(Common.ConvertDate(objNews.ExpiryDate));
+                    $('#Add-News').modal('show');
+                    $('#lbltitle').html('Edit News');
+                    $('#Aspanfile').html('');
+                    $('#Title').focus().removeClass("red-border");
+                    $('#NewsText').focus().removeClass("red-border");
+                    $('#PostDate').focus().removeClass("validate");
+                    $('#ExpiryDate').focus().removeClass("validate");
+                    $('#spanImageUrl').html('');
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+
+    function ViewNews(NewsId) {
+        $.ajax({
+            url: '@Url.Action("ViewNews", "News")',
+            type: 'POST',
+            data: { NewsId: NewsId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objNews = result.data;
+                    $('#vNewsId').val(objNews.NewsId);
+                    $('#vTitle').html(objNews.Title);
+                    $('#vPostDate').html(Common.ConvertDate(objNews.PostDate));
+                    $('#vDisplayOrder').html(objNews.DisplayOrder);
+                    $('#vNewsText').html(objNews.NewsText);
+                    $('#vExpiryDate').html(Common.ConvertDate(objNews.ExpiryDate));
+
+                    $('#View-News').modal('show');
+                    $('#vbltitle').html('View News Details');
+
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                }
+            }
+        });
+    }
+
+    function Add() {
+        clearInnerPageCategory();
+        $(".date").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altFormat: 'mm/dd/yy' });
+        $("#Add-News").modal('show');
+        $('#lbltitle').html('Add News');
+    }
+
+    function clearInnerPageCategory() {
+        $('#NewsId').val('0');
+        $('#Title').val('');
+        $('#NewsText').val('');
+        $('#ImageUrl').val('');
+        $('#PostDate').val('');
+        $('#DisplayOrder').val('');
+        $('#ExpiryDate').val('');
+        $('#spanfile').html('');
+        $('#spanTitle').html('');
+        $('#spanNewsText').html('');
+        $('#spanImageUrl').html('');
+        $('#spanPostDate').html('');
+        $('#spanDisplayOrder').html('');
+        $('#spanExpiryDate').html('');
+        $('#Title').focus().removeClass("validate");
+        $('#NewsText').focus().removeClass("validate");
+        $('#ImageUrl').focus().removeClass("validate");
+        $('#PostDate').focus().removeClass("validate");
+        $('#ExpiryDate').focus().removeClass("validate");
+        $('#DisplayOrder').focus().removeClass("validate");
+
+    }
+    function Validate() {
+
+        if ($('#Title').val() == "") { $('#Title').addClass("validate"); return false; } else { $('#Title').focus().removeClass("validate"); }
+        if ($('#PostDate').val() == "") { $('#PostDate').addClass("validate"); return false; } else { $('#PostDate').focus().removeClass("validate"); }
+        if ($('#ExpiryDate').val() == "") { $('#ExpiryDate').addClass("validate"); return false; } else { $('#ExpiryDate').focus().removeClass("validate"); }
+
+        if ($('#NewsId').val() == "0") {
+            if ($('#ImageUrl').val() == "") { $('#spanfile').html('Required.'); $('#ImageUrl').focus(); return false; } else { $('#spanfile').html(' '); }
+
+            if (!Common.isImage($('#ImageUrl').val())) { $('#spanfile').html('Sorry image is invalid. Only allowed extensions are:<b>jpg, png, PNG, gif, jpeg, JPEG</b>.'); $('#ImageUrl').focus(); return false; } else { $('#spanfile').html(''); }
+            //if ($('#hdnimgvalidate').val() == '0') { $('#spanfile').html('Please select image with diemensions equal to 1366 * 543.'); $('#ImageUrl').focus(); return false; } else { $('#spanfile').html(''); }
+        }
+        if ($('#ImageUrl').val() != "") {
+            if (!Common.isImage($('#ImageUrl').val())) { $('#spanfile').html('Sorry image is invalid. Only allowed extensions are:<b>jpg, png, PNG, gif, jpeg, JPEG</b>.'); $('#ImageUrl').focus(); return false; } else { $('#spanfile').html(''); }
+            //if ($('#hdnimgvalidate').val() == '0') { $('#spanfile').html('Please select image with diemensions equal to 1366 * 543.'); $('#ImageUrl').focus(); return false; } else { $('#spanfile').html(''); }
+        }
+        if ($('#NewsText').val() == "") { $('#NewsText').addClass("validate"); return false; } else { $('#NewsText').focus().removeClass("validate"); }
+        //if ($('#DisplayOrder').val() == "") { $('#DisplayOrder').addClass("validate");  return  false; } else { $('#DisplayOrder').focus().removeClass("validate"); }
+
+        return true;
+    }
+
+    function ResetValidateClass() {
+        $('#Title').removeClass("validate");
+        $('#NewsText').removeClass("validate");
+        $('#PostDate').removeClass("validate");
+        $('#DisplayOrder').removeClass("validate");
+        $('#ExpiryDate').removeClass("validate");
+    }
+
+    function ClearSearch() {
+
+        $('#ddlChapterId').val('').trigger('change');
+        $('#ddlChapterId').val(1);
+
+
+        $('#keyword').val('').trigger('change');
+        $('#UpdatedBy').val('').trigger('change');
+
+        NewsBind(1);
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("NewsList", "News")',
+            data: {
+                IsEdit    : '@ViewBag.IsEdit',
+                IsView    : '@ViewBag.IsView',
+                IsDelete  : '@ViewBag.IsDelete',
+                IsExport  : '@ViewBag.IsExport',
+                IsAdd     : '@ViewBag.IsAdd',
+                Mid       : '@ViewBag.mid',
+                ChapterId : '@(ViewBag.ChapterId == null || ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId)'
+            },
+            success: function (data) {
+                $("#divNews").html(data);
+            },
+            error: function () {
+                $("#divNews").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+
+<input type="hidden" id="hdnimgvalidate" value="0" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="NewsId" />
+<input id="hdnsortorder" type="hidden" value="ASC" />
+
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+            @if (objAppInfo.chapterStatus == "Yes")
+            {
+
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label"> <span class="text-danger"></span>Search by Chapter</label>
+                    <div class="input-group">
+                        
+                            <select class="form-control" id="ChapterId" name="ChapterId"  style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+                                @if (lstChapters != null && lstChapters.Count != 0)
+                                {
+                                    foreach (var item in lstChapters)
+                                    {
+                                        <option @(item.ChapterId == ChapterId ? "selected='selected'" : "") value="@item.ChapterId">@item.ChapterName</option>
+                                    }
+                                }
+
+
+                            </select>
+                            @*<span class="input-group-text pointer" style="cursor:pointer" onclick="MenuItemsBind(1);" id="basic-addon1"><i class="bi bi-search"></i></span>*@
+</div>
+                </div>
+            </div>
+            }
+                <!--<div class="col-lg-3 col-md-3 col-6">
+                    <div class="input-box">
+                        <label class="form-label">Link Target</label>
+                        <select class="single-select" id="UpdatedBy" name="UpdatedBy">
+                            <option value="">Select Target Link</option>-->
+                            @*<option value="">-- Select --</option>*@
+                            <!--<option value="News">News</option>
+                            <option value="Blog">Blog</option>
+
+                        </select>
+                    </div>
+                </div>-->
+
+                <div class="col-lg-2 col-md-3 col-6">
+                    <div class="input-box">
+                        <label class="form-label">Search<span class="text-danger"></span></label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="keyword" id="keyword" placeholder="News Title">
+                            @*<span class="input-group-text pointer" style="cursor:pointer" id="basic-addon1" onclick="Onload(1);"><i class="bi bi-search"></i></span>*@
+                        </div>
+
+                    </div>
+                </div>
+
+
+
+                <div class="ol-lg-3 col-md-3 col-6">
+                    <div>
+                        <label>&nbsp;</label>
+                    </div>
+
+
+                    <button type="button" class="btn btn-primary px-3" onclick="NewsBind(1);">Search</button>
+                    <button type="submit" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                </div>
+
+
+                <div class="col-lg-2 col-4 text-end ms-auto">
+                    <div class="btn-align">
+                        @if (IsAdd == true )
+                        {
+                            <a class="btn btn-primary" href="@Url.Action("AddNews", "News", new { mid = Mid})">Add News</a>
+
+                        }
+
+
+
+
+
+                    </div>
+                </div>
+
+            </div>
+    </div>
+    <!--end breadcrumb-->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+
+
+
+
+
+    <div id="divNews" class="clearfix">
+
+    </div>
+</div>

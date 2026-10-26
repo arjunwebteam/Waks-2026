@@ -1,0 +1,317 @@
+﻿@{ Layout = null;}
+@{
+    ViewBag.Title = "MembersList";
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+    var ChapterId = ViewBag.ChapterId;
+    var type = ViewBag.type;
+
+    List<AWS_AssociationToolCore.Entities.Members> lstMembers = ViewBag.lstMembers;
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+}
+
+<div class="card-body">
+    <div class="">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+
+                    <th style="text-align:center">S.No</th>
+                
+                    <th>
+                        <a onclick="javascript:sortresult('MemberSkils');" class="aws-h-a" style="color:black">
+                            M-ID @if (sortcolumn == "MemberSkils")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th>
+                        <a onclick="javascript:sortresult('FirstName');" class="aws-h-a" style="color:black">
+                            First Name @if (sortcolumn == "FirstName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th>
+                        <a onclick="javascript:sortresult('LastName');" class="aws-h-a" style="color:black">
+                            Last Name @if (sortcolumn == "LastName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th style="text-align:left"> Email-Id</th>
+                  <th style="text-align: center">
+                        <a onclick="javascript:sortresult('ExpiryDate');" class="aws-h-a" style="color:black">
+                            Exp.Date @if (sortcolumn == "ExpiryDate")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th style="text-align: center">
+                        <a onclick="javascript:sortresult('PaymentStatus');" class="aws-h-a" style="color:black">
+                            P Status @if (sortcolumn == "PaymentStatus")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+
+                    </th>
+                    <th style="text-align: center">
+                        <a onclick="javascript:sortresult('InsertedTime');" class="aws-h-a" style="color:black">
+                            Reg.Date @if (sortcolumn == "InsertedTime")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+
+                    </th>
+                  <th style="text-align: center" width="7%"> Mem.Status </th>
+                        <th style="text-align: center" >  Login Status </th>
+                    
+                 
+                        <th class="text-center" width="5%">Action</th>
+                    
+                </tr>
+            </thead>
+            <tbody>
+
+                @if (lstMembers.Count != 0)
+                {
+                    Int64 i = 1;
+                    foreach (var item in lstMembers)
+                    {
+                <tr>
+                    <td style="text-align:center">@item.RId</td>
+                    <td style="text-align:left">
+                        <a href="@Url.Action("EditMember", "Members", new { MemberId = item.MemberId, mid = ViewBag.Mid, type = type })">
+                            @if (item.MemberSkils != null && item.MemberSkils != "")
+                            {
+                                @(item.MemberSkils != null && item.MemberSkils != "" ? item.MemberSkils : "--")
+                            }
+                            else
+                            {
+                                <spam>--</spam>
+                            }
+                        </a>
+                    </td>
+                    <td>
+
+                        <div class="align-items-center gap-3 cursor-pointer">
+                            <div class="">
+                                <p class="mb-0">@item.FirstName</p>
+                            </div>
+                        </div>
+                    </td>
+                    <td>@item.LastName</td>
+                    <td style="text-align:left">
+                        <div class="align-items-center gap-3 cursor-pointer">
+                            <div class="">
+                                <a href="mailto:@item.Email">
+                                            <p class="mb-0">@(string.IsNullOrWhiteSpace(item.Email) ? "N/A" : item.Email)</p>
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td style="text-align: center">
+                  @*       <span style="color: #990033">
+                            @(item.objMembershipOrder.ExpiryDate == DateTime.MinValue && item.MembershipType == "Life Membership" ? "Life Time" : (item.objMembershipOrder.ExpiryDate == DateTime.MinValue ? "Life Time" : item.objMembershipOrder.ExpiryDate.ToString("MM-dd-yyyy")))
+                        </span> *@
+                        <span style="color: #990033">
+
+                            @(item.objMembershipOrder.ExpiryDate == DateTime.MinValue
+                                                        ? "N/A"
+                                                        : item.objMembershipOrder.ExpiryDate.ToString("MM-dd-yyyy"))
+                    </span>
+
+                    </td>
+                    <td style="text-align: center;">@(item.objMembershipOrder.PaymentStatus == null || item.objMembershipOrder.PaymentStatus == "" ? "N/A" : item.objMembershipOrder.PaymentStatus)</td>
+                    <td style="text-align: center; color: #ff6a00; font-weight: bold;">@item.InsertedTime.ToString("MM-dd-yyyy")</td>
+                       <td data-label="Mem.Status" style="text-align:center;">
+                                <div class="menu-hover">
+                            @{
+                                        var isMembershipActive = item.objMembershipOrder.ExpiryDate != DateTime.MinValue
+                                        && item.objMembershipOrder.ExpiryDate.Date >= DateTime.Today
+                                        && string.Equals(item.objMembershipOrder.PaymentStatus, "Completed", StringComparison.OrdinalIgnoreCase);
+                                    }
+                                    @{
+                                        var membershipChecked = isMembershipActive ? "checked" : "";
+                                    }
+                                    @{
+                                        var membershipTitle = isMembershipActive
+                                        ? "Active"
+                                        : (item.objMembershipOrder.ExpiryDate != DateTime.MinValue
+                                        && item.objMembershipOrder.ExpiryDate.Date >= DateTime.Today
+                                        ? "Payment Not Completed"
+                                        : "Expired");
+                                    }
+                                    <label class="switch" title="@membershipTitle">
+                                        <input type="checkbox" disabled @membershipChecked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </td>
+                        <td style="text-align: center;">
+                            <div class="menu-hover">
+                                @{ var isChecked = item.IsApproved ? "checked" : ""; }
+                                @{var titleValue = item.IsApproved ? "IsApproved" : "Not Approved";}
+                                <div>
+                                    <label class="switch" title="@titleValue">
+                                        <input type="checkbox" onclick="UserStatus(@item.MemberId)" @isChecked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+
+              
+                  
+                        <td class="text-center">
+                            <div class="table-actions  align-items-center gap-2 fs-6">
+                           
+                             
+                                    <a class="text-warning cursor-pointer" href="@Url.Action("EditMember", "Members", new { MemberId = item.MemberId, mid = ViewBag.Mid, type = type,ChapterId=ChapterId })" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                             
+                              
+                                    <a class="text-danger cursor-pointer" onclick="javascript:UserDelete(@item.MemberId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                               
+                            </div>
+                        </td>
+                    
+                    </tr>
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+    function DeleteAll() {
+        Id = Common.GetCheckBoxValue('checkbox')
+        if (validate(Id)) {
+            var val1 = confirm("Do you want to delete for selected members?");
+            if (val1) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("MembersDeleteAll", "Members")', // the URL of the controller action method
+                        data: { MemberId: Id }, // optional data
+                    success: function (result) {
+                        showLobiboxNotification(result.messageType, result.message);
+
+                            //$("#divmessage").html(result.data);
+                            //$('#divmessage').show();
+                            Onload($('#hdnPageNo').val());
+                        },
+                        error: function (req, status, error) {
+                            $("#divmessage").html(result.data);
+                            $('#divmessage').show();
+                        }
+                    });
+                }
+            }
+        }
+
+        function Select(check) {
+            var arr = document.getElementsByName(check);
+            if (arr[0].checked == true) {
+                Common.selectAll('checkbox', check);
+            }
+            else {
+                Common.clearAll('checkbox', check);
+            }
+    }
+
+
+
+
+      function UserStatus(MemberId) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("MemberStatus", "Members")', // the URL of the controller action method
+                    data: { MemberId: MemberId }, // optional data
+                    datatype: "JSON",
+                    success: function (result) {
+                        showLobiboxNotification(result.messageType, result.message);
+                        if (result.ok) {
+                            $('#divmessage').html(result.data);
+                            Onload(1);
+                            $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                        }
+                        else {
+                            $('#divmessage').html(result.data);
+                            $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                        }
+                    }
+                });
+            }
+
+            function UserDelete(MemberId) {
+
+                var conf = confirm('Do you want to delete this record?');
+
+                if (conf) {
+                    $.ajax({
+                        type: "POST",
+                        url: '@Url.Action("DeleteMember", "Members")', // the URL of the controller action method
+                        data: { MemberId: MemberId }, // optional data
+                        datatype: "JSON",
+                        success: function (result) {
+                            showLobiboxNotification(result.messageType, result.message);
+                            if (result.ok) {
+                                $('#divmessage').html(result.data);
+                                Onload(1);
+                                $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                            }
+                            else {
+                                $('#divmessage').html(result.data);
+                                $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                            }
+                        }
+                    });
+                }
+            }
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+
+
+

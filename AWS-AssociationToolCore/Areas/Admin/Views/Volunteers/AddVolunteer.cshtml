@@ -1,0 +1,480 @@
+﻿@{
+    ViewBag.Title = "AddVolunteer";
+    ViewBag.Pageheading = "Add Volunteer";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    List<AWS_AssociationToolCore.Entities.VolunteerCategories> lstVolunteerCategory = ViewBag.lstVolunteerCategory;
+    Int64 VolunteerCategoryId = ViewBag.VolunteerCategoryId;
+    List<AWS_AssociationToolCore.Entities.Events> lstEvents = ViewBag.lstEvents;
+    Int64 EventId = ViewBag.EventId;
+
+    Int64 ChapterId = ViewBag.ChapterId;
+
+    
+
+
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+    List<AWS_AssociationToolCore.Entities.country> lstCountries = new List<AWS_AssociationToolCore.Entities.country>();
+    lstCountries = ViewBag.lstCountries;
+
+
+
+
+    int status = 0;
+
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        function forceCorrectFormat(el) {
+            setTimeout(function () {
+                el.value = formatPhone(el.value);
+            }, 0);
+        }
+
+        // Personal Details Mobile Phone
+        var selfPhone = document.getElementById('PhoneNo');
+        if (selfPhone) {
+            selfPhone.addEventListener('blur', function () { forceCorrectFormat(selfPhone); });
+            selfPhone.addEventListener('change', function () { forceCorrectFormat(selfPhone); });
+        }
+
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wVolunteer, #wVolunteers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+    $(document).ready(function () {
+
+        // ✅ Sync checked Waks checkboxes → hidden CSV field + update button label
+        $(document).on('change', '.waks-chk', function () {
+            var selected = [];
+            var names = [];
+            $('.waks-chk:checked').each(function () {
+                selected.push($(this).val());
+                names.push($(this).next('label').text().trim());
+            });
+
+            $('#WaksCategoryId').val(selected.join(','));
+            $('#WaksCategoryId').valid();
+
+            if (names.length === 0) {
+                $('#WaksDropdownLabel').text('-- Select --');
+            } else if (names.length <= 2) {
+                $('#WaksDropdownLabel').text(names.join(', '));
+            } else {
+                $('#WaksDropdownLabel').text(names.length + ' categories selected');
+            }
+        });
+            $.validator.addMethod('phoneFormat', function (value, element) {
+        var phone = value.replace(/\D/g, '');
+        return this.optional(element) || /^0[234789]\d{8}$/.test(phone);
+    }, 'Please enter a valid  phone number');
+        // ✅ Prevent dropdown from closing when clicking inside checkboxes
+        $(document).on('click', '.waks-dropdown .dropdown-menu', function (e) {
+            e.stopPropagation();
+        });
+
+        $("#VolunteerForm").validate({
+            rules: {
+                FirstName: "required",
+                LastName: "required",
+                WaksCategoryId: "required",
+                KannadaCategoryId: "required",
+                Email: {
+                    required: true,
+                    email: true
+                },
+             
+                       PhoneNo:  { required: true, phoneFormat: true },
+                City: "required",
+                Country: "required",
+                State: "required",
+                ZipCode: "required",
+            },
+            messages: {
+                FirstName: " First Name is required",
+                LastName: " Last Name is required",
+                WaksCategoryId: " Please select at least one Waks category",
+                KannadaCategoryId: " Please Select Kannada Interest Category",
+                Email: {
+                    required: "Please enter email address",
+                    email: "Please enter valid email address",
+                },
+                PhoneNo: {
+                    required: "Please enter phone number",
+                     phoneFormat: 'Please enter a valid  phone number'
+                },
+                City: " City is required",
+                Country: " Country is required",
+                State: " State is required",
+                ZipCode: " ZipCode is required",
+            },
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+
+                if (element.attr("id") === "WaksCategoryId") {
+                    $("#spanWaksCategoryError").html(error).show();
+                    return;
+                }
+
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                } else {
+                    error.insertAfter(element);
+                }
+            },
+            highlight: function (element) {
+                var name = $(element).attr("name");
+                if (name === "WaksCategoryId") return;
+                $(element).addClass("is-invalid").removeClass("is-valid");
+            },
+            unhighlight: function (element) {
+                var name = $(element).attr("name");
+                if (name === "WaksCategoryId") {
+                    $("#spanWaksCategoryError").hide();
+                    return;
+                }
+                $(element).removeClass("is-invalid").addClass("is-valid");
+            },
+            submitHandler: function (form) {
+                var selected = [];
+                $('.waks-chk:checked').each(function () {
+                    selected.push($(this).val());
+                });
+                $('#WaksCategoryId').val(selected.join(','));
+                form.submit();
+            }
+        });
+
+        $('#KannadaCategoryId').on('change', function () {
+            $(this).valid();
+        });
+
+    });
+
+        function StatesBind() {
+        var CountryID = $('#Country').val();
+        $.ajax({
+            url: '@Url.Action("GetStateByCountryID", "Volunteers")',
+            type: 'POST',
+            data: { CountryID: CountryID }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var sb = "<option value=\"\">-- Select --</option>";
+                    States = result.data;
+                    if (States != null) {
+                        for (var i = 0; i < States.length; i++) {
+                            sb = sb + "<option value=\"" + States[i].StateID + "\">" + States[i].StateName + "</option>";
+                        }
+                    }
+                    $('#State').html(sb);
+                }
+            }
+        });
+    }
+
+ 
+
+
+       function CategoriesBind() {
+           var ChapterId = $('#ChapterId').val();
+           
+
+        $.ajax({
+            url: '@Url.Action("VolunteerCategoriesGetChapterId", "VolunteerCategories")',
+            type: 'POST',
+            data: { ChapterId: ChapterId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+
+                    var lstVolunteerCategories = result.data;
+                    var sb = "<label>Volunteer Category : <span>*</span></label>";
+                    sb = sb + "<select id=\"VolunteerCategoryId\" name=\"VolunteerCategoryId\" class=\"form-control\">";
+                    sb = sb + "<option value=\"\">Select</option>";
+                    if (lstVolunteerCategories != null) {
+                        for (var i = 0; i < lstVolunteerCategories.length; i++) {
+                            sb = sb + "<option  value=\"" + lstVolunteerCategories[i].VolunteerCategoryId + "\">" + lstVolunteerCategories[i].CategoryName + "</option>";
+
+                        }
+                    }
+                    sb = sb + "</select>";
+                    $('#divVolunteerCategory').html('');
+                    $('#divVolunteerCategory').html(sb);
+                    window.asd = $('.form-control').SumoSelect({ csvDispCount: 3, selectAll: true, search: true, searchText: 'Enter here.', captionFormatAllSelected: "Yeah, OK, so everything." });
+                }
+            }
+        });
+    }
+
+         function formatPhone(val) {
+        var ph = val.replace(/\D/g, '').slice(0, 10);   // AU mobile = 10 digits max
+        if (ph.length > 6) return ph.slice(0, 4) + '-' + ph.slice(4, 7) + '-' + ph.slice(7, 10);
+        if (ph.length > 4) return ph.slice(0, 4) + '-' + ph.slice(4);
+        return ph;
+    }
+
+      function handlePaste(event) {
+        if (event.target.id === "PhoneNo") {   // ✅ updated id
+            const pastedNumber = (event.clipboardData || window.clipboardData).getData('text');
+            event.target.value = formatPhone(pastedNumber);
+            event.preventDefault();
+        }
+    }
+
+    
+   
+</script>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+
+<div class="content">
+    @using (Html.BeginForm("AddVolunteer", "Volunteers", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VolunteerForm", @name = "VolunteerForm" }))
+    {
+        <input type="hidden" name="EventId" id="EventId" />
+
+
+
+        if (objAppInfo.chapterStatus == "No")
+        {
+            <input type="hidden" value="1" name="ChapterId" id="ChapterId" />
+        }
+
+       
+
+        <input type="hidden" value="@ViewBag.mid" name="mid" id="mid" />
+        <div class="box validation">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">First Name : <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="FirstName" id="FirstName" placeholder="FirstName">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Last Name : <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="LastName" id="LastName" placeholder="LastName">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Email : <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="Email" id="Email" placeholder="Email">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">PhoneNo : <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" onkeypress="return Common.isNumberKey(event);" onpaste="handlePaste(event);" maxlength="12" name="PhoneNo" id="PhoneNo" placeholder="PhoneNo">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">City : <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="City" id="City" placeholder="City">
+                            </div>
+                        </div>
+
+
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Country : <span class="text-danger">*</span></label>
+                                <select class="form-control" id="Country" name="Country" @* onchange="StatesBind()" *@>
+                                    <option value="">Select</option>
+                                    @if (lstCountries.Count != 0)
+                                    {
+                                        foreach (var item in lstCountries)
+                                        {
+                                             <option value="@(item.CountryID)">@(item.CountryName)</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">State : <span class="text-danger">*</span></label>
+                                <select class="form-control" name="State" id="State" placeholder="State">
+                                    <option value="">Select State</option>
+                                    <option value="Australian Capital Territory">Australian Capital Territory</option>
+                                    <option value="New South Wales">New South Wales</option>
+                                    <option value="Northern Territory">Northern Territory</option>
+                                    <option value="Queensland">Queensland</option>
+                                    <option value="South Australia">South Australia</option>
+                                    <option value="Tasmania">Tasmania</option>
+                                    <option value="Victoria">Victoria</option>
+                                    <option value="Western Australia">Western Australia</option>
+                                       
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">ZipCode : <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="ZipCode" id="ZipCode" placeholder="ZipCode" maxlength="8" onkeypress="return Common.isNumberKey(event);">
+                            </div>
+                        </div>
+
+                        @if (objAppInfo.chapterStatus == "Yes")
+                        {
+                            <div class="col-lg-3 col-md-6">
+                                <div class="input-box">
+                                    <label class="form-label">Chapters : </label>
+                                   
+                                    <select class="form-control" id="ChapterId" name="ChapterId" onchange="CategoriesBind();" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+                                        <option value="">-- Select --</option>
+                                        @if (lstChapters != null && lstChapters.Count != 0)
+                                        {
+                                            foreach (var item in lstChapters)
+                                            {
+                                                
+                                                <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+
+
+                                            }
+                                        }
+                                    </select>
+</div>
+                            </div>
+
+                        }
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">
+                                    Waks Category : <span class="text-danger">*</span>
+                                </label>
+
+                                <!-- ✅ hidden field holds final CSV value, posted to server -->
+                                <input type="hidden" name="WaksCategoryId" id="WaksCategoryId" value="" />
+
+                                <div class="dropdown waks-dropdown">
+                                    <button class="form-control text-start d-flex justify-content-between align-items-center"
+                                            type="button"
+                                            id="WaksDropdownBtn"
+                                            data-bs-toggle="dropdown"
+                                            aria-expanded="false">
+                                        <span id="WaksDropdownLabel">-- Select --</span>
+                                        <i class="fa fa-caret-down"></i>
+                                    </button>
+
+                                    <div class="dropdown-menu p-2" style="width:100%; max-height:250px; overflow-y:auto;" aria-labelledby="WaksDropdownBtn">
+                                        @foreach (var item in lstVolunteerCategory.Where(x => x.Type == "Waks"))
+                                        {
+                                            <div class="form-check">
+                                                <input class="form-check-input waks-chk"
+                                                       type="checkbox"
+                                                       value="@item.VolunteerCategoryId"
+                                                       id="WaksChk-@item.VolunteerCategoryId" />
+                                                <label class="form-check-label" for="WaksChk-@item.VolunteerCategoryId">
+                                                    @item.CategoryName
+                                                </label>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback" id="spanWaksCategoryError" style="display:none; color:#dc3545; font-size:.875em;"></div>
+                            </div>
+                        </div>
+<div class="col-lg-3 col-md-6">
+    <div class="input-box">
+        <label class="form-label">
+            Kannada Shaale Category : <span class="text-danger">*</span>
+        </label>
+
+        <select class="single-select" name="KannadaCategoryId" id="KannadaCategoryId">
+            <option value="">-- Select --</option>
+
+            @foreach (var item in lstVolunteerCategory.Where(x => x.Type == "Kannada Shaale"))
+            {
+                <option value="@item.VolunteerCategoryId">
+                    @item.CategoryName
+                </option>
+            }
+        </select>
+    </div>
+</div>
+@* 
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Volunteer Category : <span class="text-danger">*</span></label>
+                                <select class="single-select" name="VolunteerCategoryId" id="VolunteerCategoryId">
+                                    <option value="">-- Select --</option>
+                                    @if (lstVolunteerCategory != null && lstVolunteerCategory.Count != 0)
+                                    {
+                                        foreach (var item in lstVolunteerCategory)
+                                        {
+                                            <option value="@item.VolunteerCategoryId">@item.CategoryName (@item.VolunteerHours Hrs)</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+ *@
+                       @*  <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Hours Spent : <span class="text-danger"></span></label>
+                                <input type="text" class="form-control" name="HoursSpent" id="HoursSpent" placeholder="Hours Spent" maxlength="2" onkeypress="return Common.isNumberKey(event);">
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Address : </label>
+                                <textarea class="form-control" id="Address" name="Address"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Address2 : </label>
+                                <textarea class="form-control" id="Address2" name="Address2"></textarea>
+                            </div>
+                        </div> *@
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2 col-3 text-end ms-auto">
+                <button type="submit" class="btn btn-success px-3 " value="submit">Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Index", "Volunteers", new { mid = ViewBag.mid })">Cancel</a>
+            </div>
+        </div>
+    }
+</div>
+<style>
+    .waks-dropdown .dropdown-menu {
+        z-index: 1050;
+    }
+
+    .waks-dropdown .form-check {
+        padding-left: 1.8rem;
+        margin-bottom: 4px;
+    }
+
+    .waks-dropdown button.form-control {
+        cursor: pointer;
+    }
+</style>

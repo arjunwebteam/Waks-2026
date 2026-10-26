@@ -1,0 +1,182 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    .braintree-option__paypal {
+        display: none !important;
+    }
+
+    .braintree-heading {
+        display: none !important;
+    }
+
+    .braintree-toggle {
+        display: none !important;
+    }
+
+    .braintree-sheet__container {
+        display: block !important;
+    }
+
+    [data-braintree-id="wrapper"] {
+        margin-top: -55px !important;
+        margin-bottom: -10px !important;
+    }
+
+    .braintree-show-card .braintree-card {
+        display: block !important;
+    }
+
+    .braintree-form__field-group label {
+        display: block;
+    }
+
+    .braintree-form__notice-of-collection {
+        display: block;
+        width: 100%;
+    }
+
+    .braintree-placeholder {
+        margin-bottom: 30px !important;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .alert {
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+
+    .alert-danger {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+</style>
+
+<div id="braintree-section">
+    <div id="bt-error" class="alert alert-danger" style="display:none;"></div>
+    <div id="bt-success" class="alert alert-success" style="display:none;"></div>
+    <input type="hidden" id="ClientToken" value="@ViewBag.ClientToken" />
+    <div id="dropin-container"></div>
+</div>
+
+<script src="https://js.braintreegateway.com/web/3.98.0/js/client.min.js"></script>
+<script src="https://js.braintreegateway.com/web/3.98.0/js/data-collector.min.js"></script>
+<script src="https://js.braintreegateway.com/web/dropin/1.42.0/js/dropin.min.js"></script>
+
+<script>
+    (function () {
+
+        // ================================================================
+        // AMOUNT DETECTION - works for all 3 forms:
+        //   Donation view    -> #BT_Amount  (set by round_off())
+        //   Membership view  -> #MemberAmount
+        //   Event Reg view   -> #AmountPaid
+        // ================================================================
+        function getAmountFromPage() {
+            var btAmt = parseFloat($('#BT_Amount').val());
+            if (!isNaN(btAmt) && btAmt > 0) return btAmt;
+
+            var memberAmt = parseFloat($('#MemberAmount').val());
+            if (!isNaN(memberAmt) && memberAmt > 0) return memberAmt;
+
+            var amtPaid = parseFloat($('#AmountPaid').val());
+            if (!isNaN(amtPaid) && amtPaid > 0) return amtPaid;
+
+            if (window.NEW_PAYMENT_AMOUNT) {
+                var wAmt = parseFloat(window.NEW_PAYMENT_AMOUNT);
+                if (!isNaN(wAmt) && wAmt > 0) return wAmt;
+            }
+
+            return 0;
+        }
+
+        function showError(msg)   { $('#bt-error').html(msg).show(); $('#bt-success').hide(); }
+        function showSuccess(msg) { $('#bt-success').html(msg).show(); $('#bt-error').hide(); }
+        function clearUI()        { $('#bt-error').hide(); $('#bt-success').hide(); $('#nonce').val(''); }
+
+        // ================================================================
+        // INIT DROP-IN
+        // ================================================================
+        function initDropIn() {
+            clearUI();
+            var token  = $('#ClientToken').val();
+            var amount = getAmountFromPage();
+
+            if (!token) { showError('Payment system not configured. Please contact administrator.'); return; }
+            if (!amount || isNaN(amount) || amount <= 0) { showError('Please enter / select an amount before using Credit Card.'); return; }
+
+            console.log('[Braintree] Initializing for amount: $' + amount);
+
+            if (window.dropinInst) {
+                window.dropinInst.teardown(function () {
+                    window.dropinInst = null;
+                    loadDropIn(token, amount);
+                });
+            } else {
+                loadDropIn(token, amount);
+            }
+        }
+
+        function loadDropIn(token, amount) {
+            braintree.dropin.create({
+                authorization: token,
+                container: '#dropin-container',
+                paymentOptionPriority: ['card'],
+                card: { cardholderName: { required: false } }
+            }, function (err, instance) {
+                if (err) {
+                    console.error('[Braintree] Error:', err);
+                    showError('Failed to load payment form: ' + err.message);
+                    return;
+                }
+                window.dropinInst = instance;
+                console.log('[Braintree] Ready for $' + amount);
+
+                instance.on('paymentMethodRequestable',   function (e) { console.log('[Braintree] requestable:', e.type); });
+                instance.on('noPaymentMethodRequestable', function ()   { console.log('[Braintree] no method requestable'); });
+            });
+        }
+
+        // ================================================================
+        // AMOUNT CHANGE LISTENER
+        // All 3 views fire: $(document).trigger("amount-updated")
+        // ================================================================
+        $(document).on('amount-updated braintree-refresh', function () {
+            var newAmt = getAmountFromPage();
+            console.log('[Braintree] amount-updated, amount: $' + newAmt);
+            if (newAmt > 0) { initDropIn(); }
+        });
+
+        // ================================================================
+        // GLOBAL EXPORTS
+        // ================================================================
+        window.startBraintree = initDropIn;
+
+        window.refreshBraintreeAmount = function (newAmount) {
+            console.log('[Braintree] refreshBraintreeAmount: $' + newAmount);
+            if (window.dropinInst) { initDropIn(); }
+        };
+
+        // Auto-init only if credit card tab is already visible on load
+        $(document).ready(function () {
+            if ($('#tabcredit-card').is(':visible')) {
+                var amount = getAmountFromPage();
+                if (amount > 0) { initDropIn(); }
+            }
+        });
+
+    })();
+</script>

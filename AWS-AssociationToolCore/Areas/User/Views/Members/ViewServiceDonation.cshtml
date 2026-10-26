@@ -1,0 +1,247 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    ViewBag.Heading = "Profile";
+
+    int _qstatus = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    List<AWS_AssociationToolCore.Entities.EventUserInfo> lstEventUserInfo = ViewBag.lstEventUserInfo;
+
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref _qstatus);
+
+    AWS_AssociationToolCore.Entities.Members objMember = ViewBag.objMember;
+    var objMembersType = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembersType;
+
+    var location = objAppInfo.AdminImageUrl + "MemberProfileImages/";
+    
+    AWS_AssociationToolCore.Entities.ServiceDonations objServiceDonations = ViewBag.objServiceDonations;
+   
+
+}
+<script src="Scripts/Admin/Common.js" type="text/javascript"></script>
+<!-- button list start -->
+<style>
+    td .bi.bi-eye-fill {
+        font-size: 1rem;
+        color: #373737;
+    }
+
+    .pn__set thead tr th:nth-child(6) {
+        width: 60px;
+    }
+
+    .pn__set thead tr th:nth-child(1) {
+        width: 100px;
+    }
+
+    .veiw__title__name {
+        display: flex;
+        gap: 5px;
+    }
+
+    .profile__set {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat( auto-fit, minmax(300px, 1fr) );
+    }
+
+
+    .aws-event-box .event__box__title {
+        color: #3fa2a9;
+    }
+</style>
+<script>
+        $(document).ready(function () {
+            LoadLatestNewsList();
+        });
+
+        function LoadLatestNewsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("ProfileMenu", "Members")',
+             data: {
+    tab    : 'DonorsList'
+
+        },
+
+            success: function (data) {
+                    $("#DonorsList").html(data);
+                },
+                error: function () {
+                    $("#DonorsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+</script>
+
+<div class="aws-profile-left-sec">
+
+    <!-- profile Here information -->
+    <div class="" id="DonorsList">
+        <div class="aws-profile-img">
+            <button class="aws-edit-icon" title="edit profile" data-bs-toggle="modal" data-bs-target="#editProfile"><i class="bi bi-pencil"></i></button>
+            @if (objMember.ProfileImage != null && objMember.ProfileImage != "")
+            {
+                <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((location + objMember.ProfileImage), "https://t4.ftcdn.net/jpg/04/73/25/49/360_F_473254957_bxG9yf4ly7OBO5I0O5KABlN930GwaMQz.jpg")" alt="Profile" class="border-radius10 profshd" width="159" height="159" />
+            }
+            else
+            {
+                <img src="Content/User/images/pres-img.png" alt="Profile" class="border-radius10 profshd" width="159"
+                     height="159" />
+            }
+        </div>
+
+
+@*         @{Html.RenderAction("ProfileMenu", "Members", new { tab = "DonorsList" });}
+ *@
+
+
+    </div>
+    <!-- profile Here  -->
+
+</div>
+
+<div class="aws-profile-right-sec">
+   
+
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <div class="aws-title">Donation Info</div>
+        <div><a href="@Url.Action("DonorsList", "Members")" class="btn px-3" style="background: #d5181f; color:#fff;"><i class="bi bi-box-arrow-left pe-1"></i> Back</a></div>
+    </div>
+
+
+
+    <div class="aws-bdr"></div>
+    <div class="aws-profile-dashboard-sec">
+        <div class="">
+
+            <div class="row">
+                <div class="aws-event-box">
+                    <h5 class="event__box__title">Personal Details</h5>
+                </div>
+                <div class="col-12">
+                    <div class="profile__set">
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">First Name :</div>
+                                <div class="aws-desgination">@objServiceDonations.FirstName</div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Last Name :</div>
+                                <div class="aws-desgination">@objServiceDonations.LastName</div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Email :</div>
+                                <div class="aws-desgination">@objServiceDonations.Email</div>
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Mobile Number :</div>
+                                <div class="aws-desgination">@objServiceDonations.PhoneNo</div>
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Country :</div>
+                                <div class="aws-desgination">@objServiceDonations.Country</div>
+                            </div>
+                        </div>
+
+
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Zip Code :</div>
+                                <div class="aws-desgination">@objServiceDonations.ZipCode</div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Address :</div>
+                                <div class="aws-desgination">@objServiceDonations.Address</div>
+                            </div>
+                        </div>
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Donation Cause :</div>
+                                <div class="aws-desgination">@objServiceDonations.DonationCauses</div>
+                            </div>
+                        </div>
+
+
+
+
+
+
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div class="row mt-3">
+                <div class="aws-event-box">
+                    <h5 class="event__box__title">Payment Details</h5>
+                </div>
+                <div class="col-12">
+                    <div class="profile__set">
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4"> Payment Method :</div>
+                                <div class="aws-desgination"> @objServiceDonations.PaymentMethod</div>
+                            </div>
+                        </div>
+                        @if (objServiceDonations.PaymentStatus == "Completed")
+                        {
+
+
+                            <div class="">
+                                <div class="aws-committee-cnt  veiw__title__name">
+                                    <div class="aws-title4">Payment Status :</div>
+                                    <div class="aws-desgination">Paid</div>
+                                </div>
+                            </div>
+
+                        }
+
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4"> Transaction Id :</div>
+                                <div class="aws-desgination">  @objServiceDonations.TransactionId</div>
+                            </div>
+                        </div>
+
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Amount Paid :</div>
+                                <div class="aws-desgination">$@Math.Round(objServiceDonations.Amount, 2)</div>
+                            </div>
+                        </div>
+
+
+                        <div class="">
+                            <div class="aws-committee-cnt  veiw__title__name">
+                                <div class="aws-title4">Paid Date  :</div>
+                                <div class="aws-desgination"> @(objServiceDonations.OrderDate == DateTime.MinValue ? "N/A" : objServiceDonations.OrderDate.ToString("MM-dd-yyyy"))</div>
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+</div>
+

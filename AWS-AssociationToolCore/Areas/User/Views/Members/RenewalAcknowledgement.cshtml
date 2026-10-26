@@ -1,0 +1,110 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    AWS_AssociationToolCore.Entities.Members objMember = ViewBag.objMembers;
+    ViewBag.Title = "Acknowledgment | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Thank you for supporting the " + objAppInfo.SiteName + ". Your contribution is appreciated";
+    ViewBag.MetaKeywords = objAppInfo.SiteName + " acknowledgment, thank you Telugu support, appreciation message, donation acknowledgment";
+
+    ViewBag.PageHeading = "Acknowledgment";
+}
+
+
+
+
+<div class="aws-left-sec">
+   
+    <div class="aws-bdr"></div>
+
+    <div class="aws-acknowledgement-sec">
+
+        <div class="aws-acknowledgement-box ">
+            <div class="row justify-content-center">
+                <div class="col-md-7">
+                    <div class="printer-top"></div>
+                    <div class="paper-container">
+                        <div class="printer-bottom"></div>
+                        <div class="paper">
+                            <div class="main-contents">
+                                <div class="success-icon">&#10004;</div>
+                                <div class="aws-title2 mb-2 text-success text-center">Payment Complete</div>
+                                <div class="success-description">
+                                    Thank you for your payment towards
+                                    <span style="color: #ad1115; margin-left: 5px;">@objMember.objMembershipOrder.MembershipType</span>
+                                    Membership Fee of the
+                                    <b style="margin-left: 5px;">@objAppInfo.SiteName</b>.
+                                </div>
+                                <hr style="opacity: 0.1;">
+                                <div class="order-details px-lg-5">
+                                    <div class="row gy-0">
+
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Date</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objMember.objMembershipOrder.OrderDate.ToString("MM/dd/yyyy")</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Transaction Id</div>
+                                        </div>
+
+
+                                        <div class="col-7">
+                                            @if (objMember.objMembershipOrder.PaymentMethod == "Cash/Cheque")
+                                            {
+                                                <div class="text-start">@(objMember.objMembershipOrder.TransactionId != null && objMember.objMembershipOrder.TransactionId != "" ? objMember.objMembershipOrder.TransactionId : "Paid in Cash/Cheque")</div>
+                                            }
+                                            else if (objMember.objMembershipOrder.PaymentMethod == "Zelle")
+                                            {
+                                                <div class="text-start">@(objMember.objMembershipOrder.TransactionId != null && objMember.objMembershipOrder.TransactionId != "" ? objMember.objMembershipOrder.TransactionId : "Paid in Zelle")</div>
+                                            }
+                                            else
+                                            {
+                                                <div class="text-start">@(objMember.objMembershipOrder.TransactionId != null && objMember.objMembershipOrder.TransactionId != "" ? objMember.objMembershipOrder.TransactionId : "N/A")</div>
+                                            }
+                                        </div>
+
+
+
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">PaymentStatus </div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objMember.objMembershipOrder.PaymentStatus </div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Payment Date</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">@objMember.objMembershipOrder.OrderDate.ToString("MM/dd/yyyy")</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Amount</div>
+                                        </div>
+                                        <div class="col-7">
+
+
+                                            <div class="text-start">$@objMember.MemberAmount</div>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="order-footer"><a href="Global/profile?tab=Profile" class="btn px-3" style="background: #d5181f; color:#fff;"><i class="bi bi-box-arrow-left pe-1"></i> Back To Profile Page</a></div>
+                            </div>
+                            <div class="jagged-edge"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

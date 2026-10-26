@@ -1,0 +1,105 @@
+﻿
+@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Title = "Services - Telugu Association Tool";
+
+    Int64 MemberId = ViewBag.MemberId;
+    Int64 CategoryId = ViewBag.ServiceCategoryId;
+    Int64 ChapterId = ViewBag.ChapterId;
+    var ServiceType = ViewBag.ServiceType;
+    var ChapterName = ViewBag.cname;
+}
+<script>
+    $(document).ready(function () {
+        LoadEventsList();
+    });
+
+    function LoadEventsList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("FEServicesList", "Services")',
+            data: {
+                cname    : '@ChapterName'
+             
+            },
+            success: function (data) {
+                $("#divServiceDetails").html(data);
+            },
+            error: function () {
+                $("#divServiceDetails").html('<p class="text-danger">Failed to load events.</p>');
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        PagerClickBind();
+    });
+
+    function Servicesbind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = ($.trim($('#txtsearch').val()));
+        var MemberId = @MemberId;
+        var CategoryId = @CategoryId;
+        var ChapterId = @ChapterId;
+        var ServiceType = @ServiceType;
+
+        $.ajax({
+            url: '@Url.Action("FEServicesList", "Services")',
+            type: 'GET',
+            cache: false,
+            data: { MemberId: MemberId, CategoryId: CategoryId, ChapterId: ChapterId, ServiceType: ServiceType, Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items },
+            success: function (result) {
+                $('#divServiceDetails').html(result);
+                PagerClickBind();
+            }
+        });
+
+    }
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        Servicesbind(1);
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Servicesbind($(this).text());
+        });
+    }
+
+</script>
+
+<input id="TotalPages" type="hidden" value="1" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedDate" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+<input id="hdnuserid" type="hidden" value="0" />
+
+<article class="clearfix lates-gray-bg t-b-p7 mobile-t-b-p10 mobilev-b-p0 mobilev-t-p96">
+    <ul class="bread-crum-list list-f list-pn m0 tabhorizontal-t-p30 font14 mobile-font12 mobile-v-t-p5 mobile-hide">
+        <li>
+            <a class="t-t-u" href="@ChapterName/index">Home</a>
+        </li> 
+        <li>
+            <a class="t-t-u">Active Causes</a>
+        </li>
+    </ul>
+</article>
+
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5">Active Causes</h3>
+        </article>
+        <div id="divServiceDetails">
+
+        </div>
+        
+      
+    </article>
+</article>

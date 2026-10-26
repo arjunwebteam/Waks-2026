@@ -1,0 +1,88 @@
+﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+    Layout = null;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var baseurl = /*System.Configuration.ConfigurationManager.AppSettings["baseurl"]*/  objAppInfo.BaseUrl;
+    ViewBag.Title = "LaunchSoonPage";
+}
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Cache-control" content="description" />
+    <meta http-equiv="Cache-control" content="public" />
+    <meta http-equiv="Cache-control" content="private" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta http-equiv="Cache-control" content="no-store" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <base href="@(baseurl)" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Telugu Association Tool - TAT</title>
+    <link rel="shortcut icon" href="Content/User/images/fevicon.ico" />
+    <link rel="stylesheet" type="text/css" href="Content/User/nats.css" />
+    <script type="text/javascript" src="Scripts/User/jquery.min.js"></script>
+    <script type="text/javascript" src="Scripts/User/jquery.nivo.slider.js"></script>
+    <script type="text/javascript" src="Scripts/User/Common.js"></script>
+
+    <!--[if lt IE 9]>
+          <script src="Scripts/html5shiv.min.js"></script>
+          <script src="Scripts/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <a href="@(baseurl)?w=launch">
+        <img src="~/Content/User/images/launching.jpg" alt="NATS Launch" class="width100" width="1400" height="780" style="max-height:859px;" />
+    </a>
+
+</body>
+</html>
+
+
+@{
+    Layout = null;
+
+    // var baseurl = Configuration["AppSettings:BaseUrl"];
+    ViewBag.Title = "LaunchSoonPage";
+}    
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Cache-control" content="description" />
+    <meta http-equiv="Cache-control" content="public" />
+    <meta http-equiv="Cache-control" content="private" />
+    <meta http-equiv="Cache-control" content="no-cache" />
+    <meta http-equiv="Cache-control" content="no-store" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <base href="@(baseurl)" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <title>Telugu Association Tool - TAT</title>
+    <link rel="shortcut icon" href="Content/User/images/fevicon.ico" />
+    <link rel="stylesheet" type="text/css" href="Content/User/nats.css" />
+    <script type="text/javascript" src="Scripts/User/jquery.min.js"></script>
+    <script type="text/javascript" src="Scripts/User/jquery.nivo.slider.js"></script>
+    <script type="text/javascript" src="Scripts/User/Common.js"></script>
+
+    <!--[if lt IE 9]>
+          <script src="Scripts/html5shiv.min.js"></script>
+          <script src="Scripts/respond.min.js"></script>
+    <![endif]-->
+</head>
+<body>
+    <a href="@(baseurl)?w=launch">
+        <img src="~/Content/User/images/launching.jpg" alt="NATS Launch" class="width100" width="1400" height="780" style="max-height:859px;" />
+    </a>
+
+</body>
+</html>

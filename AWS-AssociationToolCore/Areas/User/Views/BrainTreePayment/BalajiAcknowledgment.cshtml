@@ -1,0 +1,61 @@
+﻿@{
+    int status = 0;
+    AWS_AssociationToolCore.Entities.AppInfo objappinfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    AWS_AssociationToolCore.BLL.AppInfo _Appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+
+    // AWS_AssociationToolCore.Entities.BalajiVidyapithamRegistration objbalaji = ViewBag.objbalaji;
+
+    objappinfo = _Appinfo.GetAppInfoDetails(ref status);
+    ViewBag.Title = "Balaji Vidyapetham Acknowledgement - " + objappinfo.SiteName;
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+}
+<script type="text/javascript">
+    //Disable browser Back button [Start]
+    function preventBack() { window.history.forward(); }
+    setTimeout("preventBack()", 0);
+    window.onunload = function () { null };
+    //Disable browser Back button [End]
+</script>
+<div class="inner-hd">
+    <h2 class="inner-title text-center">Thank You ..! </h2>
+</div>
+<div class="inner-cnt">
+    <div class="row">
+        <div class="col-12 text_align">
+            <img src="Content/User/images/check-mark-verified.gif" alt="" class="w_30">
+            <div class=" cus-sub-head  head_responsive my-1 my-md-3 text-success">
+                Thank you for your payment towards <span class="" style="color: #ad1115">@ViewBag.OrderType</span>, <br />your Booking Id: <span style="color: #ad1115">@* @objbalaji.BookingID. *@</span> Balaji Vidyapetham Registration of the @objappinfo.SiteName”.
+            </div>
+
+
+            <article class="clearfix dashborder-t border-t t-m5 tablet-t-m5 l-r-m-auto t-p10" style="max-width:800px;">
+                <article class="cus-res-table t-m10">
+                    <table width="100%" cellspacing="0" cellpadding="0" border="0" class="table ">
+                        <tbody>
+                            <tr>
+                                <th width="16.6%">Date &amp; Time</th>
+                                <th width="23.7%">Transaction Id</th>
+                                <th width="28.2%">Summary</th>
+                                <th width="16.9%">Status</th>
+                                <th width="14.6%">Total</th>
+                            </tr>
+                            <tr>
+                                <td width="16.6%">@ViewBag.PaymentDate</td>
+                                <td width="23.7%">@ViewBag.TransactionId</td>
+                                <td width="28.2%">
+                                    <span class="pin-t"> @ViewBag.MembershipType </span> Registration for the
+                                    @objappinfo.SiteName.
+                                </td>
+                                <td width="16.9%">Paid</td>
+                                <td width="14.6%"><span class="pnk-t">$@ViewBag.GrossTotal</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </article>
+            </article>
+
+            <button class="cmn-form-btn m-5" onclick="window.location.href='index'">Back to Home</button>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,256 @@
+-------------------START-------------7/24/2024 5:02:13 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:02:13 AM
+-------------------START-------------7/24/2024 5:02:14 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:02:14 AM
+-------------------START-------------7/24/2024 5:02:45 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:02:45 AM
+-------------------START-------------7/24/2024 5:02:45 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:02:45 AM
+-------------------START-------------7/24/2024 5:07:34 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:07:34 AM
+-------------------START-------------7/24/2024 5:07:34 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:07:34 AM
+-------------------START-------------7/24/2024 5:08:16 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:08:16 AM
+-------------------START-------------7/24/2024 5:08:16 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:08:16 AM
+-------------------START-------------7/24/2024 5:13:59 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:13:59 AM
+-------------------START-------------7/24/2024 5:13:59 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:13:59 AM
+-------------------START-------------7/24/2024 5:16:45 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:16:45 AM
+-------------------START-------------7/24/2024 5:16:45 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:16:45 AM
+-------------------START-------------7/24/2024 5:20:28 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:20:28 AM
+-------------------START-------------7/24/2024 5:20:28 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:20:28 AM
+-------------------START-------------7/24/2024 5:32:49 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:32:49 AM
+-------------------START-------------7/24/2024 5:32:49 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:32:49 AM
+-------------------START-------------7/24/2024 5:46:34 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:46:34 AM
+-------------------START-------------7/24/2024 5:46:34 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:46:34 AM
+-------------------START-------------7/24/2024 5:51:05 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 5:51:05 AM
+-------------------START-------------7/24/2024 5:51:05 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 5:51:05 AM
+-------------------START-------------7/24/2024 6:00:09 AM
+Page :/nats-global/member-registration-acknowledgement
+Entered into Acknowledgement Page
+-------------------END-------------7/24/2024 6:00:09 AM
+-------------------START-------------7/24/2024 6:56:10 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 6:56:10 AM
+-------------------START-------------7/24/2024 6:56:10 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 6:56:10 AM
+-------------------START-------------7/24/2024 7:12:40 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 7:12:40 AM
+-------------------START-------------7/24/2024 7:12:40 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 7:12:40 AM
+-------------------START-------------7/24/2024 7:12:41 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 7:12:41 AM
+-------------------START-------------7/24/2024 7:12:41 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 7:12:41 AM
+-------------------START-------------7/24/2024 7:23:46 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 7:23:46 AM
+-------------------START-------------7/24/2024 7:23:46 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 7:23:46 AM
+-------------------START-------------7/24/2024 7:36:33 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 7:36:33 AM
+-------------------START-------------7/24/2024 7:36:33 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 7:36:33 AM
+-------------------START-------------7/24/2024 7:48:55 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 7:48:55 AM
+-------------------START-------------7/24/2024 7:48:55 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 7:48:55 AM
+-------------------START-------------7/24/2024 8:24:31 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 8:24:31 AM
+-------------------START-------------7/24/2024 8:24:31 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 8:24:31 AM
+-------------------START-------------7/24/2024 9:30:10 AM
+Page :/nats-global/member-registration
+After reCAPTCHA Entered to the Process
+-------------------END-------------7/24/2024 9:30:10 AM
+-------------------START-------------7/24/2024 9:30:10 AM
+Page :/nats-global/member-registration
+Member Inserted Successfully
+-------------------END-------------7/24/2024 9:30:10 AM
+-------------------START-------------7/24/2024 9:30:10 AM
+Page :/nats-global/member-registration
+Entered Into Payment Process
+-------------------END-------------7/24/2024 9:30:10 AM
+-------------------START-------------7/24/2024 9:30:11 AM
+Page :/nats-global/member-registration
+RESPMSG Approved - Members Orders Inserted
+-------------------END-------------7/24/2024 9:30:11 AM
+-------------------START-------------7/24/2024 9:30:12 AM
+Page :/nats-global/member-registration
+User Notification Email Sent
+-------------------END-------------7/24/2024 9:30:12 AM
+-------------------START-------------7/24/2024 9:30:12 AM
+Page :/nats-global/member-registration
+Admin Notification Email Sent
+-------------------END-------------7/24/2024 9:30:12 AM
+-------------------START-------------7/24/2024 9:30:12 AM
+Page :/nats-global/member-registration-acknowledgement
+Entered into Acknowledgement Page
+-------------------END-------------7/24/2024 9:30:12 AM
+-------------------START-------------7/24/2024 9:31:20 AM
+Page :/nats-global/member-registration-acknowledgement
+Entered into Acknowledgement Page
+-------------------END-------------7/24/2024 9:31:20 AM
+-------------------START-------------7/24/2024 9:35:48 AM
+Page :/nats-global/member-registration
+After reCAPTCHA Entered to the Process
+-------------------END-------------7/24/2024 9:35:48 AM
+-------------------START-------------7/24/2024 9:35:48 AM
+Page :/nats-global/member-registration
+Member Inserted Successfully
+-------------------END-------------7/24/2024 9:35:48 AM
+-------------------START-------------7/24/2024 9:35:48 AM
+Page :/nats-global/member-registration
+Entered Into Payment Process
+-------------------END-------------7/24/2024 9:35:48 AM
+-------------------START-------------7/24/2024 9:35:49 AM
+Page :/nats-global/member-registration
+RESPMSG Not Approved - Members Orders Inserted
+-------------------END-------------7/24/2024 9:35:49 AM
+-------------------START-------------7/24/2024 9:35:50 AM
+Page :/nats-global/member-registration
+Payment failed
+-------------------END-------------7/24/2024 9:35:50 AM
+-------------------START-------------7/24/2024 11:24:09 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 11:24:09 AM
+-------------------START-------------7/24/2024 11:24:09 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 11:24:09 AM
+-------------------START-------------7/24/2024 11:50:23 AM
+Page :/balala-acknowledgement
+Successfully Payment done
+-------------------END-------------7/24/2024 11:50:23 AM
+-------------------START-------------7/24/2024 11:50:23 AM
+Page :/balala-acknowledgement
+Balala Registration getting By Id Succefully
+-------------------END-------------7/24/2024 11:50:23 AM
+-------------------START-------------7/24/2024 11:55:43 AM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 11:55:43 AM
+-------------------START-------------7/24/2024 11:55:43 AM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 11:55:43 AM
+-------------------START-------------7/24/2024 2:07:08 PM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 2:07:08 PM
+-------------------START-------------7/24/2024 2:07:08 PM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 2:07:08 PM
+-------------------START-------------7/24/2024 2:27:08 PM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 2:27:08 PM
+-------------------START-------------7/24/2024 2:27:08 PM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 2:27:08 PM
+-------------------START-------------7/24/2024 3:45:44 PM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 3:45:44 PM
+-------------------START-------------7/24/2024 3:45:44 PM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 3:45:44 PM
+-------------------START-------------7/24/2024 4:37:22 PM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 4:37:22 PM
+-------------------START-------------7/24/2024 4:37:22 PM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 4:37:22 PM
+-------------------START-------------7/24/2024 8:24:32 PM
+Page :/event-registration.html
+Entered Into Event Registrations
+-------------------END-------------7/24/2024 8:24:32 PM
+-------------------START-------------7/24/2024 8:24:32 PM
+Page :/event-registration.html
+Inserted Event UserInfo Succefully
+-------------------END-------------7/24/2024 8:24:32 PM

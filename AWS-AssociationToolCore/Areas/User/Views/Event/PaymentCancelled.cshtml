@@ -1,0 +1,27 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Payment Cancelled | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Your payment was canceled. Please try again or contact support for assistance.";
+    ViewBag.MetaKeywords = "Payment cancelled Telugu association, transaction failed, retry payment, Telugu event payment issue";
+
+    ViewBag.PageHeading = "Payment Cancelled..!";
+}
+
+<div class="row">
+    <div class="col-12 text_align">
+        <img src="Content/User/images/favicon.png" alt="" class="w_30">
+        <br />
+
+        <button class="cmn-form-btn m-5" onclick="window.location.href='index'">Back to Home</button>
+    </div>
+</div>
+
+
+
+

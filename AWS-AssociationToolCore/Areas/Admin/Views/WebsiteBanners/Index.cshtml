@@ -1,0 +1,605 @@
+﻿@using System.Configuration;
+@{
+
+    ViewBag.Pageheading = "Website Banners";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    Int64 ChapterId = ViewBag.ChapterId;
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var imgloc = objAppInfo.BaseUrl + "Content/themebanners/normalimages/";
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+
+}
+@*<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>*@
+@*<script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>*@
+
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("BannersList", "WebsiteBanners")',
+            data: {
+                IsEdit    : '@ViewBag.IsEdit',
+                IsView    : '@ViewBag.IsView',
+                IsDelete  : '@ViewBag.IsDelete',
+                IsExport  : '@ViewBag.IsExport',
+                IsAdd     : '@ViewBag.IsAdd',
+                Mid       : '@ViewBag.mid',
+                ChapterId : '@(ViewBag.ChapterId == null || ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId)'
+            },
+            success: function (data) {
+                $("#divThemeBanner").html(data);
+            },
+            error: function () {
+                $("#divThemeBanner").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#wThemeBanners, #Banners').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('#wWebsiteBanners').addClass('active');
+        PagerClickBind();
+    });
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        ThemeBannerBind(1);
+    }
+
+    function ThemeBannerBind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#keyword').val();
+        var ChapterId = $('#ChapterId').val();
+         @*var ChapterId = 0;
+        if (@ChapterId != 0) {
+            ChapterId = @ChapterId;
+        }
+        else {
+
+            ChapterId = $('#ddlChapterId').val();
+
+        }*@
+        $.ajax({
+            url: '@Url.Action("BannersList", "WebsiteBanners")',
+            type: 'GET',
+            cache: false,
+            data: { ChapterId: ChapterId, Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid' },
+            success: function (result) {
+                $('#divThemeBanner').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            ThemeBannerBind($(this).text());
+        });
+    }
+
+    function EditBanner(WebsiteBannerId) {
+
+        var imgloc = $('#imgloc').val();
+
+        $.ajax({
+            url: '@Url.Action("EditBanner", "WebsiteBanners")',
+            type: 'POST',
+            data: { WebsiteBannerId: WebsiteBannerId },
+            datatype: "JSON",
+            success: function (result) {
+
+                if (result.ok) {
+
+                    var obj = result.data;
+
+                    // Fill form fields
+                    $('#BannerTitle').val(obj.BannerTitle);
+                    $('#ChapterId').val(obj.ChapterId);
+                    $('#RedirectUrl').val(obj.RedirectUrl);
+                    $('#OrderNo').val(obj.OrderNo);
+                    $('#Target').val(obj.Target);
+                    $('#IsApproved').val(obj.IsActive);
+                    $('#Type').val(obj.Type);
+                    $('#WebsiteBannerId').val(obj.WebsiteBannerId);
+
+                    // Show existing image
+                    if (obj.BannerUrl && obj.BannerUrl !== "") {
+                        var imageUrl = imgloc + obj.BannerUrl;
+
+                        $('#test1').attr('src', imageUrl);
+                        $('#img-tag').show();
+
+                        // ✅ Remove validation error for file input
+                        $("#BannerUrl").removeClass("is-invalid");
+                        $("#BannerUrl-error").remove();
+                    }
+                    else {
+                        $('#test1').attr('src', '');
+                        $('#img-tag').hide();
+                    }
+
+                    // Clear old validation messages
+                    $('#spanBannerTitle').html('');
+                    $('#spanOrderNo').html('');
+                    $('#spanRedirectUrl').html('');
+                    $('#spanTarget').html('');
+
+                    // Remove validation styles
+                    $('#BannerTitle').removeClass("is-invalid is-valid");
+                    $('#OrderNo').removeClass("is-invalid is-valid");
+                    $('#BannerUrl').removeClass("is-invalid is-valid");
+
+                    // Modal title
+                    $('#lbltitle').html('Edit Theme Banner');
+
+                    // Clear file input manually (important)
+                    $('#BannerUrl').val('');
+
+                    // Show modal
+                    $("#AddWebsiteBanners").modal('show');
+
+                } else {
+
+                    $('#divmessage').val(result.data);
+
+                    $('.alert-danger').append(
+                        '<i class="fa fa-ban"></i>' +
+                        '<button class="close" data-dismiss="alert">×</button>'
+                    );
+                }
+            }
+        });
+    }
+    function ViewBanner(WebsiteBannerId) {
+        $.ajax({
+            url: '@Url.Action("EditBanner", "WebsiteBanners")',
+            type: 'POST',
+            data: { WebsiteBannerId: WebsiteBannerId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objWebsiteBanners = result.data;
+                    $('#vBannerUrl').html(objWebsiteBanners.BannerUrl);
+                    $('#vBannerTitle').html(objWebsiteBanners.BannerTitle);
+                    $('#vRedirectUrl').html(objWebsiteBanners.RedirectUrl != null && objWebsiteBanners.RedirectUrl != "" ? objWebsiteBanners.RedirectUrl : "N/A");
+                    $('#vOrderNo').html(objWebsiteBanners.OrderNo);
+                    $('#ChapterId').html(objWebsiteBanners.ChapterId);
+                    $('#vTarget').html(objWebsiteBanners.Target);
+                    $('#vIsApproved').html(objWebsiteBanners.IsActive);
+                    $('#vType').html(objWebsiteBanners.Type);
+                    $('#vWebsiteBannerId').val(objWebsiteBanners.WebsiteBannerId);
+
+                    $('#ViewThemeBanner').modal('show');
+                    $('#vbltitle').html('View Website Banner');
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+    function Add() {
+        clearInnerPageCategory();
+        $("#AddWebsiteBanners").modal('show');
+        $('#lbltitle').html('Add Website Banner');
+    }
+
+    function clearInnerPageCategory() {
+        $('#WebsiteBannerId').val('0');
+        $('#ImageUrl').val('');
+        $('#BannerTitle').val('');
+        $('#Description').val('');
+        $('#OrderNo').val('');
+        $('#RedirectUrl').val('');
+        $('#Target').val('');
+        $('#spanfile').html('');
+        $('#spanBannerUrl').html('');
+        $('#spanBannerTitle').html('');
+        $('#spanOrderNo').html('');
+        $('#spanRedirectUrl').html('');
+        $('#spanDescription').html('');
+        $('#BannerUrl').focus().removeClass("validate");
+        $('#BannerTitle').focus().removeClass("validate");
+        $('#OrderNo').focus().removeClass("validate");
+        $('#Description').focus().removeClass("validate");
+    }
+
+
+
+
+
+
+
+    $(document).ready(function () {
+        $("#BannerUrl").change(function () {
+            validateBannerUrl();
+        });
+
+        function validateBannerUrl() {
+            $("#FormWebBanners").validate().resetForm();
+            $("#FormWebBanners").validate().element("#BannerUrl");
+        }
+
+        $.validator.addMethod("validImageExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                var allowedExtensions = ["jpg", "png", "gif", "jpeg"];
+                var fileName = element.files[0].name;
+                var extension = fileName.split('.').pop().toLowerCase();
+                return $.inArray(extension, allowedExtensions) !== -1;
+            }
+            return true;
+        }, "Only allowed extensions are: jpg, png, gif, jpeg");
+
+
+        var validateForm=$("#FormWebBanners").validate({
+            rules: {
+                BannerTitle: "required",
+              BannerUrl: {
+        required: function () {
+
+            if ($('#WebsiteBannerId').val() == '0') {
+                return true; // Add mode
+            }
+
+            // Edit mode → check if image exists
+            var existingImage = $('#test1').attr('src');
+
+            return !(existingImage && existingImage !== "");
+        },
+        validImageExtension: true
+    }
+            },
+            messages: {
+                BannerTitle: "Please Enter a Banner Title",
+                BannerUrl: {
+            required: "Please select an image file",
+            validImageExtension: "Invalid file type. Only jpg, png, gif, jpeg files are allowed."
+        }
+            },
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormWebBanners')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+    });
+
+
+
+    function ResetValidateClass() {
+        $('#BannerUrl').removeClass("validate");
+        $('#BannerTitle').removeClass("validate");
+        $('#OrderNo').removeClass("validate");
+    }
+
+    function ClearSearch() {
+
+        $('#keyword').val('');
+
+
+        //$('#ddlChapterId').val('').trigger('change');
+        //$('#ddlChapterId').val(1);
+
+
+        ThemeBannerBind(1);
+    }
+</script>
+
+
+
+<input type="hidden" id="hdnimgvalidate" value="0" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="WebsiteBannerId" />
+<input id="hdnsortorder" type="hidden" value="ASC" />
+
+
+
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+
+            @if (objAppInfo.chapterStatus == "Yes")
+            {
+
+
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label"> <span class="text-danger"></span>Search by Chapter</label>
+                    <div class="input-group">
+                        <select class="form-control" id="ddlChapterId" name="ChapterId" style="@(ChapterId != 0 ? "pointer-events:none;" : "")">
+
+
+                            @if (lstChapters != null && lstChapters.Count != 0)
+                            {
+                                foreach (var item in lstChapters)
+                                {
+                                    <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                }
+                            }
+
+
+                        </select>
+                        @*<span class="input-group-text pointer" style="cursor:pointer" onclick="MenuItemsBind(1);" id="basic-addon1"><i class="bi bi-search"></i></span>*@
+                    </div>
+                </div>
+            </div>
+
+            }
+
+
+
+
+
+                <div class="col-lg-2 col-md-6 col-8">
+                    <div class="input-box">
+                        <label class="form-label">Search <span class="text-danger">*</span></label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="keyword" id="keyword" placeholder="Banner Title">
+                            @*<input type="text" class="form-control" placeholder="Username" aria-label="Username" aria-describedby="basic-addon1">*@
+
+                        </div>
+                        @*<label class="form-label">Search by Employee Type <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Employee Type">*@
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="btn-align">
+                        <button type="button" class="btn btn-primary px-3" onclick="ThemeBannerBind(1);">Search</button>
+                        <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-4 text-end ms-auto">
+                    <div class="btn-align">
+                        @if (IsAdd == true )
+                        {
+                            <button type="button" class="btn btn-primary" onclick="Add();">Add Banner</button>
+                            @*<a href="create-menu-item.html" class="btn btn-success px-3   "><i class="bi bi-plus-circle m-0"></i> Add Menu Item</a>*@
+                        }
+
+                    </div>
+                </div>
+            </div>
+    </div>
+    <!--end breadcrumb-->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+    <div class="modal fade" id="AddWebsiteBanners" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("AddWebsiteBanners", "WebsiteBanners", FormMethod.Post, new { enctype = "multipart/form-data", style = "margin-bottom:0", @id = "FormWebBanners", @name = "FormWebBanners" }))
+            {
+
+                <input type="hidden" id="imgloc" value="@objAppInfo.BaseUrl/Content/WebsiteBanners/ThumbImages/" />
+
+                <input type="hidden" id="WebsiteBannerId" name="WebsiteBannerId" value="0" />
+                @*<input type="hidden" id="ChapterId" name="ChapterId" value="1" />*@
+
+                if (objAppInfo.chapterStatus == "No")
+                {
+                    <input id="ChapterId" name="ChapterId" type="hidden" value="1" />
+                }
+
+
+                <input type="hidden" id="Mid" name="Mid" value="@Mid" />
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-2">
+                            <div class="col-lg-12">
+                                <div class="input-box">
+                                    <label class="form-label">
+                                        Banner Url<span class="text-danger">*</span>
+
+                                        <button type="button" data-bs-toggle="tooltip" title="Image size should be maintained width * height (@objPhotosImageSettings.Bannersize)" class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+                                    </label>
+                                    <input type="file" id="BannerUrl" name="BannerUrl" class="form-control">
+                                    
+                                </div>
+                                <div class="mt-3" id="img-tag" style="display:none">
+                                    <label>Banner Image</label>
+                                    <img src="" width="150" id="test1" />
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Banner Title<span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="BannerTitle" name="BannerTitle" placeholder="Banner Title" onkeypress="return Common.isChar(event)">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Order No</label>
+                                    <input type="text" class="form-control" onkeypress="return Common.isNumberKey(event)" id="OrderNo" name="OrderNo" maxlength="2" placeholder="Display Order">
+                                </div>
+                            </div>
+
+
+                            <div class="col-lg-6 mt-lg-3">
+                                <div class="input-box">
+                                    <label class="form-label">Link Url</label>
+                                    <input type="text" class="form-control" id="RedirectUrl" name="RedirectUrl" placeholder="Redirect Url">
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6 mt-lg-3">
+                                <div class="input-box">
+                                    <label class="form-label">Link Target</label>
+                                    <select class="m-single-select" id="Target" name="Target">
+                                        <option value="">Select Target Link</option>
+                                        <option value="">--Select--</option>
+                                        <option value="_blank">Blank</option>
+                                        <option value="_parent">Parent</option>
+
+                                    </select>
+                                </div>
+                            </div>
+                            @if (objAppInfo.chapterStatus == "Yes")
+                            {
+                                <div class="col-lg-6 mt-lg-3">
+                                    <div class="input-box">
+                                        <label class="form-label">Chapters</label>
+
+                                            <select class="form-control" id="ChapterId" name="ChapterId" style="@(ChapterId != 0 ? "pointer-events:none;" : "")">
+
+                                                <option value="">-- Select --</option>
+                                                @if (lstChapters != null && lstChapters.Count != 0)
+                                                {
+                                                    foreach (var item in lstChapters)
+                                                    {
+                                                        <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                                    }
+                                                }
+                                            </select>
+
+</div>
+                                </div>
+                            }
+
+                            </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>}
+        </div>
+    </div>
+
+
+
+
+    <div id="divThemeBanner" class="clearfix">
+
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    var _URL = window.URL || window.webkitURL;
+    $("#ImageUrl").change(function (e) {
+        var file, img;
+        if ((file = this.files[0])) {
+            img = new Image();
+            img.onload = function () {
+                if (this.width == 1366 && this.height == 543) {
+                    $('#hdnimgvalidate').val('1');
+                }
+                else {
+                    $('#hdnimgvalidate').val('0');
+                }
+            };
+            img.src = _URL.createObjectURL(file);
+        }
+    });
+
+
+
+</script>

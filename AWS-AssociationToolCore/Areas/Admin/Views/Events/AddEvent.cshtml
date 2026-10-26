@@ -1,0 +1,1265 @@
+﻿@{
+
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Pageheading = "Add Event";
+    List<AWS_AssociationToolCore.Entities.EventCategories> lstEventCategories = ViewBag.lstEventCategories;
+    int status = 0;
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status);
+    var cssloc = objAppInfo.BaseUrl + "Content/Admin/front-end-style.css";
+    List<AWS_AssociationToolCore.Entities.RegistrationCategories> lstRegistrationCategories = ViewBag.lstRegistrationCategories;
+
+
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+
+    var Test = objPhotosImageSettings.Eventsize; // Assuming objPhotosImageSettings.Eventsize is a string
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+
+        ViewBag.v1 = value1;
+        ViewBag.v2 = value2;
+
+        // Now you can use value1 and value2 as integers
+            }
+    else
+    {
+        // Handle the case where the split didn't produce two parts
+        // This could happen if the input string doesn't contain '*'
+        // or if there are more than one '*' characters in the string
+    }
+
+
+}
+@*<script src="Scripts/Admin/cropper-js-min.js"></script>*@
+<script src="Scripts/Admin/countries.js" type="text/javascript"></script>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+
+<script type="text/javascript" src="Scripts/Admin/jquery-ui-timepicker-addon.js"></script>
+
+<script type="text/javascript" src="Scripts/Admin/Common.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wEvents').addClass('active');
+
+        //$("#StartDate, #StartDate-0").datetimepicker({
+        //    timeFormat: 'hh:mm tt',
+        //    altFormat: "mm/dd/yyyy hh:mm tt", format: "mm/dd/yyyy hh:mm tt", changeYear: true, changeMonth: true, onchange: function (selectedDateTime) {
+        //        $("#EndDate, #EndDate-0").datetimepicker("option", "minDate", selectedDateTime);
+        //    }
+        //});
+        //$("#EndDate, #EndDate-0").datetimepicker({
+        //    timeFormat: 'hh:mm tt',
+        //    altFormat: "mm/dd/yyyy hh:mm tt", format: "mm/dd/yyyy hh:mm tt", changeYear: true, changeMonth: true, onchange: function (selectedDateTime) {
+        //        $("#StartDate,#StartDate-0").datetimepicker("option", "maxDate", selectedDateTime);
+        //    }
+        //});
+        //$(".EStartDate").datetimepicker({
+        //    timeFormat: 'hh:mm tt',
+        //    altFormat: "mm/dd/yyyy hh:mm tt", format: "mm/dd/yyyy hh:mm tt", changeYear: true, changeMonth: true
+        //});
+
+        //$("#RegistrationStartDate").datetimepicker({
+        //    timeFormat: 'hh:mm tt',
+        //    altFormat: "mm/dd/yyyy", changeYear: true, changeMonth: true, onClose: function (selectedDate) {
+        //        $("#RegistrationEndDate").datetimepicker("option", "minDate", selectedDate);
+        //    }
+        //});
+        //$("#RegistrationEndDate").datetimepicker({
+        //    timeFormat: 'hh:mm tt',
+        //    altFormat: "mm/dd/yyyy", changeYear: true, changeMonth: true, onClose: function (selectedDate) {
+        //        $("#RegistrationStartDate").datetimepicker("option", "maxDate", selectedDate);
+        //    }
+        //});
+
+        //$("#EarlyBirdCutOfDate").datetimepicker({
+        //    timeFormat: 'hh:mm tt',
+        //    altFormat: "mm/dd/yyyy", changeYear: true, changeMonth: true, onClose: function (selectedDate) {
+        //        $("#EarlyBirdCutOfDate").datetimepicker("option", "minDate", selectedDate);
+        //    }
+        //});
+
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        $('#CropImage').dialog({
+            autoOpen: false,
+            width: 600,
+            modal: true
+        });
+
+    });
+
+
+    $(document).ready(function () {
+
+        $.validator.addMethod("validImageExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                var allowedExtensions = ["jpg", "png", "gif", "jpeg"];
+                var fileName = element.files[0].name;
+                var extension = fileName.split('.').pop().toLowerCase();
+                return $.inArray(extension, allowedExtensions) !== -1;
+            }
+            return true;
+        }, "Only allowed extensions are: jpg, png, gif, jpeg");
+
+
+
+
+        // Add event listener for dynamic rows
+        $("#tableDates").on("change", "input[name^='['][name$='].StartDate']", function () {
+            $("#FormAddEvents").validate().element($(this));
+        });
+
+        $("#tableDates").on("blur", "input[name^='['][name$='].EndDate']", function () {
+            $("#FormAddEvents").validate().element($(this));
+        });
+
+        // Add dynamic validation for additional rows if needed
+        function addDatesRow1() {
+            // Your logic for adding rows
+            // Also add validation for new row if necessary
+            // For example, you can create a new row with incremented indices
+            // and apply validation rules and messages accordingly
+        }
+        $("#EventCategoryId").change(function () {
+            $("#FormAddEvents").validate().element("#EventCategoryId");
+        });
+
+        $('input[name="isregistration"]').change(function () {
+            if ($(this).is(':checked')) {
+                $("#FormAddEvents").validate().element('input[name="RegistrationStartDate"]');
+                $("#FormAddEvents").validate().element('input[name="RegistrationEndDate"]');
+            }
+        });
+
+        // Add event listener for registration date change
+
+        //$("#RegistrationStartDate, #RegistrationEndDate").change(function () {
+        //    if ($('input[name="isregistration"]').is(':checked')) {
+        //        var startdate = new Date($('#RegistrationStartDate').val());
+        //        var enddate = new Date($('#RegistrationEndDate').val());
+
+        //        if (startdate > enddate) {
+        //            alert('Registration start date should be less than registration end date.');
+        //            return false;
+        //        }
+        //    }
+        //});
+
+
+        //$("#StartDate, #EndDate").change(function () {
+
+        //        var startdate = new Date($('#StartDate').val());
+        //        var enddate = new Date($('#EndDate').val());
+
+        //        if (startdate > enddate) {
+        //            alert('Event start date should be less than Event end date.');
+        //            return false;
+        //        }
+
+        //});
+
+
+
+    });
+
+
+
+    function addDatesRow1() {
+        var table = document.getElementById("tableDates");
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+        row.id = rowCount;
+
+        var cell2 = row.insertCell(0);
+        var element2 = document.createElement("input");
+        element2.type = "text";
+        element2.placeholder = "Start Date";
+        element2.name = "[" + (rowCount - 1) + "].StartDate";
+        element2.style = "height:40px!important;min-height:40px!important;"
+        element2.id = "StartDate-" + (rowCount - 1);
+        element2.className = "form-control m0 EStartDate";
+        cell2.appendChild(element2);
+
+        var cell3 = row.insertCell(1);
+        var element3 = document.createElement("input");
+        element3.type = "text";
+        element3.placeholder = "End Date";
+        element3.name = "[" + (rowCount - 1) + "].EndDate";
+        element3.style = "height:40px!important;min-height:40px!important;"
+        element3.id = "EndDate-" + (rowCount - 1);
+        element3.className = "form-control m0 EStartDate";
+        element3.onkeypress = "form-control m0";
+        cell3.appendChild(element3);
+
+        var cell4 = row.insertCell(2);
+        cell4.innerHTML = '<a onclick="javascript:deleteDatesRow1(' + rowCount + ')" class="dis-b t-p15"><i class="fa fa-trash-o"></i></a>';
+        $('#hdnRowDatesCount1').val(rowCount);
+
+        $("#StartDate-" + (rowCount - 1) + "").datetimepicker({
+            timeFormat: 'hh:mm tt',
+            altFormat: "mm/dd/yy hh:mm tt", format: "mm/dd/yy hh:mm tt", changeYear: true, changeMonth: true, onchange: function (selectedDateTime) {
+                $("#EndDate-" + (rowCount - 1) + "").datetimepicker("option", "minDate", selectedDateTime);
+            }
+        });
+        $("#EndDate-" + (rowCount - 1) + "").datetimepicker({
+            timeFormat: 'hh:mm tt',
+            altFormat: "mm/dd/yy hh:mm tt", format: "mm/dd/yy hh:mm tt", changeYear: true, changeMonth: true, onchange: function (selectedDateTime) {
+                $("#StartDate-" + (rowCount - 1) + "").datetimepicker("option", "maxDate", selectedDateTime);
+            }
+        });
+    }
+
+    function deleteDatesRow1(i) {
+        try {
+            var row = document.getElementById(i);
+            row.parentNode.removeChild(row);
+            $('#hdnRowDatesCount1').val(i - 1);
+        } catch (e) {
+            alert(e);
+        }
+    }
+
+    function addRow1() {
+        var table = document.getElementById("tableRegistrationType");
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+        row.id = rowCount;
+
+        var cell2 = row.insertCell(0);
+        var element2 = document.createElement("input");
+        element2.type = "text";
+        element2.placeholder = "";
+        element2.name = "[" + (rowCount - 1) + "].RegistrationTitle";
+        element2.style = "height:40px!important;min-height:40px!important;"
+        element2.id = "RegistrationTitle-" + (rowCount - 1);
+        element2.className = "form-control m0";
+        cell2.appendChild(element2);
+
+        var cell3 = row.insertCell(1);
+        var element3 = document.createElement("input");
+        element3.type = "text";
+        element3.placeholder = "";
+        element3.name = "[" + (rowCount - 1) + "].MemberAmount";
+        element3.style = "height:40px!important;min-height:40px!important;"
+        element3.id = "MemberAmount-" + (rowCount - 1);
+        element3.className = "form-control m0";
+        element3.onkeypress = "return Common.isNumberKey(event)";
+        cell3.appendChild(element3);
+
+
+        var cell4 = row.insertCell(2);
+        var element4 = document.createElement("input");
+        element4.type = "text";
+        element4.placeholder = "";
+        element4.name = "[" + (rowCount - 1) + "].NonMemberAmount";
+        element4.style = "height:40px!important;min-height:40px!important;"
+        element4.id = "NonMemberAmount-" + (rowCount - 1);
+        element4.className = "form-control m0";
+        element4.onkeypress = "return Common.isNumberKey(event)";
+        cell4.appendChild(element4);
+
+        var cell5 = row.insertCell(3);
+        var element5 = document.createElement("input");
+        element5.type = "text";
+        element5.placeholder = "";
+        element5.name = "[" + (rowCount - 1) + "].RegCount";
+        element5.style = "height:40px!important;min-height:40px!important;"
+        element5.id = "RegCount-" + (rowCount - 1);
+        element5.className = "form-control m0";
+        element5.onkeypress = "return Common.isNumberKey(event)";
+        cell5.appendChild(element5);
+
+
+        //var cell6 = row.insertCell(4);
+        //var element6 = document.createElement("input");
+        //element6.type = "text";
+        //element6.placeholder = "Early Bird Non-Member Amount";
+        //element6.name = "[" + (rowCount - 1) + "].EarlyBirdNonMemberAmount";
+        //element6.style = "height:40px!important;min-height:40px!important;"
+        //element6.id = "EarlyBirdNonMemberAmount-" + (rowCount - 1);
+        //element6.className = "form-control m0";
+        //element6.onkeypress = "return Common.isNumberKey(event)";
+        //cell6.appendChild(element6);
+
+
+        var cell6 = row.insertCell(4);
+        var element6 = document.createElement("input");
+        element6.type = "text";
+        element6.placeholder = "";
+        element6.name = "[" + (rowCount - 1) + "].MemberCount";
+        element6.style = "height:40px!important;min-height:40px!important;"
+        element6.id = "MemberCount-" + (rowCount - 1);
+        element6.className = "form-control m0";
+        element6.onkeypress = "return Common.isNumberKey(event)";
+        cell6.appendChild(element6);
+
+        //var cell6 = row.insertCell(4);
+        //var element5 = document.createElement("input");
+        //element5.type = "text";
+        //element5.placeholder = "OrderNo";
+        //element5.name = "[" + (rowCount - 1) + "].OrderNo";
+        //element5.style = "height:40px!important;min-height:40px!important;"
+        //element5.id = "OrderNo-" + (rowCount - 1);
+        //element5.className = "form-control m0";
+        //element5.onkeypress = "return Common.isNumberKey(event)";
+        //cell6.appendChild(element5);
+
+
+        //var cell7 = row.insertCell(5);
+        //cell7.innerHTML = '<a onclick="javascript:deleteRow1(' + rowCount + ')" class="dis-b t-p15"><i class="fa fa-trash-o"></i></a>';
+        //$('#hdnRowCount1').val(rowCount);
+
+        var cell7 = row.insertCell(5);
+        var element7 = document.createElement("input");
+        element7.type = "text";
+        element7.placeholder = "";
+        element7.name = "[" + (rowCount - 1) + "].OrderNo";
+        element7.style = "height:40px!important;min-height:40px!important;"
+        element7.id = "OrderNo-" + (rowCount - 1);
+        element7.className = "form-control b-m0";
+        element7.onkeypress = "return Common.isNumberKey(event)";
+        cell7.appendChild(element7);
+
+
+        // var cell8 = row.insertCell(6);
+        // var element8 = document.createElement("input");
+        // element8.type = "text";
+        // element8.placeholder = "";
+        // element8.name = "[" + (rowCount - 1) + "].OrderNo";
+        // element8.style = "height:40px!important;min-height:40px!important;"
+        // element8.id = "OrderNo-" + (rowCount - 1);
+        // element8.className = "form-control b-m0";
+        // element8.onkeypress = "return Common.isNumberKey(event)";
+        // cell8.appendChild(element8);
+
+
+
+        var cell8 = row.insertCell(7);
+        cell8.innerHTML = '<a onclick="javascript:deleteRow1(' + rowCount + ')" class="dis-b t-p15"><i class="fa fa-trash-o"></i></a>';
+        $('#hdnRowCount1').val(rowCount);
+
+        $('#OrderNo-' + (rowCount - 1) + ', #RegCount-' + (rowCount - 1) + ', #NonMemberAmount-' + (rowCount - 1) + ', #MemberCount-' + (rowCount - 1) + ', #MemberAmount-' + (rowCount - 1)).attr('onkeypress', 'return Common.isNumberKey(event)');
+
+    }
+
+    function deleteRow1(i) {
+        try {
+            var row = document.getElementById(i);
+            row.parentNode.removeChild(row);
+            $('#hdnRowCount1').val(i - 1);
+        } catch (e) {
+            alert(e);
+        }
+    }
+
+    function GetEmail() {
+        var ChapterId = $('#ChapterId').val();
+        if (PhoneNo != '') {
+            $.ajax({
+                url: '@Url.Action("GetCommitteeDetailedInfo", "Events")',
+                type: 'POST',
+                data: { ChapterId: ChapterId },
+                datatype: "JSON",
+                success: function (result) {
+                    if (result.ok) {
+                        var objCommitteeInfo = result.data;
+                        $('#ContactEmail').val(objCommitteeInfo.SecretaryEmail);
+                    }
+                    else {
+                        $('#divmessage').val(result.data);
+                        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    }
+                }
+            });
+        }
+    }
+
+
+
+    function readURL(input)
+
+    {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#blah')
+                    .attr('src', e.target.result)
+                    .width(@value1)
+                    .height(@value2);
+
+
+                $('#image').attr('src', e.target.result);
+                $('#divimage').show();
+                $('#noimagetext').hide();
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+<script type="text/javascript">
+    function FormDisplay() {
+        var Type = $('#Type').val();
+
+        if (Type == "External Registration") {
+            document.getElementById("IsRegistration").checked = false;
+            $('#showform').show();
+            $('#ExpernalReg').show();
+            $('#InternalReg').hide();
+            $('#RegStart').show();
+            $('#RegEnd').show();
+        }
+        else if (Type == "Internal Registration") {
+            $('#MetaKeywords').val('');
+            $('#showform').show();
+            $('#InternalReg').show();
+            $('#ExpernalReg').hide();
+            $('#RegStart').show();
+            $('#RegEnd').show();
+            document.getElementById("IsRegistration").checked = true;
+        }
+    }
+
+    function EarlyBirdDisplay() {
+        var IsEarlyBird = $('#IsEarlyBird').val();
+
+        if (IsEarlyBird == "true") {
+
+            $('#earlydateshow').show();
+
+        }
+        else {
+            $('#earlydateshow').hide();
+        }
+
+    }
+
+
+
+    function ChapterNameBind() {
+
+        var ChapterNamecheckboxs = Common.GetCheckBoxValue('ChapterNamecheckbox');
+
+        $('#ChapterIds').val(ChapterNamecheckboxs);
+       
+      
+        if (ChapterNamecheckboxs == "") {
+            alert("Please select atleast one Chapter.");
+            return false;
+        }
+
+    }
+
+
+</script>
+
+
+<style>
+    .table-hover > tbody > tr > th {
+        --bs-table-accent-bg: var(--bs-table-hover-bg);
+        color: var(--bs-table-hover-color);
+    }
+</style>
+
+<input type="hidden" id="hdnimgvalidate" value="0" />
+@using (Html.BeginForm("AddEvent", "Events", FormMethod.Post, new { enctype = "multipart/form-data", @id = "FormAddEvents", @name = "FormAddEvents" }))
+{
+    @*<input type="hidden" id="EventCategoryId" name="EventCategoryId" value="1" />*@
+
+    if (objAppInfo.chapterStatus == "No")
+    {
+        <input type="hidden" value="1" name="ChapterIds" id="ChapterIds" />
+    }
+    else
+    {
+        <input type="hidden" value="" name="ChapterIds" id="ChapterIds" />
+
+    }
+    <input type="hidden" value="@ViewBag.mid" name="mid" id="mid" />
+    <div class="card">
+        <div class="card-body">
+            <div class="box-header">
+                <h3 class="box-title dis-in">Event Details</h3>
+            </div>
+            <div class="row  g-3">
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Event Category <span class="text-danger">*</span></label>
+                        <select class="single-select" id="EventCategoryId" name="EventCategoryId">
+                            <option value="">-- Select --</option>
+                            @if (lstEventCategories != null && lstEventCategories.Count != 0)
+                            {
+                                foreach (var item in lstEventCategories)
+                                {
+                                    <option value="@item.EventCategoryId">@item.EventCategory</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Event Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" onkeypress="return onlyAlphabets(event,this);" id="EventName" name="EventName" placeholder="Event Name">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Start Date</label>
+                        <input type="text" class="form-control" id="StartDate" name="StartDate" placeholder="Start Date">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">End Date </label>
+                        <input type="text" class="form-control" id="EndDate" name="EndDate" placeholder="End Date">
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Time Zone <span class="text-danger">*</span></label>
+                        <select class="form-control" id="UpdatedBy" name="UpdatedBy">
+
+                            <option selected="selected" value="GMT"> GMT</option>
+                            <option value="PST"> PST</option>
+                            <option value="CST"> EST</option>
+                            <option value="CST"> CST</option>
+                        </select>
+                    </div>
+                </div>
+
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">City</label>
+                        <input type="text" class="form-control" onkeypress="return onlyAlphabets(event,this);" id="City" name="City" placeholder="City">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">State </label>
+                        <select class="single-select" id="StateName" name="StateName">
+                            <option value="">Select State</option>
+                            <option value="Australian Capital Territory">Australian Capital Territory</option>
+                            <option value="New South Wales">New South Wales</option>
+                            <option value="Northern Territory">Northern Territory</option>
+                            <option value="Queensland">Queensland</option>
+                            <option value="South Australia">South Australia</option>
+                            <option value="Tasmania">Tasmania</option>
+                            <option value="Victoria">Victoria</option>
+                            <option value="Western Australia">Western Australia</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Zip Code </label>
+                        <input type="text" class="form-control" id="ZipCode" maxlength="6" onkeypress="return Common.isNumberKey(event);" name="ZipCode">
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Location</label>
+                        <input type="text" class="form-control" id="Location" name="Location" placeholder="Location">
+                    </div>
+                </div>
+
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Contact Email <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="ContactEmail" name="ContactEmail">
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6 ">
+                    <label>
+                        Is allow only Members?
+                        <button type="button" data-bs-toggle="tooltip" title="If Is Allow only Members? is selected as 'Yes' then only Members can buy this Event Ticket." class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+
+                    </label>
+                    <select class="form-control " name="PageTitle" id="PageTitle" type="text">
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+
+                    </select>
+
+                </div>
+                @if (objAppInfo.IsQRCode == "Yes")
+                {
+                    @* <div class="col-lg-3 col-md-6 ">
+                        <label>
+                            Is QR Code?
+                            <button type="button" data-bs-toggle="tooltip" title="If ‘QR Code’ is set to ‘No’, the event ticket email will be sent without a QR code" class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+
+                        </label>
+                        <select class="form-control " name="IsQRCode" id="IsQRCode" type="text">
+                            <option value="Single">Single</option>
+                            <option value="No">No</option>
+                            <option value="Multiple">Multiple</option>
+
+                        </select>
+
+                    </div> *@
+                }
+
+
+                @*<div class="col-lg-3 col-md-6 ">
+
+            <div class="alert bg-light my-2 p-2" style="font-size:12px">
+                <span style="color:#ff0000; text-decoration:underline; font-weight:500">Note :</span> <b style="color: #f00; font-size: 15px"></b>If "Is Allow only Members?" is selected as "Yes" then only Members can buy this Event Ticket."<br>
+            </div>
+        </div>*@
+
+
+
+
+            </div>
+            <div class="row  g-3">
+                <div class="col-lg-3 col-md-6 ">
+
+
+                    <label>
+                        Flyer Image (Details Page) :
+                        <button type="button" data-bs-toggle="tooltip" title="Flyer size should be less than 1 MB" class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+                    </label>
+                    <div class="position-relative">
+                        <input type="file" id="file1" class=" file center-block browse form-control" name="file1" />
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 ">
+                    <div class="input-box">
+                        <div class="input-box mt-2">
+                            <label>
+                                Thumb Image (List page) :
+                                <button type="button" data-bs-toggle="tooltip" title=" Image size should be maintained width * height (@objPhotosImageSettings.Eventsize)" class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+                            </label>
+                            <div class="position-relative">
+                                <input type="file" id="file" class="item-img file center-block browse form-control" name="file" />
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mt-lg-4">
+
+                    @*<div class="alert bg-light my-2 p-2" style="font-size:12px">
+                <span style="color:#ff0000; text-decoration:underline; font-weight:500">Note :</span> <b style="color: #f00; font-size: 15px"></b>Flyer size should be less than 1 MB, to optimize the Image use Optimize Zilla <a href="https://imagecompressor.com/" target="_blank">imagecompressor.com.</a><br>
+            </div>*@
+
+                    <div class="confirm-identity">
+
+                        <div class="ci-user d-flex align-items-center justify-content-center">
+                            <div class="ci-user-picture" style="display: none;">
+
+                                <input type="hidden" id="Thumbimage" name="Thumbimage">
+                                @*<img src="" id="item-img-output" class="imgpreviewPrf img-fluid" alt="">*@
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+            <div class="row  g-3">
+                <div class="col-lg-3 col-md-6 mt-4">
+
+                    @*<div class="alert bg-light my-2 p-2" style="font-size:12px">
+                <span style="color:#ff0000; text-decoration:underline; font-weight:500">Note :</span> <b style="color: #f00; font-size: 15px"></b> Image size should be maintained width * height (@objPhotosImageSettings.Eventsize)<br>
+                <span><b>1)</b>&nbsp;To <b>resize</b> Banners width &amp; height, please use <a href="https://picresize.com/" target="_blank">picresize.com</a>. </span><br>
+                <span><b>2)</b>&nbsp;To  <b>Optimize</b>Banners width &amp; height, please use <a href="https://imagecompressor.com/" target="_blank">imagecompressor.com</a>. </span>
+            </div>*@
+                    <div class="confirm-identity">
+                        <div class="ci-user d-flex align-items-center justify-content-center">
+                            <div class="ci-user-picture" style="display: none;">
+                                <input type="hidden" id="Thumbimage" name="Thumbimage">
+                                <img src="" id="item-img-output" class="imgpreviewPrf img-fluid" alt="">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            </div>
+        </div>
+    <!--<div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="box validation">
+                        <div class="box-header">
+                            <h3 class="box-title text-center pb-2"> Event Dates</h3>
+                        </div>
+
+                        <table width="100%" class="table table-bordered table-hover" id="tableDates">
+                            <tbody>
+                                <tr>
+                                    <th width="25%">Start Date<span class="red-t">*</span></th>
+                                    <th width="25%">End Date<span class="red-t">*</span></th>-->
+    @* <th width="15%"><a class="btn btn-danger btn-small" onclick="addDatesRow1();" style="color: #ffffff; padding-left: 15px;">Add</a></th>*@
+    <!--</tr>
+    <tr>
+        <td>
+            <input type="text" class="form-control b-m0 " name="[0].StartDate" style="height: 40px!important; min-height: 40px!important;" placeholder="Start Date" id="StartDate-0">
+
+        </td>
+        <td>
+            <input type="text" class="form-control b-m0 " name="[0].EndDate" style="height: 40px!important; min-height: 40px!important;" placeholder="End Date" id="EndDate-0">
+
+        </td>-->
+    @* <td></td>*@
+    <!--</tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>-->
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in">Registration Details</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">
+                                    Registrations ?
+                                    <button type="button" data-bs-toggle="tooltip" title="Is Allow only Members? is selected as 'Yes' then only Members can buy this Event Ticket." class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+                                </label>
+                                <select onchange="FormDisplay();" class="form-control" id="Type" name="Type">
+                                    <option value="">--Select--</option>
+                                    <option value="External Registration">External Registration</option>
+                                    <option value="Internal Registration">Internal Registration</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box">
+                                <label for="IsCulturalRegistration" class="form-label" style="display: inherit;">
+                                    Is Cultural Required? :
+                                    <button type="button" data-bs-toggle="tooltip" title="If Cultural Registration is selected as Yes, allow the user to register cultural participant details for the event.." class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+                                </label>
+
+                                <select class="form-control" id="IsCulturalRegistration" name="IsCulturalRegistration">
+                                    <option value="">--Select--</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                                
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="row g-3 pt-2" id="showform" style="display:none;">
+                        <div id="InternalReg" class="col-xs-12 col-lg-3 col-sm-6">
+                            <div class="input-box mt-lg-4 mt-3">
+                                <label for="IsRegistration"> Registration Required? :</label>
+                                @Html.CheckBox("IsRegistration")
+
+                            </div>
+                        </div>
+                        <div id="ExpernalReg" class="col-xs-12 col-lg-3 col-sm-6">
+                            <div class="input-box">
+                                <label>Reg.Url :</label>
+                                <input type="text" id="MetaKeywords" name="MetaKeywords" class="form-control">
+                            </div>
+                        </div>
+                        <div id="RegStart" class="col-xs-12 col-lg-3 col-sm-6">
+                            <div class="input-box">
+                                <label>Reg. Start Date :</label>
+                                <input type="text" name="RegistrationStartDate" id="RegistrationStartDate" class="form-control">
+                            </div>
+                        </div>
+
+                        <div id="RegEnd" class="col-xs-12 col-lg-3 col-sm-6">
+                            <div class="input-box">
+                                <label>Reg. End Date :</label>
+                                <input type="text" id="RegistrationEndDate" name="RegistrationEndDate" class="form-control">
+                            </div>
+                        </div>
+
+                    </div>
+                    @*<div class="alert bg-light my-2 p-2 d-lg-inline-block" style="font-size:12px">
+                        <span class="text-center" style="color: #f00; font-size: 15px; display:inline-block;font-weight:500">Note :</span>If "Is Allow only Members?" is selected as "Yes" then only Members can buy this Event Ticket."
+                    </div>*@
+                </div>
+
+            </div>
+            <div class="box validation mt-4" style="display:none">
+                <div class="box-header">
+                    <h3 class="box-title dis-in">Early Bird </h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  gy-3 gx-2 align-items-center">
+
+                        <div class="col-lg-3 col-md-6">
+                            <div class="input-box pt-lg-4 pt-3">
+                                <div>
+                                    <label for="IsEarlyBird" class="cursor-pointer">
+                                        Is Early Bird Required?:&nbsp;
+                                        <button type="button" data-bs-toggle="tooltip" title="If Early Bird is checked, allow the user to avail early bird amount for the event.." class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+                                    </label>
+                                    @Html.CheckBox("IsEarlyBird")
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-2 col-md-6 eralbrid" style="display:none">
+                            <div class="input-box">
+                                <label class="form-label">Early Bird Expiry Date</label>
+                                <input type="text" class="form-control" id="EarlyBirdCutOfDate" name="EarlyBirdCutOfDate" placeholder="Early Bird Date">
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2 col-md-6 eralbrid" style="display:none">
+                            <div class="input-box">
+                                <label class="form-label">Mention Label Name</label>
+                                <input type="text" class="form-control" name="TopLine" value="" placeholder="The Name of the Label" id="TopLine">
+                            </div>
+                        </div>
+                      
+                    </div>
+                </div>
+
+            </div>
+
+
+
+        </div>
+    </div>
+   
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in">Registration Types </h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+
+                        <table width="100%" class="table table-bordered table-hover" id="tableRegistrationType">
+                            <tbody>
+                                <tr style="vertical-align:middle;">
+                                    <th width="33%" style="text-align:left;">Title</th>
+                                    <th width="15%" style="text-align:left;">Memb. Amount</th>
+                                    <th width="15%" style="text-align:left;">Non-Memb. Amount</th>
+                                    @* <th width="15%" style="text-align:left;">Early Bird Amount</th> *@
+                                    <th width="10%" style="text-align:left;">Reg. Count</th>
+                                    @*<th width="10%">mem. Count</th>*@
+                                    <th width="12%" style="text-align:left;">memb. Count</th>
+                                    <th width="12%" style="text-align:left;">OrderNo</th>
+                                    <th width="10%" style="text-align:left;"><a class="btn btn-danger btn-small" onclick="addRow1();" style="color: #ffffff; padding-left: 15px;">Add</a></th>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="text" class="form-control b-m0" name="[0].RegistrationTitle" style="height: 40px!important; min-height: 40px!important;" placeholder="" id="RegistrationTitle-0"><span class="errormsg" id="spanRegistrationTitle-0"></span>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control b-m0" name="[0].MemberAmount" onkeypress="return Common.isNumberKey(event)" style="height: 40px!important; min-height: 40px!important;" placeholder="" id="MemberAmount-0">
+                                    </td>
+
+                                    <td>
+                                        <input type="text" class="form-control b-m0" name="[0].NonMemberAmount" onkeypress="return Common.isNumberKey(event)" style="height: 40px!important; min-height: 40px!important;" placeholder="" id="NonMemberAmount-0">
+                                    </td>
+                            @*         <td>
+                                        <input type="text" class="form-control b-m0" name="[0].EarlyBirdMemberAmount" onkeypress="return Common.isNumberKey(event)" style="height: 40px!important; min-height: 40px!important;" placeholder="" id="EarlyBirdMemberAmount-0">
+                                    </td> *@
+                                    <td>
+                                        <input type="text" class="form-control b-m0" name="[0].RegCount" onkeypress="return Common.isNumberKey(event)" style="height: 40px!important; min-height: 40px!important;" placeholder="" id="RegCount-0">
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control b-m0" name="[0].MemberCount" onkeypress="return Common.isNumberKey(event)" style="height: 40px!important; min-height: 40px!important;" placeholder="" id="MemberCount-0">
+                                    </td>
+
+                                    <td>
+                                        <input type="text" class="form-control b-m0" name="[0].OrderNo" onkeypress="return Common.isNumberKey(event)" style="height: 40px!important; min-height: 40px!important;" placeholder="" id="OrderNo-0">
+                                    </td>
+
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    if (objAppInfo.chapterStatus == "Yes")
+    {
+
+        <div class="card">
+            <div class="card-body">
+
+                <div class="box validation">
+                    <!-- /.box-header -->
+                    <div class="box-header">
+                        <h3 class="box-title dis-in mb-2">Chapters </h3>
+                    </div>
+                    <div class="box-body">
+
+                        @if (lstChapters != null && lstChapters.Count != 0)
+                        {
+                            int i = 1;
+                            <div class="row">
+                                @foreach (var item in lstChapters)
+                                {
+                                    if (item.ChapterName != "NATS Global")
+                                    {
+
+                                        <div class="col-md-3 col-xs-6 col-xxl-2">
+                                            <span class="radiostyle part-4 mb-2 d-block">
+                                                <input type="checkbox" @*@(i == item.ChapterId ? "checked=checked" : "")*@ name="ChapterNamecheckbox" id="ChapterNamecheckbox-@i" class="flat-red" value="@item.ChapterId"> @item.ChapterName
+                                            </span>
+                                        </div>
+                                    }
+                                    i++;
+                                }
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    }
+
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Description</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+                        <div class="col-lg-12">
+                            <div class="input-box">
+                                @*<label>Description </label>*@
+                                <textarea rows="10" placeholder="Description *" name="EventDetails" id="description" cols="80" style="visibility: hidden; display: none;"></textarea><br />
+                                <span class="field-validation-error" id="spanDescription"></span>
+                                <script type="text/javascript">
+                                    // var editor = CKEDITOR.replace('NewsText', { contentsCss: '../css/editor.css' });
+                                    // CKFinder.setupCKEditor(editor, '@(objAppInfo.BaseUrl)ckfinder/');
+
+
+
+
+                                                                        var editor = CKEDITOR.replace('description', {
+                                        contentsCss: '../css/editor.css',
+                                        filebrowserBrowseUrl: '/filemanager/browse.html',
+                                        filebrowserImageBrowseUrl: '/filemanager/browse.html',
+                                        filebrowserUploadUrl: '/api/filemanager/upload',
+                                        filebrowserImageUploadUrl: '/api/filemanager/upload'
+                                    });
+
+
+
+
+
+                                </script>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <!--<div class="row">
+    <div class="col-lg-2 col-3 text-end ms-auto">
+        <button type="submit" class="btn btn-success px-3">-->
+    @*<i class="bi bi-plus-circle m-0"></i>*@
+    <!--Submit</button>
+        </div>
+    </div>-->
+    if (objAppInfo.chapterStatus == "Yes")
+    {
+        <div class="row">
+            <div class="col-lg-12 d-flex justify-content-end">
+                <button type="submit" onclick="return ChapterNameBind();" class="btn btn-success px-3 me-2">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Index", "Events", new { EventType = "upcoming", mid = ViewBag.mid })">Cancel</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-lg-12 d-flex justify-content-end">
+                <button type="submit" class="btn btn-success px-3 me-2">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Index", "Events", new { EventType = "upcoming", mid = ViewBag.mid })">Cancel</a>
+            </div>
+        </div>
+
+    }
+}
+
+
+<script>
+    var _URL = window.URL || window.webkitURL;
+    $("#file").change(function (e) {
+        var file, img;
+        if ((file = this.files[0])) {
+            img = new Image();
+            img.onload = function () {
+                if (this.width == 670 && this.height == 542) {
+                    $('#hdnimgvalidate').val('1');
+                }
+                else {
+                    $('#hdnimgvalidate').val('0');
+                }
+            };
+            img.src = _URL.createObjectURL(file);
+        }
+    });
+
+</script>
+
+<script>
+
+    $(document).ready(function () {
+
+         $.validator.addMethod("greaterThan", function (value, element, param) {
+        var startDateVal = $(param).val();
+        if (!startDateVal || !value) return true;
+
+        var startDate = new Date(startDateVal);
+        var endDate = new Date(value);
+
+        // Invalid parse safety
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return true;
+
+        return endDate.getTime() >= startDate.getTime();
+    }, "End date must be greater than or equal to start date.");
+
+        $("#FormAddEvents").validate({
+            rules: {
+
+                EventName: "required",
+                UpdatedBy: "required",
+                EventCategoryId: "required",
+                ContactEmail: {
+                    required: true,
+                    email: {
+                        depends: function (element) {
+                            // Only validate if SpouseEmail is not null
+                            return $(element).val() !== null;
+                        },
+                        messages: "Please Enter Valid Email Address"
+                    }
+                },
+                StartDate: "required",
+                EndDate: {
+                    required: true,
+                    greaterThan: "#StartDate"
+                },
+
+              
+                file: {
+                    validImageExtension: {
+                        depends: function (element) {
+                            // Only validate if SpouseEmail is not null
+                            return $(element).val() !== null;
+                        },
+                        messages: "Only allowed extensions are: jpg, png, gif, jpeg"
+                    }
+                },
+                file1: {
+                    validImageExtension: {
+                        depends: function (element) {
+                            // Only validate if SpouseEmail is not null
+                            return $(element).val() !== null;
+                        },
+                        messages: "Only allowed extensions are: jpg, png, gif, jpeg"
+                    }
+                },
+             
+
+            
+            },
+            messages: {
+                EventName: "Please enter your event name",
+                UpdatedBy: "Please select the Time Zone",
+                EventCategoryId: "Please select the EventCategory",
+                ContactEmail: {
+                    required: "Please enter your event contact email",
+                    validate_email: "Please Enter Valid Email Address",
+
+                },
+
+                StartDate: "Please enter a start date.",
+                EndDate: {
+                    required: "Please enter an end date.",
+                    greaterThan: "End date must be after or the same as start date."
+                },
+
+               
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+
+</script>
+
+@*<script src="Scripts/Admin/cropper-js-min.js" type="text/javascript"></script>*@
+<script>
+    $(document).ready(function () {
+
+
+           $(function () {
+        $("#StartDate,#EndDate,#RegistrationStartDate,#RegistrationEndDate,#EarlyBirdCutOfDate").datetimepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            dateFormat: 'mm/dd/yy',
+            onSelect: function (selectedDateTime, inst) {
+                var fieldId = $(this).attr('id');
+
+                // ✅ Re-validate EndDate whenever StartDate changes
+                if (fieldId === 'StartDate') {
+                    $("#FormAddEvents").validate().element('#EndDate');
+                }
+                // ✅ Re-validate EndDate itself too, to clear stale message
+                if (fieldId === 'EndDate') {
+                    $("#FormAddEvents").validate().element('#EndDate');
+                }
+            }
+        });
+    });
+
+
+    });
+    $(document).ready(function () {
+        $('#IsEarlyBird').change(function () {
+            if ($(this).is(':checked')) {
+                $('.eralbrid').show();
+            } else {
+                $('.eralbrid').hide();
+            }
+        });
+
+        // Trigger change event on page load to initialize visibility
+        $('#IsEarlyBird').change();
+    });
+</script>
+
+<script>
+    function onlyAlphabets(e, t) {
+        try {
+            if (window.event) {
+                var charCode = window.event.keyCode;
+            }
+            else if (e) {
+                var charCode = e.which;
+            }
+            else { return true; }
+            if ((charCode == 32) || (charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123) || (specialKeys.indexOf(e.keyCode) != -1 && e.charCode != e.keyCode)) {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        catch (err) {
+            alert(err.Description);
+        }
+    }
+    var specialKeys = new Array();
+    specialKeys.push(8); //Backspace
+    specialKeys.push(9); //Tab
+    specialKeys.push(32); //Space
+    specialKeys.push(46); //Delete
+    specialKeys.push(36); //Home
+    specialKeys.push(35); //End
+    specialKeys.push(37); //Left
+    specialKeys.push(39); //Right
+</script>

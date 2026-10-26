@@ -1,0 +1,155 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    ViewBag.Heading = "Profile";
+
+    int _qstatus = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    List<AWS_AssociationToolCore.Entities.EventUserInfo> lstEventUserInfo = ViewBag.lstEventUserInfo;
+
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref _qstatus);
+
+    AWS_AssociationToolCore.Entities.Members objMember = ViewBag.objMember;
+    var objMembersType = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembersType;
+
+    var location = objAppInfo.AdminImageUrl + "MemberProfileImages/";
+
+
+
+}
+<script src="Scripts/Admin/Common.js" type="text/javascript"></script>
+
+
+<script>
+    $(document).ready(function () {
+        LoadDonarList();
+    });
+
+    function LoadDonarList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("ProfileMenu", "Members")',
+    data: {
+                   tab    : 'EventsList'
+
+               },
+               success: function (data) {
+                $("#divDetails").html(data);
+            },
+            error: function () {
+                $("#divDetails").html('<p class="text-danger">Failed to load FEEventList.</p>');
+            }
+        });
+    }
+</script>
+
+
+<div class="aws-profile-left-sec">
+
+    <!-- profile Here information -->
+    <div class="" id="divDetails">
+        <div class="aws-profile-img">
+            <button class="aws-edit-icon" title="edit profile" data-bs-toggle="modal" data-bs-target="#editProfile"><i class="bi bi-pencil"></i></button>
+            @if (objMember.ProfileImage != null && objMember.ProfileImage != "")
+            {
+                <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((location + objMember.ProfileImage), "Content/user/images/com-main.png")" alt="Profile" class="border-radius10 profshd" width="159" height="159" />
+            }
+            else
+            {
+                <img src="Content/user/images/com-main.png" alt="Profile" class="border-radius10 profshd" width="159"
+                     height="159" />
+            }
+        </div>
+     
+
+
+
+
+    </div>
+    <!-- profile Here  -->
+
+</div>
+
+
+
+<div class="aws-profile-right-sec">
+    <div class="aws-title">
+        Event Registrations
+        <div class="cmn-event-btn">
+            <a href="profile" class="back-btn">Back To Profile</a>
+@*             <a href="/@ChapterName/profile" class="back-btn">Back To Profile</a>
+ *@        </div>
+    </div>
+    <div class="aws-bdr"></div>
+    @if (lstEventUserInfo != null && lstEventUserInfo.Count != 0)
+
+    {
+        <div class="aws-table-card">
+            <table class="table table-bordered table-hover table-stripped">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;" scope="col">S.No</th>
+                        <th width="200px">Event</th>
+                        <th>Amount</th>
+                        <th>Transaction Id</th>
+                        <th>Payment Method</th>
+                        <th>Payment Status</th>
+                        <th style="width: 60px;">#</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in lstEventUserInfo)
+                    {
+                        int i = 1;
+                    <tr>
+                        <td data-label="Donar Id">@i</td>
+                        <td>@item.EventName</td>
+                        <td>$@Math.Round(item.AmountPaid, 2)</td>
+                        <td>@item.TransactionId </td>
+                        <td>@item.PaymentMethod </td>
+                        <td>
+                            @if (item.PaymentStatus == "Completed")
+                            {
+                            <span>Paid</span>
+                                            }
+                            </td>
+<td><a href="@Url.Action("ViewEventUser", "Members", new { EventUserInfoId = item.EventUserInfoId })"><span><i class="bi bi-eye-fill"></i></span></a></td>
+                    </tr>
+                        i++;
+                    }
+
+                </tbody>
+            </table>
+        </div>
+
+
+
+    }
+    else
+    {
+
+        <div class="text-center">
+            <h2 style="" class="txt-up ls-2p font20 lh-18p  text-center py-4 mt-2  fnt-josefin-bold section-title">We haven't received Event Registration yet.</h2>
+
+            @*<a href="donate-now" target="_blank">
+                <div class="aws-btn" type="submit">Donate Now</div>
+
+            </a>*@
+        </div>
+
+
+    }
+
+
+</div>
+
+
+<style>
+    .section-title {
+        font-size: 30px;
+        letter-spacing: 1px;
+        color: #d63303;
+        font-family: 'Poppins-SemiBold';
+    }
+</style>

@@ -1,0 +1,114 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Acknowledgment | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Thank you for supporting the " + objAppInfo.SiteName + ". Your contribution is appreciated";
+    ViewBag.MetaKeywords = objAppInfo.SiteName + " acknowledgment, thank you Telugu support, appreciation message, donation acknowledgment";
+
+    ViewBag.PageHeading = "Acknowledgment";
+
+    string Date = ViewBag.PaymentDate;
+
+    var DonationProgram = ViewBag.DonationProgram;
+
+    AWS_AssociationToolCore.Entities.ServiceDonations objServiceDonations = ViewBag.objServiceDonations;
+
+    List<AWS_AssociationToolCore.Entities.ServiceContributions> lstServiceContributions = ViewBag.lstServiceContributions;
+
+}
+
+<script type="text/javascript">
+    //Disable browser Back button [Start]
+    function preventBack() { window.history.forward(); }
+    setTimeout("preventBack()", 0);
+    window.onunload = function () { null };
+    //Disable browser Back button [End]
+</script>
+
+    <!-- content goes Here  -->
+    <div class="aws-acknowledgement-sec">
+
+        <div class="aws-acknowledgement-box ">
+            <div class="row justify-content-center">
+                <div class="col-md-7">
+                    <div class="printer-top"></div>
+                    <div class="paper-container">
+                        <div class="printer-bottom"></div>
+                        <div class="paper">
+                            <div class="main-contents">
+                                <div class="success-icon">&#10004;</div>
+                                <div class="aws-title2 mb-2 text-success text-center">@objServiceDonations.PaymentStatus</div>
+                                <div class="success-description">
+
+                                    Thank you for your payment towards <span class="" style="color: #ad1115">@ViewBag.DonationProgram</span>  to the
+                                    @objAppInfo.SiteName.
+                                </div>
+                                <hr style="opacity: 0.1;">
+                                <div class="order-details px-lg-5">
+                                    <div class="row gy-0">
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Date</div>
+                                        </div>
+                                    <div class="col-7">
+                                        
+                                            <div class="text-start">@objServiceDonations.OrderDate.ToShortDateString()</div>
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Transaction Number</div>
+                                        </div>
+                                        <div class="col-7">
+                                            @if (objServiceDonations.PaymentMethod == "Cash/Cheque")
+                                            {
+                                                <div class="text-start">@(objServiceDonations.TransactionId != null && objServiceDonations.TransactionId != "" ? objServiceDonations.TransactionId : "Paid in Cash/Cheque")</div>
+                                            }
+
+                                           
+                                            else if (objServiceDonations.PaymentMethod == "Zelle")
+                                            {
+                                            <div class="text-start">@(objServiceDonations.TransactionId != null && objServiceDonations.TransactionId != "" ? objServiceDonations.TransactionId : "Paid in Zelle")</div>
+                                            }
+                                            else
+                                            {
+                                            <div class="text-start">@(objServiceDonations.TransactionId != null && objServiceDonations.TransactionId != "" ? objServiceDonations.TransactionId : "N/A")</div>
+                                            }
+                                        </div>
+                                        <div class="col-5 ">
+                                            <div class="aws-title5 text-start">Summary</div>
+                                        </div>
+                                        <div class="col-7">
+                                            <div class="text-start">
+                                                @(objServiceDonations.DonationCauses == "General Donation" ? "" : objServiceDonations.DonationCauses + " - ") Donation Successful for the
+                                                @objAppInfo.SiteName
+
+                                                </div>
+                                            </div>
+                                            <div class="col-5 ">
+                                                <div class="aws-title5 text-start">Status</div>
+                                            </div>
+                                            <div class="col-7">
+                                                <div class="text-start">@objServiceDonations.PaymentStatus </div>
+                                            </div>
+                                            <div class="col-5 ">
+                                                <div class="aws-title5 text-start">Amount</div>
+                                            </div>
+                                            <div class="col-7">
+                                                <div class="text-start">$@Math.Round(@objServiceDonations.Amount)</div>
+                                            </div>
+                                        </div>
+                                </div>
+                                <div class="order-footer">Thank you!</div>
+                            </div>
+                            <div class="jagged-edge"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+    <!-- content End Here  -->

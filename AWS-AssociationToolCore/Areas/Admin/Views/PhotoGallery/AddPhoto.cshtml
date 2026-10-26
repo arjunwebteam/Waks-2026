@@ -1,0 +1,364 @@
+﻿@{
+    ViewBag.Title = "AddPhoto";
+
+    int status1 = 0;
+    ViewBag.Pageheading = "Add Photo";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status1);
+    List<AWS_AssociationToolCore.Entities.PhotoCategories> lstPhotoCategories = ViewBag.lstPhotoCategories;
+    Int64 PhotoCategoryId = ViewBag.PhotoCategoryId;
+    AWS_AssociationToolCore.Entities.Photos objPhotos = ViewBag.objPhotos;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+    var imglocNormal = objAppInfo.BaseUrl + "Content/photogallery/thumbphoto/";
+    var Test = objPhotosImageSettings.Photosize; // Assuming objPhotosImageSettings.Eventsize is a string
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+
+        // Now you can use value1 and value2 as integers
+    }
+    else
+    {
+        // Handle the case where the split didn't produce two parts
+        // This could happen if the input string doesn't contain '*'
+        // or if there are more than one '*' characters in the string
+    }
+
+
+
+
+
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wGallery, #wPhotoGallery').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        $('#CropImage').dialog({
+            autoOpen: false,
+            width: 600,
+            modal: true
+        });
+
+
+        //$('#CropImage').dialog({
+        //    autoOpen: false,
+        //    width: 600,
+        //    modal: true
+        //});
+
+
+    });
+    function Validate() {
+        if ($('#PhotoCategoryId').val() == "") { $('#PhotoCategoryId').focus().addClass('validate'); return false; } else { $('#PhotoCategoryId').removeClass('validate'); }
+       // if ($.trim($('#ImageDescription').val()) == '') { $('#ImageDescription').focus().addClass("validate"); return false; } else { $('#ImageDescription').focus().removeClass("validate"); }
+        //if ($('#AlbumLink').val() == "") { $('#AlbumLink').focus().addClass("validate"); return false; } else { $('#AlbumLink').removeClass("validate"); }
+        if ($('#file1').val() == "") { $('#file1').focus(); $('#spanfile1').html('Required.'); return false; } else { $('#spanfile1').html(''); }
+        if (!Common.isImage($('#file1').val())) { $('#spanfile1').html('Sorry image is invalid. Only allowed extensions are:<b>jpg, png, PNG, gif, jpeg, JPEG</b>.'); $('#file1').focus(); return false; } else { $('#spanfile1').html(''); }
+        //if ($('#hdnimgvalidate').val() == '0') { $('#spanfile1').html('Please select image with diemensions equal to 350 * 250.'); $('#file1').focus(); return false; } else { $('#spanfile1').html(''); }
+
+        return true;
+    }
+
+    function ResetValidateClass() {
+        $('#FirstName').removeClass("validate");
+        $('#LastName').removeClass("validate");
+        $('#Email').removeClass("validate");
+        $('#Branch').removeClass("validate");
+        $('#MobileNo').removeClass("validate");
+    }
+
+    function imgValidate() {
+        $("#spanfilex").html("");
+        var file_size = $('#Alumni1')[0].files[0].size;
+        //var file_size2 = $('#Alumni2')[0].files[0].size;
+        if (file_size > 5000000) {
+            //$("#spanfilex").html("Image size should be lessthan or equal to 5 MB");
+            alert('Image size should be lessthan or equal to 5 MB')
+            return false;
+        }
+        //else if (file_size2 > 5000000) {
+        //    //$("#spanfilex").html("Image size should be lessthan or equal to 5 MB");
+        //    alert('Image size should be lessthan or equal to 5 MB')
+        //    return false;
+        //}
+        else {
+            $("#spanfilex").html("");
+            return true;
+        }
+    }
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#blah')
+                    .attr('src', e.target.result)
+                    .width(@value1)
+                    .height(@value2);
+                $('#image').attr('src', e.target.result);
+                $('#divimage').show();
+                $('#noimagetext').hide();
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+</script>
+
+<div class="content">
+    @using (Html.BeginForm("AddPhoto", "PhotoGallery", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VolunteerForm", @name = "VolunteerForm" }))
+    {
+        <input type="hidden" name="IsAgree" id="IsAgree" value="true" />
+        <input type="hidden" name="mid" id="mid" value="@ViewBag.mid" />
+        <input type="hidden" name="PhotoCategoryId" id="PhotoCategoryId" value="@ViewBag.PhotoCategoryId" />
+        <div class="card">
+            <div class="card-body">
+
+                <div class="row  g-3">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Gallery <span class="text-danger">*</span></label>
+                            <select id="PhotoCategoryId" name="PhotoCategoryId" class="single-select">
+                                <option value="">-- Select Category --</option>
+                                @if (lstPhotoCategories.Count > 0)
+                                {
+                                    foreach (var item in lstPhotoCategories)
+                                    {
+                                        <option @(item.PhotoCategoryId == PhotoCategoryId ? "selected = selected" : "") value="@(item.PhotoCategoryId)">@(item.CategoryName)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Display Order</label>
+                            <input type="text" placeholder="" id="DisplayOrder" maxlength="3" onkeypress="return Common.isNumberKey(event)" value="" name="DisplayOrder" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Album Link </label>
+                            <input type="text" placeholder="" id="AlbumLink" name="AlbumLink" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="input-box">
+                            <label class="form-label">
+                                Image Url
+                                <button type="button" data-bs-toggle="tooltip" title="Image size should be maintained width * height (@objPhotosImageSettings.Bannersize)" class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+                            </label>
+                            <div class="position-relative">
+                                <input type="file" id="file1" class="item-img file center-block browse form-control" name="file1" />
+                            </div>
+                            @*<div class="alert bg-light my-2 p-2" style="font-size:12px">
+                                    <span class="text-center" style="color: #f00; font-size: 15px; display:inline-block;font-weight:600">Note :</span> Image size should be maintained width * height (482 * 932)
+                                </div>*@
+
+                            <div class="confirm-identity">
+                                <div class="ci-user d-flex align-items-center justify-content-center">
+                                    <div class="ci-user-picture mt-3" style="display: none;">
+                                        <input type="hidden" id="Thumbimage" name="Thumbimage">
+                                        <img src="" id="item-img-output" class="imgpreviewPrf img-fluid" alt="">
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                        <div class="mt-3" id="img-tag" style="display:none">
+                            <label>Image</label>
+                            <img src="" id="test1" />
+                        </div>
+                    </div>
+
+                    @*<div class="col-lg-5 col-md-6">
+                            <div class="input-box">
+                                <label class="form-label">Image</label>
+
+                                <input type="file" multiple="multiple" name="file1" id="file1" onchange="checkPhoto(this); readURL(this);" class="form-control" />
+                                <label id="spanfile1" class="field-validation-error"></label>
+
+                                <div style="font-size:13px; line-height:26px;">
+                                    <span style="color:#ff0000; text-decoration:underline; font-weight:600">Note :</span> <b style="color: #f00; font-size: 15px"></b> Image size should be maintained width * height (@objPhotosImageSettings.Photosize)<br>
+
+                                    <span><b>1)</b>&nbsp;To resize Banners width &amp; height, please use <a href="https://picresize.com/" target="_blank">picresize.com</a>. </span><br>
+                                    <span><b>2)</b>&nbsp;To Optimize Banners width &amp; height, please use <a href="https://imagecompressor.com/" target="_blank">imagecompressor.com</a>. </span>
+                                </div>
+                            </div>
+                        </div>*@
+                    @*<article class="clearfix t-c">*@
+                    @*<img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((NRIVACommiteeImg + @objCommittees.Name + ".jpg"), imglocNormal + "no-image1.jpeg")" width="120" height="120" alt="@objCommittees.Name" title="@objCommittees.Name" class="width100 border-radius8" />
+                        <img id="blah" src="#" alt="Preview of your Committee Photo" />*@
+                    <!--<article class="clearfix part-6 position-r">
+                            <article class="clearfix t-m20 white-bg border shadow-cp p5  img-result hide r-p5 t-c">
+                                <label class="red-t" id="PspanBannerUrl"></label>
+                                <label class="clearfix t-b-m0 font14">Preview <span class="red-t">*</span></label>
+                                <input type="hidden" name="Thumbimage" id="Thumbimage" />
+                                <img class="cropped" src="" alt="" width="206" height="127">
+                                <br />
+                                <a onclick="$('#CropImage').dialog('open');" class="font12">Change</a>
+                            </article>
+                        </article>
+                    </article>-->
+
+
+                </div>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-3 col-3 text-end ms-auto">
+                <button type="submit" class="btn btn-success px-3">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Photos", "PhotoGallery", new { mid = ViewBag.mid ,PhotoCategoryId=ViewBag.PhotoCategoryId})">Cancel</a>
+
+            </div>
+        </div>
+
+
+
+    }
+</div>
+
+<script>
+    var _URL = window.URL || window.webkitURL;
+    $("#file1").change(function (e) {
+        var file, img;
+        if ((file = this.files[0])) {
+            img = new Image();
+            img.onload = function () {
+                if (this.width == 206 && this.height == 127) {
+                    $('#hdnimgvalidate').val('1');
+                }
+                else {
+                    $('#hdnimgvalidate').val('0');
+                }
+            };
+            img.src = _URL.createObjectURL(file);
+        }
+    });
+
+</script>
+
+<script src="Scripts/Admin/cropper-js-min.js" type="text/javascript"></script>
+<script>
+    $(document).ready(function () {
+       
+        function validateBannerUrl() {
+            $("#VolunteerForm").validate().resetForm();
+            $("#VolunteerForm").validate().element("#file1");
+        }
+
+        $.validator.addMethod("validImageExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                var allowedExtensions = ["jpg", "png", "gif", "jpeg"];
+                var fileName = element.files[0].name;
+                var extension = fileName.split('.').pop().toLowerCase();
+                return $.inArray(extension, allowedExtensions) !== -1;
+            }
+            return true;
+        }, "Only allowed extensions are: jpg, png, gif, jpeg");
+
+
+        $("#VolunteerForm").validate({
+            rules: {
+                PhotoCategoryId: "required",
+                /* ImageDescription: "required",*/
+                file1: {
+                    required: true,
+                    validImageExtension: true
+                }
+            },
+            messages: {
+                PhotoCategoryId: "Gallery Is Required",
+                /* ImageDescription: "Title is required",*/
+                file1: {
+                    required: "Please Select An Image File",
+                    validImageExtension: "Invalid file type. Only jpg, png, gif, jpeg files are allowed."
+                }
+            },
+
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+
+
+
+
+
+   
+
+
+</script>
+

@@ -1,0 +1,41 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var ChapterId = ViewBag.ChapterId;
+    string cname = ViewBag.cname;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Page Not Found | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Oops! The page you are looking for is not available. Return to the homepage";
+    ViewBag.MetaKeywords = "Telugu association 404 error, page not found, broken link, Telugu website error";
+
+    ViewBag.PageHeading = "Page Not Found";
+} 
+
+
+                <div class="aws-acknowledgement-box aws-ac-error">
+                    <div class="row justify-content-center">
+                        <div class="col-md-7">
+                            <div class="printer-top"></div>
+                            <div class="paper-container">
+                                <div class="printer-bottom"></div>
+
+                                <div class="paper">
+                                    <div class="main-contents">
+                                        <div class="success-icon"><i class="bi bi-x-lg"></i></div>
+                                        <div class="aws-title2 mb-2 text-success text-center">404 - PAGE NOT FOUND</div>
+                                        <div class="success-description">
+                                            The page you are looking for might have removed had its name changed or is temporarily unavailable.
+                                        </div>
+
+
+                                    </div>
+                                    <div class="jagged-edge"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>

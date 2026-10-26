@@ -1,0 +1,176 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = null;
+
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+
+    List<AWS_AssociationToolCore.Entities.AppUsers> lstAppUsers = ViewBag.lstAppUsers;
+
+    // ✅ Use Session instead of FormsAuthentication + HttpCookie
+    string userRole = HttpContextAccessor.HttpContext?.Session.GetString("userrole") ?? string.Empty;
+
+    // ✅ Use AppInfo.BaseUrl instead of Session
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status);
+
+    var WebsiteBannerurl = objAppInfo.BaseUrl + "Content/Notification/NormalImages/";
+}
+
+<link rel="stylesheet" type="text/css" href="Content/Admin/lib/lightview/css/lightview/lightview.css" />
+<script type="text/javascript" src="Content/Admin/lib/lightview/js/spinners/spinners.js"></script>
+<script type="text/javascript" src="Content/Admin/lib/lightview/js/lightview/lightview.js"></script>
+
+
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table  class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+
+                    <th class="text-center" width="1%">S.No.</th>
+
+                    <th class="text-left cursor-pointer" width="20%">Title</th>
+
+                    <th class="text-left cursor-pointer" width="20%">Body</th>
+
+                    <th class="text-center cursor-pointer" width="20%">Published Time</th>
+
+                    @*<th class="text-center cursor-pointer" width="20%">imageurl </th>*@
+
+                <th class="text-center cursor-pointer" width="5%">Delivery Count </th>
+
+                    <th class="text-center cursor-pointer" width="5%">#</th>
+
+
+                    <th class="text-center" width="5%">Action</th>
+                </tr>
+
+
+            </thead>
+            <tbody>
+                @if (lstAppUsers.Count != 0)
+                {
+                    //int i = 0;
+                    Int64 i = (((PageNo - 1) * Items) + 1);
+                    Int64 se = 1;
+                    foreach (var item in lstAppUsers)
+                    {
+                <tr valign="top" style="vertical-align: baseline;">
+
+                    <td align="center">
+                        @item.RId
+                    </td>
+
+
+                    <td style="text-align: left">
+                        <a class="active1" style="color:black;" alt="@item.Title" title="@item.Title">
+                            @(item.Title != null && item.Title.Length > 20 ? item.Title.Substring(0, 20) + "..." : (item.Title != null && item.Title != "" ? item.Title : "--"))
+                        </a>
+                    </td>
+
+                    <td style="text-align: left">
+                        <a class="active1" style="color:black;" alt="@item.Body" title="@item.Body">
+                            @(item.Body != null && item.Body.Length > 30 ? item.Body.Substring(0, 30) + "..." : (item.Body != null && item.Body != "" ? item.Body : "--"))
+                        </a>
+                    </td>
+
+
+                    <td align="center">
+                        @item.UpdatedTime
+                    </td>
+
+
+
+                    @*<td>
+
+                        <div class="d-flex align-items-center gap-3 cursor-pointer justify-content-center text-center ">
+                            <div class="">
+
+                                @if (!string.IsNullOrEmpty(item.imageurl))
+                                {
+                                    <a href="@(WebsiteBannerurl + item.imageurl)" class='lightview' data-lightview-group='example' title="@item.Body">
+                                        <img class="borwhite5 border-radius shadow" style="height:50px;width:50px;border-radius:3px" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((WebsiteBannerurl + item.imageurl), WebsiteBannerurl + "no-image.png")" />
+                                    </a>
+                                }
+                                else
+                                {
+                                    <a title="@item.Body">
+                                        <img class="borwhite5 border-radius shadow" style="height:50px;width:50px;border-radius:3px" src="" alt="No Image" />
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </td>*@
+
+
+                    <td align="center">
+                        @item.TotalCount
+                    </td>
+
+
+                    <td style="text-align: center; justify-content: center; display: flex;">
+                        <div class="table-actions d-flex align-items-center gap-3 fs-6">
+
+
+                            <a id="12" onclick="javascript:UsersView(@item.NotificationID);" class="ntdelete"><i class="fa fa-eye"></i></a>
+
+                        </div>
+                    </td>
+
+
+                    <td align="center">
+                        <div class="table-actions d-flex align-items-center gap-3 fs-6" style="justify-content: center;">
+
+
+                            <a id="12" onclick="javascript:Delete(@item.NotificationID);" class="ntdelete"><i class="fa fa-trash-o"></i></a>
+
+                        </div>
+                    </td>
+                </tr>
+                        i++;
+                        se++;
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+
+                }
+            </tbody>
+        </table>
+
+    </div>
+
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                <div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="AppUsersBind();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pagination-centered"))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

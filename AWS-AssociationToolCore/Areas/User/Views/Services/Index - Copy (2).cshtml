@@ -1,0 +1,1128 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var objMemberDetails = (AWS_AssociationToolCore.Entities.Members)ViewBag.Memberdetails;
+
+    Int64 ServiceCategoryId = ViewBag.ServiceCategoryId;
+    Int64 ChapterId = ViewBag.ChapterId;
+    Int64 ServiceId = ViewBag.ServiceId;
+    Int64 MemberId = ViewBag.MemberId;
+
+    var objServices = (AWS_AssociationToolCore.Entities.Services)ViewBag.objServices;
+    List<AWS_AssociationToolCore.Entities.ServiceImages> lstServiceImages = ViewBag.lstServiceImages;
+    List<AWS_AssociationToolCore.Entities.Services> lstServices = ViewBag.lstServices;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var ServiceimglocNormal = objAppInfo.AdminImageUrl + "ServiceImages/Images/";
+
+    Int64 ServiceDonationId = ViewBag.ServiceDonationId;
+    var cname = ViewBag.cname;
+
+    int status2 = 0;
+    AWS_AssociationToolCore.BLL.PaymentSettings _paymentSettings = new AWS_AssociationToolCore.BLL.PaymentSettings();
+    AWS_AssociationToolCore.Entities.PaymentSettings objPaymentSettings = _paymentSettings.GetPaymentSettingsDetails(0, "PayPal", ref status2);
+
+    Int64 TotalServices = lstServices.Count();
+
+    List<AWS_AssociationToolCore.Entities.PaymentMethods> lstpaymentmethods = ViewBag.lstpaymentmethods;
+
+    var capcha = objAppInfo.ShowCapcha;
+}
+
+<script src="https://www.paypal.com/sdk/js?client-id=@objPaymentSettings.PaymentUrl&components=buttons"></script>
+<script src='https://www.google.com/recaptcha/api.js' type="text/javascript"></script>
+<input type="hidden" id="GID" value="0" />
+
+<style>
+    #CardNumber {
+        font-family: 'Graphik-Regular';
+        letter-spacing: 1px;
+    }
+
+    .alert {
+        padding: 15px;
+        margin-top: 10px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+
+    .alert-success {
+        background-color: #dff0d8;
+        color: #3c763d;
+        border-color: #d6e9c6;
+    }
+</style>
+
+<script type="text/javascript">
+
+    var actionStatus = null;
+    var cnameValue   = '@Html.Raw(cname)';
+
+    // Debounce timer for Braintree re-init
+    var braintreeInitTimer = null;
+
+    $(document).ready(function () {
+        $("#Field2").datepicker({ changeMonth: true, changeYear: true, yearRange: "-0:+20", minDate: new Date(), altField: '.date', altFormat: 'mm/dd/yy' });
+
+        if ('@objServices.ServiceTitle' == 'General Donation') {
+            addCauseRow();
+            $('#GID').val(1);
+        }
+    });
+
+    // ================================================================
+    // ADD / DELETE CAUSE ROW (General Donation)
+    // ================================================================
+    function addCauseRow() {
+        var table    = document.getElementById("contributionfo");
+        var rowCount = table.rows.length;
+        var row      = table.insertRow(rowCount);
+        row.id       = rowCount;
+
+        var cell1    = row.insertCell(0);
+        var element1 = document.createElement("article");
+        element1.className = "clearfix dropdown";
+        element1.innerHTML = "<select class=\"dropdown-select ui-select\" id=\"ServiceId-" + (rowCount - 1) + "\" name=\"[" + (rowCount - 1) + "].ServiceId\" style=\"min-height:40px; background-color:#fff;\" onchange=\"contributionupdate();\"></select>";
+        element1.style = "min-height:40px; background-color:#fff;";
+        cell1.appendChild(element1);
+
+        var cell2    = row.insertCell(1);
+        var element2 = document.createElement("input");
+        element2.type      = "text";
+        element2.name      = "[" + (rowCount - 1) + "].Percentage";
+        element2.id        = "Percentage-" + (rowCount - 1);
+        element2.className = "form-control dis-in per_class";
+        element2.style     = "min-height:40px; background-color:#fff";
+        cell2.appendChild(element2);
+
+        var cell3 = row.insertCell(2);
+        cell3.align     = 'center';
+        cell3.innerHTML = '<span id="del-' + (rowCount - 1) + '"><a onclick="javascript:deleteRow(' + rowCount + ')" class="darkgray-text"><img alt="Delete" title="Delete" src="Content/User/images/delete.gif" class="margin-top-5" /></a></span>';
+        $('#hdnRowCount').val(rowCount);
+
+        $("#Percentage-" + (rowCount - 1)).attr('onchange', 'sumpercentage()').attr('onkeypress', 'return Common.isNumberKey(event)');
+
+        ServicesList(rowCount - 1);
+        $('#del-' + (rowCount - 2)).html('');
+        if ((rowCount) == @TotalServices) { $('#spp2').hide(); }
+    }
+
+    function deleteRow(i) {
+        try {
+            var row = document.getElementById(i);
+            row.parentNode.removeChild(row);
+            contributionupdate();
+            $('#del-' + (i - 2)).html('<a onclick="javascript:deleteRow(' + (i - 1) + ')" class="darkgray-text"><img alt="Delete" title="Delete" src="Content/User/images/delete.gif" class="margin-top-5" /></a>');
+            var table    = document.getElementById("contributionfo");
+            var rowCount = table.rows.length;
+            if ((rowCount - 2) < 4) { $('#spp2').show(); }
+        } catch (e) { alert(e); }
+    }
+
+    $(document).ready(function () {
+        $('#round_no').on('input', function () {
+            let amt = $(this).val().replace(/\D/g, '');
+            $(this).val(amt);
+            round_off();
+        });
+    });
+
+    // ================================================================
+    // ROUND OFF - amount entry handler
+    // ================================================================
+    function round_off() {
+        var type = $('#PaymentMethod').val();
+
+        // -- Button visibility
+        if (type === "PayPal") {
+            $('#paypal-button-container').show();
+            $('#submit-button').hide();
+            $('#button-show').show();
+            $('#paypalbuttonshow').show();
+        } else if (type === "Credit Card") {
+            $('#paypal-button-container').hide();
+            $('#paypalbuttonshow').hide();
+            $('#button-show').show();
+            $('#submit-button').show();
+        } else {
+            $('#paypal-button-container').hide();
+            $('#paypalbuttonshow').hide();
+            $('#button-show').show();
+            $('#submit-button').show();
+        }
+
+        // -- Amount empty check
+        if ($('#round_no').val() === "") {
+            $('#spanAmount').hide().html('');
+            $('#Disblbtn').show();
+            $('#Mainbtn').hide();
+            $('#BT_Amount').val('');
+            window.NEW_PAYMENT_AMOUNT = '';
+            return false;
+        }
+
+        var amt  = $('#round_no').val();
+        var amt1 = parseInt(amt, 10);
+
+        if (isNaN(amt1)) {
+            $('#spanAmount').html('Please enter a valid amount.');
+            return false;
+        }
+
+        $('#amount1').val(amt1);
+        $('#round_no').val(amt1);
+        $('#BT_Amount').val(amt1);         // ← Braintree reads this field
+        window.NEW_PAYMENT_AMOUNT = amt1;  // ← fallback
+
+        var formattedAmt = amt1.toFixed(2);
+
+        // -- Update all amount display spans
+        $('#payamount').html(formattedAmt);
+        $('#totalamountzelle').html(formattedAmt);
+        $('#creditamount').html(formattedAmt);
+        $('#totalamountcash').html(formattedAmt);
+        $('#totalstripe').html(formattedAmt);
+        $('#totalswirepay').html(formattedAmt);
+
+        // -- Fire amount-updated so Braintree partial re-inits
+        $(document).trigger("amount-updated");
+
+        // -- Debounced Braintree re-init when typing stops
+        if (type === "Credit Card" && typeof window.startBraintree === 'function') {
+            clearTimeout(braintreeInitTimer);
+            braintreeInitTimer = setTimeout(function () {
+                window.startBraintree();
+            }, 800);
+        }
+
+        // -- Donation cause hidden field
+        $('#DonationCause1').val("Donation Registration###" + formattedAmt);
+
+        // -- Validation
+        if (amt1 >= 5) {
+            $('#spanAmount').html('');
+            $('#Disblbtn').hide();
+            $('#Mainbtn').show();
+            if (type === "PayPal" && typeof actionStatus !== 'undefined') {
+                try { actionStatus.enable(); } catch (e) {}
+            }
+        } else {
+            $('#spanAmount').html('Amount &lt; 5.00 USD.');
+            $('#Disblbtn').show();
+            $('#Mainbtn').hide();
+            if (typeof actionStatus !== 'undefined') {
+                try { actionStatus.disable(); } catch (e) {}
+            }
+            return false;
+        }
+
+        return true;
+    }
+
+    // ================================================================
+    // PAYMENT BIND - tab switcher
+    // ================================================================
+    function paymentbind(type) {
+        console.log('paymentbind:', type);
+
+        // Show/hide payment buttons
+        if (type === "PayPal") {
+            $('#paypalbuttonshow').show();
+            $('#paypal-button-container').show();
+            $('#button-show').hide();
+            $('#submit-button').hide();
+        } else {
+            $('#paypalbuttonshow').hide();
+            $('#paypal-button-container').hide();
+            $('#button-show').show();
+            $('#submit-button').show();
+        }
+
+        // Set hidden payment method field
+        $('#PaymentMethod').val(type);
+
+        // Remove previous conditional validation rules
+        $("#CardNumber, #CardName, #Cvv, #CSVYear, #CSVMonth").rules("remove");
+        $("#Zelle, #ZellePartnerName, #filezelle").rules("remove");
+        $("#file1").rules("remove");
+
+        if (type === "AuthorizeNet") {
+            $("#CardNumber").rules("add", { required: true });
+            $("#CardName").rules("add",   { required: true });
+            $("#Cvv").rules("add",        { required: true });
+            $("#CSVYear").rules("add",    { required: true });
+            $("#CSVMonth").rules("add",   { required: true });
+        } else if (type === "Credit Card") {
+            // Validate amount first
+            var amount = parseFloat($('#round_no').val());
+            if (!amount || isNaN(amount) || amount < 5) {
+                alert("Please enter a minimum $5 donation amount first.");
+                paymentbind('PayPal');
+                return;
+            }
+            $('#paypal-button-container').hide();
+            $('#dropin-container').show();
+
+            // Init Braintree - poll until partial has loaded and registered window.startBraintree
+            function tryInitBT() {
+                if (typeof window.startBraintree === "function") {
+                    if (!window.dropinInst) {
+                        window.startBraintree();
+                    }
+                } else {
+                    setTimeout(tryInitBT, 200);
+                }
+            }
+            tryInitBT();
+
+        } else if (type === "Zelle") {
+            $("#Zelle").rules("add",            { required: true });
+            $("#ZellePartnerName").rules("add",  { required: true });
+            $("#filezelle").rules("add",         { required: true });
+        } else if (type === "Cash/Cheque") {
+            $("#file1").rules("add",             { required: true });
+        }
+
+        // Activate tab panel
+        var cleanedTabId = "tab" + type.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().replace(/\s+/g, '-');
+        $('.cus-tab-pane').removeClass('active').hide();
+        $('#' + cleanedTabId).addClass('active').show();
+
+        // Highlight tab button
+        $('.cus-tab-label').removeClass('active');
+        $('.cus-tab-label[value="' + type + '"]').addClass('active');
+
+        // Reset validation messages
+        $("#SignupForm").validate().resetForm();
+    }
+
+    // ================================================================
+    // CONTRIBUTION helpers (General Donation)
+    // ================================================================
+    function contributionupdate() {
+        var table    = document.getElementById("contributionfo");
+        var rowCount = table.rows.length;
+        var rows     = rowCount - 1;
+        var per      = (100 / rows).toFixed(2);
+        $('.per_class').val(per);
+        sumpercentage();
+    }
+
+    function sumpercentage() {
+        var sum = 0;
+        $(".per_class").each(function () { sum += +$(this).val(); });
+        $("#TotalPercent").val(sum);
+        if ($('#GID').val() == 1) { $('#GID').val(0); }
+        else { Validate(); }
+    }
+
+    function ServicesList(rowid) {
+        $.ajax({
+            url:   '@Url.Action("ServicesGetListByChapterId", "Services")',
+            type:  'POST',
+            cache: false,
+            success: function (result) {
+                if (result.ok) {
+                    var lstServices = result.data;
+                    var sb1 = "";
+                    if (lstServices != null) {
+                        var table    = document.getElementById("contributionfo");
+                        var rowCount = table.rows.length;
+                        var rows     = rowCount - 1;
+                        for (var k = 0; k < lstServices.length; k++) {
+                            var x = 0;
+                            for (var i = 0; i <= rows; i++) {
+                                if (lstServices[k].ServiceId == $('#ServiceId-' + i).val()) { x = 1; }
+                            }
+                            if (x == 0) {
+                                sb1 = sb1 + "<option value=\"" + lstServices[k].ServiceId + "\">" + lstServices[k].ServiceTitle + "</option>";
+                            }
+                        }
+                    }
+                    $('#ServiceId-' + rowid).append(sb1);
+                    contributionupdate();
+                }
+            }
+        });
+    }
+
+    function Validates(stype) {
+        var return_val = true;
+        var amt        = $('#round_no').val();
+        var needamt    = Math.round((500000), 0);
+        if (amt == 0) { $('#spanAmount').hide().html(''); return_val = false; }
+        else {
+            $('#spanAmount').hide().html('');
+            if (amt < 5) { $('#spanAmount').html('Please enter amount atleast $5.'); return_val = false; }
+            else if (amt > needamt && '@objServices.ServiceId' != 0) { $('#spanAmount').html('Entered amount is exceeded.'); return_val = false; }
+            else { $('#spanAmount').html(''); RECAMTBIND(); }
+        }
+        return return_val;
+    }
+
+    function RECAMTBIND() {
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            $('#Field1').val($('#round_no').val());
+            $('#RecurringAmount').val($('#round_no').val());
+        }
+    }
+
+    function RecurrDivFunction() {
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            $('#Field1').val($('#round_no').val());
+            $('#RecurrDiv').show('slow');
+        } else {
+            $('#RecurringAmount').val('');
+            $('#RecurringType').val('');
+            $('#RecurringStartTime').val('');
+            $('#RECDate').val('');
+            $('#RType').val('');
+            $('#ReccurId').val('');
+            $('#RecurrDiv').hide('slow');
+        }
+    }
+
+    function PhoneNochange(event) {
+        if (event.keyCode != 8 && event.keyCode != 46) {
+            var ph = $('#PhoneNo').val();
+            if (ph.length == 3) { $('#PhoneNo').val(ph + '-'); }
+            if (ph.length == 7) { $('#PhoneNo').val(ph + '-'); }
+        }
+    }
+
+    function EmailValidate() {
+        if ($.trim($('#Email').val()) != '') {
+            if (!Common.CheckEmail($.trim($('#Email').val()))) {
+                $('#spanEmail').show().html('Please enter valid email address.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>');
+                $('#Email').focus().addClass("error2"); return false;
+            } else { $('#spanEmail').hide().html(''); }
+        }
+    }
+
+    function ZipValidate() {
+        if ($.trim($('#ZipCode').val()) != '') {
+            if ($('#ZipCode').val().length < 5) {
+                $('#spanZipCode').show().html('Please enter valid Zip Code.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>');
+                $('#ZipCode').focus().addClass("error2"); return false;
+            } else { $('#spanZipCode').hide().html(''); }
+        }
+    }
+
+    function onRecaptchaSuccess(token) {
+        $("#recaptchaResponse").val(token);
+    }
+
+    var specialKeys = [8, 9, 32, 46, 36, 35, 37, 39];
+
+    function onlyAlphabets(e, t) {
+        try {
+            var charCode = window.event ? window.event.keyCode : (e ? e.which : 0);
+            if (!charCode) return true;
+            if ((charCode == 32) || (charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123) || (specialKeys.indexOf(e.keyCode) != -1 && e.charCode != e.keyCode))
+                return true;
+            else return false;
+        } catch (err) { alert(err.Description); }
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('#ValidationAlert').dialog({ autoOpen: false, width: 470, modal: true });
+    });
+    function ValidationAlertShow() { $('#ValidationAlert').dialog('open'); }
+</script>
+
+<script>
+    $(document).ready(function () {
+
+        // Card number formatting
+        $('#CardNumber').on('input', function () {
+            let v = $(this).val().replace(/\D/g, '');
+            if (v.length > 0) v = v.match(/.{1,4}/g).join(' ');
+            $(this).val(v);
+        });
+
+        // CVV numbers only
+        $('#Cvv').on('input', function () {
+            $(this).val($(this).val().replace(/\D/g, ''));
+        });
+
+        // Custom validator: min $5
+        $.validator.addMethod("validImageExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                let ext = element.files[0].name.split('.').pop().toLowerCase();
+                return ['jpg', 'png', 'gif', 'jpeg'].includes(ext);
+            }
+            return true;
+        }, "Only allowed extensions are: jpg, png, gif, jpeg");
+
+        $.validator.addMethod("customMin", function (value, element) {
+            return parseFloat(value) >= 5;
+        }, "Enter Min $5.00");
+
+        // ================================================================
+        // FORM VALIDATION
+        // ================================================================
+        $('#SignupForm').validate({
+            rules: {
+                FirstName:  { required: true },
+                LastName:   { required: true },
+                Email:      { required: true, email: true },
+                PhoneNo:    { required: true },
+                Address:    { required: true, minlength: 5 },
+                Country:    { required: true },
+                ServiceId:  { required: true },
+                pmethod:    { required: true },
+                CardNumber: { required: true },
+                CardName:   { required: true },
+                Cvv:        { required: true },
+                CSVYear:    { required: true },
+                CSVMonth:   { required: true },
+                Zelle:          { required: true },
+                ZellePartnerName: { required: true },
+                file1:      { required: true, validImageExtension: true },
+                filezelle:  { required: true, validImageExtension: true },
+                Amount: { required: true, number: true, customMin: true },
+                recaptcha: {
+                    required: function () {
+                        var capcha = '@capcha';
+                        return capcha === 'Yes' && $("#recaptchaResponse").val().trim() === "";
+                    }
+                }
+            },
+            messages: {
+                FirstName:  "Enter First Name",
+                LastName:   "Enter Last Name",
+                Email:      "Enter valid Email",
+                PhoneNo:    { required: "Please enter a phone number" },
+                Address:    "Enter Address",
+                Country:    "Select Country",
+                ServiceId:  "Select Cause",
+                pmethod:    "Select Payment Method",
+                Amount:     { required: "Required", number: "Enter a valid amount", customMin: "Enter Min $5.00" },
+                recaptcha:  { required: "Please confirm that you are not a robot." }
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                error.addClass("help-block");
+                if (element.attr("name") === "Amount") {
+                    if ($('#amount-error-container').length === 0) {
+                        element.closest('.col-md-5').append('<div id="amount-error-container"></div>');
+                    }
+                    error.appendTo('#amount-error-container');
+                } else {
+                    error.insertAfter(element);
+                }
+            }
+        });
+
+        // ================================================================
+        // SUBMIT BUTTON - handles Credit Card (Braintree nonce) and others
+        // ================================================================
+        $('#submit-button').on('click', function (e) {
+            e.preventDefault();
+
+            var form          = $('#SignupForm');
+            var paymentMethod = $('#PaymentMethod').val();
+
+            if (paymentMethod === 'Credit Card') {
+                if (!form.valid()) return;
+
+                if (!window.dropinInst) {
+                    alert('Payment form not ready. Please wait and try again.');
+                    return;
+                }
+                if (!window.dropinInst.isPaymentMethodRequestable()) {
+                    alert('Please fill in your card details before submitting.');
+                    return;
+                }
+
+                window.dropinInst.requestPaymentMethod(function (err, payload) {
+                    if (err) { alert('Card error: ' + err.message); return; }
+                    $('#nonce').val(payload.nonce);
+                    console.log('Nonce set:', payload.nonce);
+                    $('<input>').attr({ type: 'hidden', name: 'ClientValidationStatus', value: 'true' }).appendTo(form);
+                    form.submit();
+                });
+                return;
+            }
+
+            // Non-Credit-Card methods
+            if (form.valid()) {
+                $('<input>').attr({ type: 'hidden', name: 'ClientValidationStatus', value: 'true' }).appendTo(form);
+                form.submit();
+            }
+        });
+
+        // PayPal button container show/hide on amount input
+        $('#round_no').on('input', function () {
+            if ($(this).val()) { $('#paypal-button-container').show(); }
+            else               { $('#paypal-button-container').hide(); }
+        });
+
+        // ================================================================
+        // PAYPAL INTEGRATION
+        // ================================================================
+        if (typeof paypal !== 'undefined') {
+            paypal.Buttons({
+                fundingSource: paypal.FUNDING.PAYPAL,
+                style: { layout: 'horizontal', color: 'blue', shape: 'pill', label: 'pay', height: 40 },
+
+                onInit: function (data, actions) {
+                    actionStatus = actions;
+
+                    if (!$('#SignupForm').valid() || !$('#round_no').val()) {
+                        actions.disable();
+                    } else {
+                        actions.enable();
+                    }
+
+                    if ($('#PaymentMethod').val() === 'PayPal') {
+                        $('#paypalbuttonshow').show();
+                        $('#paypal-button-container').show();
+                        $('#button-show').hide();
+                    }
+
+                    var debounceTimer;
+                    $('#SignupForm').off('change keyup').on('change keyup', function () {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(function () {
+                            if ($('#SignupForm').valid() && $('#round_no').val()) {
+                                actionStatus.enable();
+                            } else {
+                                actionStatus.disable();
+                            }
+                        }, 300);
+                    });
+                },
+
+                onClick: function (data, actions) {
+                    if (!$('#SignupForm').valid()) {
+                        alert('Please fill all required fields');
+                        return actions.reject();
+                    }
+                    var amount = $('#round_no').val();
+                    if (!amount || parseFloat(amount) <= 0) {
+                        alert('Please enter a valid amount');
+                        return actions.reject();
+                    }
+                    return actions.resolve();
+                },
+
+                createOrder: function (data, actions) {
+                    var amount             = $('#round_no').val();
+                    var membershipTypeValue = $('#DonationCause1').val();
+                    var item               = membershipTypeValue.split('###');
+
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: { currency_code: 'USD', value: amount },
+                            description: item[0] || "Donation",
+                            custom_id:   $('#DonationCause1').val()
+                        }],
+                        application_context: { shipping_preference: 'NO_SHIPPING' }
+                    });
+                },
+
+                onApprove: function (data, actions) {
+                    return actions.order.capture().then(function (details) {
+                        var transactionId = details.id;
+                        var amount        = details.purchase_units[0].amount.value;
+                        var status        = details.status;
+                        var payerName     = details.payer.name.given_name + ' ' + details.payer.name.surname;
+                        var payerEmail    = details.payer.email_address;
+
+                        if (status === 'COMPLETED') {
+                            $('#TransactionId').val(transactionId);
+                            $('#PaymentAmount').val(amount);
+                            $('#PaymentStatus').val(status);
+                            $('#PayerName').val(payerName);
+                            $('#PayerEmail').val(payerEmail);
+
+                            $('#payment-status').html('<div class="alert alert-success">Payment completed! Submitting...</div>');
+                            $('#paypal-button-container').hide();
+
+                            var formData = new FormData(document.getElementById('SignupForm'));
+                            $.ajax({
+                                url:         '@Url.Action("AddServiceDonation", "Services", new { area = "User" })',
+                                type:        'POST',
+                                data:        formData,
+                                processData: false,
+                                contentType: false,
+                                headers:     { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
+                                success: function (response) {
+                                    if (response && response.redirectUrl) {
+                                        window.location.href = response.redirectUrl;
+                                    } else {
+                                        window.location.href = '@Url.Action("Acknowledgement", "Services", new { area = "User" })'
+                                            + '?ServiceDonationId=' + ($('#ServiceDonationId').val() || 0)
+                                            + '&cname=' + encodeURIComponent(cnameValue);
+                                    }
+                                },
+                                error: function (xhr) {
+                                    console.error('Submit error:', xhr.status, xhr.responseText);
+                                    $('#payment-status').html('<div class="alert alert-danger">Submission failed. Payment captured. Transaction ID: ' + transactionId + '</div>');
+                                }
+                            });
+                        } else {
+                            $('#payment-status').html('<div class="alert alert-warning">Payment status: ' + status + '</div>');
+                        }
+                    }).catch(function (err) {
+                        console.error('Capture error:', err);
+                        $('#payment-status').html('<div class="alert alert-danger">Error: ' + err.message + '</div>');
+                    });
+                },
+
+                onError: function (err) {
+                    console.error('PayPal Error:', err);
+                    $('#payment-status').html('<div class="alert alert-danger">PayPal error: ' + (err.message || 'Unknown error') + '</div>');
+                },
+
+                onCancel: function () {
+                    $('#payment-status').html('<div class="alert alert-info">Payment was cancelled.</div>');
+                }
+
+            }).render('#paypal-button-container');
+        } else {
+            console.error('PayPal SDK not loaded.');
+        }
+
+        // Init first payment tab
+        if ('@(lstpaymentmethods != null && lstpaymentmethods.Count > 0 ? lstpaymentmethods[0].PaymentMethod : "PayPal")' !== '') {
+            paymentbind('@(lstpaymentmethods != null && lstpaymentmethods.Count > 0 ? lstpaymentmethods[0].PaymentMethod : "PayPal")');
+        }
+
+    }); // end document.ready
+</script>
+
+<input value="" id="amount1" name="amount1" type="hidden" />
+
+<!-- ================================================================ -->
+<!-- FORM                                                              -->
+<!-- ================================================================ -->
+<div class="aws-form">
+    @using (Html.BeginForm("AddServiceDonation", "Services", FormMethod.Post, new { enctype = "multipart/form-data", name = "SignupForm", id = "SignupForm" }))
+    {
+        @Html.AntiForgeryToken()
+        string secreatkey = objAppInfo.CapchaSiteKey;
+
+        <input type="hidden" id="TotalPercent" value="100" />
+        <input type="hidden" name="PaymentMethod" id="PaymentMethod" value="PayPal" />
+        <input type="hidden" id="ChapterId" name="ChapterId" value="@ChapterId" />
+        <input type="hidden" id="MemberId" name="MemberId" value="@MemberId" />
+        <input type="hidden" id="ServiceDonationId" name="ServiceDonationId" value="@ServiceDonationId" />
+        <input type="hidden" name="Secure" id="Secure" class="Secure1" value="" />
+        <input type="hidden" id="DonationCause1" name="DonationCause1" />
+        <input type="hidden" name="cname" id="cname" class="cname" value="@cname" />
+        <input type="hidden" id="PayerName" name="PayerName" />
+        <input type="hidden" id="PayerEmail" name="PayerEmail" />
+        <input type="hidden" id="PaymentAmount" name="PaymentAmount" />
+        <input type="hidden" id="PaymentStatus" name="PaymentStatus" />
+        <input type="hidden" id="TransactionId" name="TransactionId" />
+        <input type="hidden" id="nonce" name="payment_method_nonce" value="" />
+        <input type="hidden" id="BT_Amount" name="BT_Amount" value="" />
+        <input type="hidden" name="ValidationCode" value="@ViewBag.ValidationCode" />
+        <input type="hidden" id="Honeypot" name="Honeypot" />
+
+        <div class="row gx-3">
+            <!-- Donation Amount -->
+            <div class="col-md-12">
+                <div class="payment-input mb-3">
+                    <div class="row gy-lg-0 gy-2 gx-2">
+                        <div class="col-md-7" style="display:grid;align-items:center;">
+                            <span class="fnt-pop-medium font17">
+                                Enter Your Donation Amount<br>
+                                <span class="font12 dis-in" style="color:#ad1115;">(Donation amount should be min of $5.00)</span>
+                            </span>
+                        </div>
+                        <div class="col-md-5 text-end">
+                            <div class="aws-donation-amount d-inline-block">
+                                <fieldset class="h-auto p-0">
+                                    <div class="aws-input-donate">
+                                        <input class="donation-input numberkey" id="round_no" name="Amount"
+                                               onkeypress="return Common.isNumberKey(event);"
+                                               onkeyup="round_off(this.value)">
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- First Name -->
+            <div class="col-md-6">
+                <div class="pos-relative">
+                    <fieldset>
+                        <legend class="float-none w-auto px-1">First Name <span class="input-imp">*</span></legend>
+                        <input class="input-box" type="text" name="FirstName" id="FirstName"
+                               placeholder="First Name *" onkeypress="return onlyAlphabets(event,this);"
+                               value="@objMemberDetails.FirstName" />
+                    </fieldset>
+                </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="col-md-6">
+                <div class="pos-relative">
+                    <fieldset>
+                        <legend class="float-none w-auto px-1">Last Name <span class="input-imp">*</span></legend>
+                        <input class="input-box" type="text" placeholder="Last Name *"
+                               id="LastName" name="LastName" value="@objMemberDetails.LastName" />
+                    </fieldset>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="col-md-6">
+                <div class="pos-relative">
+                    <fieldset>
+                        <legend class="float-none w-auto px-1">Email Id <span class="input-imp">*</span></legend>
+                        <input class="input-box" type="text" placeholder="Email Address *"
+                               id="Email" name="Email" value="@objMemberDetails.Email" />
+                    </fieldset>
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="col-md-6">
+                <div class="pos-relative">
+                    <fieldset>
+                        <legend class="float-none w-auto px-1">Mobile Number <span class="input-imp">*</span></legend>
+                        <input class="input-box" id="PhoneNo" type="text"
+                               onkeypress="PhoneNochange(event); return Common.isNumberKey(event);"
+                               maxlength="12" placeholder="Phone Number *"
+                               name="PhoneNo" value="@objMemberDetails.MobilePhone" />
+                    </fieldset>
+                </div>
+            </div>
+
+            <!-- Country -->
+            <div class="col-md-6">
+                <fieldset>
+                    <legend class="float-none w-auto px-1">Country <span class="input-imp">*</span></legend>
+                    <select class="input-box" id="Country" name="Country">
+                        <option value="">Select</option>
+                        <option value="USA">USA</option>
+                        <option value="India">India</option>
+                        <option value="Canada">Canada</option>
+                    </select>
+                </fieldset>
+            </div>
+
+            <!-- Zip Code -->
+            <div class="col-md-6">
+                <fieldset>
+                    <legend class="float-none w-auto px-1">Zip Code</legend>
+                    <input class="input-box" placeholder="Zip Code" id="ZipCode"
+                           value="@objMemberDetails.ZipCode" maxlength="6" name="ZipCode" type="text" />
+                </fieldset>
+            </div>
+
+            <!-- Donate Cause -->
+            <div class="col-md-6">
+                <fieldset>
+                    <legend class="float-none w-auto px-1">Donate Cause <span class="input-imp">*</span></legend>
+                    @if (lstServices != null && lstServices.Count != 0)
+                    {
+                        <select class="input-box" name="ServiceId" id="ServiceId" placeholder="Donate Cause">
+                            <option value="">Select Donate Cause</option>
+                            @foreach (var item in lstServices)
+                            {
+                                <option value="@item.ServiceId">@item.ServiceTitle</option>
+                            }
+                        </select>
+                    }
+                </fieldset>
+            </div>
+
+            <!-- Address -->
+            <div class="col-md-6">
+                <fieldset>
+                    <legend class="float-none w-auto px-1">Address <span class="input-imp">*</span></legend>
+                    <textarea class="input-box" name="Address" id="Address" placeholder="Address">@objMemberDetails.Address</textarea>
+                </fieldset>
+            </div>
+
+            <!-- Anonymous -->
+            <div class="col-md-12">
+                <div class="clearfix row">
+                    <div class="col-md-12">
+                        <fieldset class="h-auto">
+                            <legend class="float-none w-auto px-1">On my donation, list me as anonymous? <span class="input-imp">*</span></legend>
+                            <div class="row radio-btn-group">
+                                <div class="col-6">
+                                    <div class="radio-btn">
+                                        <input type="radio" name="Field3" value="Yes" id="Field3-1" />
+                                        <label for="Field3-1">Yes</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="radio-btn">
+                                        <input type="radio" name="Field3" checked="checked" value="No" id="Field3-2" />
+                                        <label for="Field3-2">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-12"><div class="dot-line mb-4"></div></div>
+
+            <!-- Payment Method -->
+            <div class="col-md-12">
+                <fieldset class="h-auto">
+                    <legend class="float-none w-auto px-1">Payment Method <span class="input-imp">*</span></legend>
+                    <div class="payment-mode">
+                        <div class="cus-tabs-container">
+                            <div class="cus-tabs-nav">
+                                @if (lstpaymentmethods != null && lstpaymentmethods.Count != 0)
+                                {
+                                    int k = 1;
+                                    foreach (var item in lstpaymentmethods)
+                                    {
+                                        string tab = "tab" + item.PaymentMethod.ToLower().Replace(" ", "-");
+                                        <input type="text"
+                                               class="cus-tab-label @(k == 1 ? "active" : "")"
+                                               onclick="paymentbind('@item.PaymentMethod');"
+                                               data-tab="@tab"
+                                               value="@item.PaymentMethod"
+                                               readonly>
+                                        k++;
+                                    }
+                                }
+                            </div>
+
+                            <div class="cus-tabs-content mt-3" style="margin-inline:5px;">
+
+                                <!-- PayPal Tab -->
+                                <div id="tabpaypal" class="cus-tab-pane active">
+                                    <div class="paypal-sec paymnet-cmn-sec">
+                                        <div class="row gy-2">
+                                            <div class="col-md-8">
+                                                <img src="Content/User/images/paypal.png" class="img-fluid" alt="" style="height:80px;">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="member-amount" style="box-shadow:none;">
+                                                    <div>
+                                                        <div class="aws-amount-total">Total Amount</div>
+                                                        <span id="payamount" class="aws-amount">0.00</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Credit Card Tab (Braintree loaded via AJAX) -->
+                                <div id="tabcredit-card" class="cus-tab-pane">
+                                    <div class="paymnet-cmn-sec"></div>
+                                </div>
+                                <script>
+                                    $(document).ready(function () {
+                                        $.ajax({
+                                            type: "GET",
+                                            url: '@Url.Action("BrainTree", "BrainTreePayment", new { area = "User" })',
+                                            success: function (data) {
+                                                $("#tabcredit-card").html(data);
+                                                console.log("Braintree partial loaded (Donation).");
+                                            },
+                                            error: function () {
+                                                $("#tabcredit-card").html('<p class="text-danger">Failed to load payment form.</p>');
+                                            }
+                                        });
+                                    });
+                                </script>
+
+                                <!-- Zelle Tab -->
+                                <div id="tabzelle" class="cus-tab-pane" style="display:none;">
+                                    <div class="zelle-sec paymnet-cmn-sec">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <img src="Content/User/images/zelle.png" alt="" height="60" style="margin-right:15px;float:left;margin-bottom:6px;">
+                                                <div>
+                                                    <div>Zelle Name: <a class="fnt-pop clr1">@objAppInfo.SiteName;</a></div>
+                                                    <div>Zelle Email Id: <a href="mailto:@objAppInfo.CompanyEmail" class="fbt-pop clr1">@objAppInfo.CompanyEmail</a></div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="member-amount">
+                                                    <div>
+                                                        <div class="aws-amount-total">Total Amount</div>
+                                                        <span id="totalamountzelle" class="aws-amount">0.00</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix">
+                                            <div class="aws-alert-info my-3">Please enter the Zelle transaction details below:</div>
+                                            <div class="clearfix row">
+                                                <div class="col-md-4">
+                                                    <div class="my-2">
+                                                        <fieldset class="border p-3">
+                                                            <legend class="float-none w-auto px-1">Zelle Transaction <span class="input-imp">*</span></legend>
+                                                            <input type="text" placeholder="Zelle Transaction Id" name="Zelle" id="Zelle" class="input-box" />
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="my-2">
+                                                        <fieldset class="border p-3">
+                                                            <legend class="float-none w-auto px-1">Person Name <span class="input-imp">*</span></legend>
+                                                            <input type="text" placeholder="Name of the Person" name="ZellePartnerName" id="ZellePartnerName" class="input-box" />
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="my-2">
+                                                        <fieldset>
+                                                            <legend class="float-none w-auto px-1">Upload zelle image here <span class="input-imp">*</span></legend>
+                                                            <input type="file" name="filezelle" id="filezelle" class="input-box">
+                                                        </fieldset>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Cash/Cheque Tab -->
+                                <div id="tabcashcheque" class="cus-tab-pane">
+                                    <div class="paymnet-cmn-sec">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <img src="Content/User/images/cash-cheque.png" alt="" height="80" style="margin-right:15px;float:left;margin-bottom:6px;">
+                                                <div>You will receive a confirmation email once payment is credited to @objAppInfo.SiteName account.</div>
+                                                <div class="radio-btn mt-3">
+                                                    <input type="radio" id="Mailed-1" name="Mailed" checked="checked" onClick="hideCheque();">
+                                                    <label for="Mailed-1">Upload the cheque image to @objAppInfo.SiteName</label>
+                                                </div>
+                                                <div class="my-1 cheque-image" id="cheque-show">
+                                                    <fieldset class="border p-3" style="width:350px;">
+                                                        <legend class="float-none w-auto px-1">Upload cheque image here</legend>
+                                                        <input type="file" name="file1" id="file" class="input-box" />
+                                                    </fieldset>
+                                                </div>
+                                                <div class="radio-btn">
+                                                    <input type="radio" id="Mailed-2" name="Mailed" onClick="ShowCheque();">
+                                                    <label for="Mailed-2">Handed the cash/cheque to - Name of the @objAppInfo.PresidentPhone board</label>
+                                                </div>
+                                                <div class="cheque-hide" id="cheque-hide" style="display:none">
+                                                    <fieldset class="border p-3" style="width:350px;">
+                                                        <legend class="float-none w-auto px-1">Cheque</legend>
+                                                        <input type="text" class="input-box" placeholder="Handed the cash/cheque to" id="ChequeHolderName" name="ChequeHolderName">
+                                                    </fieldset>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="member-amount">
+                                                    <div>
+                                                        <div class="aws-amount-total">Total Amount</div>
+                                                        <span id="totalamountcash" class="aws-amount">0.00</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Stripe Tab -->
+                                <div id="tabstripe" class="cus-tab-pane" style="display:none;">
+                                    <div class="zelle-sec paymnet-cmn-sec">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <img src="Content/User/images/Stripe.png" class="img-fluid" alt="" style="height:50px;">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="member-amount">
+                                                    <div>
+                                                        <div class="aws-amount-total">Total Amount</div>
+                                                        <span id="totalstripe" class="">0.00</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- SwirePay Tab -->
+                                <div id="tabswire-pay" class="cus-tab-pane" style="display:none;">
+                                    <div class="zelle-sec paymnet-cmn-sec">
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <img src="Content/User/images/swirepay-new-image.png" class="img-fluid" alt="" style="height:50px;">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="member-amount">
+                                                    <div>
+                                                        <div class="aws-amount-total">Total Amount</div>
+                                                        <span id="totalswirepay" class="">0.00</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+
+            <!-- reCAPTCHA -->
+            @if (objAppInfo.CAPTCHA == "Yes")
+            {
+                <div class="col-md-6">
+                    <div class="g-recaptcha" data-sitekey="@secreatkey" data-callback="onRecaptchaSuccess"></div>
+                </div>
+            }
+
+            <!-- PayPal Button -->
+            <div class="col-md-6" id="paypalbuttonshow" style="display:none;">
+                <div class="text-md-end text-center">
+                    <div id="paypal-button-container" style="width:250px;float:right;"></div>
+                    <div id="payment-status"></div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="col-md-6" style="display:none;" id="button-show">
+                <div class="text-md-end text-center">
+                    <button class="aws-btn" type="submit" id="submit-button">Submit</button>
+                </div>
+            </div>
+
+            <div class="clearfix mt-4">
+                <input type="hidden" id="recaptchaResponse" name="recaptcha">
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.cus-tabs-content .cus-tab-pane').not('.active').hide();
+        $('.cus-tab-label').click(function () {
+            $('.cus-tab-label').removeClass('active');
+            $(this).addClass('active');
+            var targetTab = $(this).data('tab');
+            $('.cus-tabs-content .cus-tab-pane').hide();
+            $('#' + targetTab).show();
+        });
+    });
+    function hideCheque() { $('.cheque-hide').hide(); }
+    function ShowCheque() { $('.cheque-hide').show(); }
+    function validcard() {
+        if ($('#CardNumber').val() != "") { $('#CardNumber').addClass('valid'); }
+        if ($('#Cvv').val()        != "") { $('#Cvv').addClass('valid'); }
+        if ($('#CSVMonth').val()   != "") { $('#CSVMonth').addClass('valid'); }
+        if ($('#CSVYear').val()    != "") { $('#CSVYear').addClass('valid'); }
+    }
+</script>

@@ -1,0 +1,306 @@
+﻿@{
+    Layout = null;
+}
+
+<style>
+    .braintree-option__paypal {
+        display: none !important;
+    }
+
+    .braintree-heading {
+        display: none !important;
+    }
+
+    .braintree-toggle {
+        display: none !important;
+    }
+
+    .braintree-sheet__container {
+        display: block !important;
+    }
+
+    [data-braintree-id="wrapper"] {
+        margin-top: -55px !important;
+        margin-bottom: -10px !important;
+    }
+
+    .braintree-show-card .braintree-card {
+        display: block !important;
+    }
+
+    .braintree-form__field-group label {
+        display: block
+    }
+
+    .braintree-form__notice-of-collection {
+        display: block;
+        width: 100%;
+    }
+
+    .braintree-placeholder {
+        margin-bottom: 30px !important;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .alert {
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+    }
+
+    .alert-danger {
+        color: #721c24;
+        background-color: #f8d7da;
+        border-color: #f5c6cb;
+    }
+
+    .alert-success {
+        color: #155724;
+        background-color: #d4edda;
+        border-color: #c3e6cb;
+    }
+</style>
+
+<div id="braintree-section">
+    <div id="bt-error" class="alert alert-danger" style="display:none;"></div>
+    <div id="bt-success" class="alert alert-success" style="display:none;"></div>
+
+    <input type="hidden" id="ClientToken" value="@ViewBag.ClientToken" />
+
+    <div id="dropin-container"></div>
+
+ @*    <div class="mt-3">
+        <button type="button" id="bt-confirm" class="aws-btn" style="display:none;">
+            Confirm Card
+        </button>
+        <button type="button" id="bt-proceed" class="aws-btn" style="display:none;">
+            Proceed to Pay
+        </button>
+    </div> *@
+</div>
+
+<script src="https://js.braintreegateway.com/web/3.98.0/js/client.min.js"></script>
+<script src="https://js.braintreegateway.com/web/3.98.0/js/data-collector.min.js"></script>
+<script src="https://js.braintreegateway.com/web/dropin/1.42.0/js/dropin.min.js"></script>
+
+<script>
+    (function () {
+        var dropinInst = null;
+
+        function showError(msg) {
+            $("#bt-error").html(msg).show();
+            $("#bt-success").hide();
+        }
+
+        function showSuccess(msg) {
+            $("#bt-success").html(msg).show();
+            $("#bt-error").hide();
+        }
+
+        function clearUI() {
+            $("#bt-error").hide();
+            $("#bt-success").hide();
+            // clear nonce in parent form
+            $("#nonce").val('');
+        }
+
+        // ✅ Reads amount from Event Registration #AmountPaid field
+      function getAmountFromPage() {
+    var amount = 0;
+
+    // ✅ Event Registration form uses #AmountPaid
+    if ($('#AmountPaid').val() && parseFloat($('#AmountPaid').val()) > 0) {
+        amount = parseFloat($('#AmountPaid').val());
+    }
+    // ✅ Members form uses #MemberAmount
+    else if ($('#MemberAmount').val() && parseFloat($('#MemberAmount').val()) > 0) {
+        amount = parseFloat($('#MemberAmount').val());
+    }
+    // ✅ Donation form or any other
+    else if (window.NEW_PAYMENT_AMOUNT && parseFloat(window.NEW_PAYMENT_AMOUNT) > 0) {
+        amount = parseFloat(window.NEW_PAYMENT_AMOUNT);
+    }
+
+    return amount;
+}
+        function initDropIn() {
+            clearUI();
+
+            var token = $("#ClientToken").val();
+            var amount = getAmountFromPage();
+
+            if (!token) {
+                showError("Payment system not configured. Please contact administrator.");
+                return;
+            }
+
+            if (!amount || isNaN(amount) || amount <= 0) {
+                showError("Please select at least one ticket before using Credit Card.");
+                return;
+            }
+
+            console.log("Initializing Braintree for amount: $" + amount);
+
+            if (dropinInst) {
+                dropinInst.teardown(function () {
+                    dropinInst = null;
+                    window.dropinInst = null;
+                    loadDropIn(token, amount);
+                });
+            } else {
+                loadDropIn(token, amount);
+            }
+        }
+
+        function loadDropIn(token, amount) {
+            var dropinConfig = {
+                authorization: token,
+                container: "#dropin-container",
+                paymentOptionPriority: ["card"],
+                card: {
+                    cardholderName: { required: false }
+                }
+            };
+
+            braintree.dropin.create(dropinConfig, function (err, instance) {
+                if (err) {
+                    console.error("Braintree Drop-in Error:", err);
+                    showError("Failed to load payment form: " + err.message);
+                    return;
+                }
+
+                dropinInst = instance;
+                window.dropinInst = instance;
+                console.log("Braintree loaded successfully for $" + amount);
+
+                // Show confirm button
+                $("#bt-confirm").show();
+                $("#bt-proceed").hide();
+
+                instance.on('paymentMethodRequestable', function (event) {
+                    console.log("Payment method requestable:", event.type);
+                });
+
+                instance.on('noPaymentMethodRequestable', function () {
+                    console.log("No payment method requestable");
+                });
+            });
+        }
+
+        // ✅ Confirm Card button click
+        $(document).on("click", "#bt-confirm", function (e) {
+            e.preventDefault();
+            clearUI();
+
+            // Re-read latest amount (user may have changed ticket count)
+            var latestAmount = getAmountFromPage();
+            if (!latestAmount || latestAmount <= 0) {
+                showError("Please select at least one ticket before paying.");
+                return;
+            }
+
+            // Validate the main form
+            if (typeof $.fn.valid === 'function' && $("#SignupForm").length) {
+                // Temporarily remove payment-specific rules not needed for card check
+                if (!$("#SignupForm").valid()) {
+                    showError("Please fill in all required fields before confirming payment.");
+                    return;
+                }
+            }
+
+            if (!dropinInst) {
+                showError("Payment form not ready. Please wait or refresh.");
+                return;
+            }
+
+            if (!dropinInst.isPaymentMethodRequestable()) {
+                showError("Please fill in all card details (Card Number, Expiry, CVV) before confirming.");
+                return;
+            }
+
+            dropinInst.requestPaymentMethod(function (err, payload) {
+                if (err) {
+                    if (err.message === "No payment method is available.") {
+                        showError("Please fill in card details (Card Number, Expiry Date, CVV).");
+                    } else {
+                        showError(err.message);
+                    }
+                    return;
+                }
+
+                // ✅ Store nonce in parent form's hidden field
+                $("#nonce").val(payload.nonce);
+                console.log("Nonce generated:", payload.nonce);
+
+                showSuccess("Card verified successfully. Click 'Proceed to Pay' to complete.");
+
+                $("#bt-confirm").hide();
+                $("#bt-proceed").show();
+            });
+        });
+
+        // ✅ Proceed to Pay button - submits the main form
+   $(document).on("click", "#bt-proceed", function (e) {
+    e.preventDefault();
+
+    var nonce = $("#nonce").val();
+    if (!nonce) {
+        showError("Card not verified. Please confirm card first.");
+        return;
+    }
+
+    var amount = getAmountFromPage(); // ✅ works for both forms
+    if (!amount || amount <= 0) {
+        showError("Invalid amount.");
+        return;
+    }
+
+    // ✅ Sync amount into BT_Amount hidden field before submit
+    $("#BT_Amount").val(amount);
+
+    console.log("Submitting with nonce, amount: $" + amount);
+
+    // Submit whichever form is on the page
+    var form = $("#SignupForm");
+    if (form.length) {
+        form.submit();
+    }
+});
+
+        // ✅ Listen for ticket amount changes from Event Registration page
+        $(document).on("amount-updated braintree-refresh", function () {
+            var newAmount = getAmountFromPage();
+            if (newAmount && newAmount > 0) {
+                console.log("Amount updated: $" + newAmount);
+                // Reinit only if already initialized
+                if (dropinInst) {
+                    initDropIn();
+                }
+            }
+        });
+
+        // ✅ Expose globally so paymentbind() can call it
+        window.startBraintree = initDropIn;
+
+        window.refreshBraintreeAmount = function(newAmount) {
+            window.NEW_PAYMENT_AMOUNT = newAmount;
+            console.log("refreshBraintreeAmount called: $" + newAmount);
+            if (dropinInst) {
+                initDropIn();
+            }
+        };
+
+        // Auto-init if amount already set on page load
+        $(document).ready(function () {
+            var amount = getAmountFromPage();
+            if (amount && amount > 0) {
+                initDropIn();
+            }
+        });
+
+    })();
+</script>

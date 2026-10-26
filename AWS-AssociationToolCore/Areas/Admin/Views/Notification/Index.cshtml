@@ -1,0 +1,729 @@
+﻿
+@using System.Configuration;
+@{ ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var UserID = ViewBag.UserID;
+
+    List<AWS_AssociationToolCore.Entities.AppUsers> lstAppUsers = ViewBag.lstAppUsers;
+
+    ViewBag.Pageheading = "Notifications";
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status);
+    var siteUrl = objAppInfo.AdminImageUrl;
+}
+
+<link href="Content/Admin/sumo-select.css" rel="stylesheet" />
+<script src="Scripts/Admin/Common.js"></script>
+<script src="Scripts/Admin/sumo-select.js"></script>
+
+<style>
+    .ui-datepicker {
+        z-index: 9999 !important; /* higher than Bootstrap modal */
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("NotificationUsersList", "Notification")',
+
+            success: function (data) {
+                $("#divDetails").html(data);
+            },
+            error: function () {
+                $("#divDetails").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wAppUsers').addClass('active');
+        $('#wAppUsers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $("#PaymentDate").datetimepicker({
+            changeMonth: true,
+            changeYear: true,
+            showButtonPanel: true,
+            dateFormat: 'mm/dd/yy',
+            minDate: 0, // Restricts selection to today and future dates
+             beforeShow: function (input, inst) {
+                $('#ui-datepicker-div').appendTo("#AddDate");
+            }
+        });
+
+        PagerClickBind();
+    });
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        AppUsersBind(1);
+    }
+
+    function AppUsersView(UserID) {
+        $.ajax({
+            url: '@Url.Action("EditAppUsers", "AppUsers")',
+            type: 'POST',
+            data: { UserID: UserID },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objInnerPageCategory = result.data;
+                    $('#lblCategoryName').html(objInnerPageCategory.CategoryName);
+
+                    $("#InnerPageCategoryView").dialog("open");
+
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+
+    }
+
+
+    function Delete(NotificationID) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteAppUsers", "Notification")',  // the URL of the controller action method
+                data: { NotificationID: NotificationID }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    $("#divmessage").html(result.data);
+                    AppUsersBind($('#hdnPageNo').val());
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+        }
+    }
+
+
+    function AppUsersStatus(UserID) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("UpdateAppUserstatus", "AppUsers")',  // the URL of the controller action method
+                data: { UserID: UserID }, // optional data
+                success: function (result) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    AppUsersBind(1);
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+    }
+
+
+    function SendNotification() {
+
+
+
+        $('#NotificationDialog').modal('show');
+        $('#lbltitle').html('Send Notifications');
+        $('#Title').val('');
+        $('#Body').val('');
+    }
+
+
+
+    function selectall(name, i) {
+        var status = true;
+        if ($("#A" + name).hasClass('selectall')) {
+            $("#A" + name).removeClass('selectall').addClass('clearall');
+            $('#SelectAll').val('No');
+            status = false;
+        }
+        else {
+            $("#A" + name).removeClass('clearall').addClass('selectall');
+            $('#SelectAll').val('Yes');
+            status = true;
+        }
+        $('.C' + name).each(function () { //iterate all listed checkbox items
+            this.checked = status; //change ".checkbox" checked status
+        });
+    }
+
+
+    function NotificationSending() {
+    if (ValidateNotification()) {
+
+        var AppuserIds = $('#AppuserIds').val();
+        var Title = $('#Title').val();
+        var Body = $('#Body').val();
+        var Action = $('#Action').val();
+        var PaymentDate = $('#PaymentDate').val();
+        var Eid = '';
+        var Els = '';
+        var Wv = '';
+        var SS = '';
+        var LS = '';
+        var SE = '';
+
+        if (Action == "Events") {
+            Eid = $('#EventId').val();
+        }
+        if (Action == "EventList") {
+            Els = $('#EventType').val();
+        }
+        if (Action == "WebViews") {
+            Wv = $('#WebViews').val();
+        }
+        if (Action == "Services") {
+            SS = $('#Action').val();
+        }
+        if (Action == "Leadership") {
+            LS = $('#Action').val();
+        }
+        if (Action == "SavedEvents") {
+            SE = $('#Action').val();
+        }
+
+        // ✅ ADD THIS BLOCK — create FormData manually
+        var formData = new FormData();
+        formData.append("AppuserIds", AppuserIds);
+        formData.append("Action", Action);
+        formData.append("Title", Title);
+        formData.append("Body", Body);
+        formData.append("Eid", Eid);
+        formData.append("Els", Els);
+        formData.append("Wv", Wv);
+        formData.append("SS", SS);
+        formData.append("LS", LS);
+        formData.append("SE", SE);
+        formData.append("PaymentDate", PaymentDate);
+
+        // 👇 add the file properly
+        var fileInput = document.getElementById("BannerUrl");
+        if (fileInput.files.length > 0) {
+            formData.append("BannerUrl", fileInput.files[0]);
+        }
+
+        // ✅ only change this small part:
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SendNotification", "Notification")',
+            data: formData,              // 👈 pass FormData here
+            contentType: false,          // 👈 required
+            processData: false,          // 👈 required
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                    $('#divmessage').html('<div class="closable success">Sent Notification successfully</div>');
+                    AppUsersBind(1);
+                }
+                else {
+                    $('#divmessage').html('<div class="closable error">Failed Sending Notification.</div>');
+                }
+                $("#NotificationDialog").modal("hide");
+                $('.closable').append("<a class=\"dis-in\" onclick=\"this.parentElement.style.display='none';\" ><i class=\"closelink\">&nbsp;</i></a>");
+                $('.success').append("<i class=\"success-icon\">&nbsp;</i>");
+                $('.error').append("<i class=\"error-icon\">&nbsp;</i>");
+                $('#NotificationDialog').dialog('close');
+
+                $('#Submitbtn').show();
+                $('#Loading').hide();
+                AppUsersBind(1);
+            }
+        });
+    }
+}
+
+
+
+
+    function ValidateNotification() {
+        if ($.trim($('#Title').val()) == '') { $('#Title').focus().addClass('redborder'); $('#spanTitle').show().html('Title Required <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanTitle').hide().html(''); $('#Title').removeClass("redborder"); }
+
+        if ($.trim($('#Body').val()) == '') { $('#Body').focus().addClass('redborder'); $('#spanBody').show().html('Body Required <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanBody').hide().html(''); $('#Body').removeClass("redborder"); }
+
+        return true;
+    }
+
+
+function ItemSelect() {
+        var NType = $('#Action').val();
+    if (NType != "") {
+
+        if (NType == "Events") {
+            $.ajax({
+                url: '@Url.Action("EventList", "Events")',
+                type: 'POST',
+                cache: false,
+                success: function (result) {
+                    if (result.ok) {
+                        var EventsList = result.data;
+                        var sb = "";
+                        sb = sb + "<select id=\"EventId\" name=\"EventId\" class=\"bsearch-box form-control search_test\">";
+                        sb = sb + "<option value=\"\">Select</option>";
+                        if (EventsList != null) {
+
+                            for (var k = 0; k < EventsList.length; k++) {
+                                sb = sb + "<option value=\"" + EventsList[k].EventId + "\">" + EventsList[k].EventName + "</option>";
+                            }
+                        }
+                        sb = sb + "</select>";
+                        $('#divBlog').html('');
+                        $('#divBlog').html(sb);
+                        $('#BlogSec').show();
+                        $('#BlogSec1').hide();
+                        $('#BlogSec2').hide();
+
+                        window.Search = $('.bsearch-box').SumoSelect({ csvDispCount: 3, search: true, searchText: 'Enter here.' });
+                    }
+                }
+            });
+        }
+        else if (NType == "EventList")
+       {
+            $('#BlogSec1').show();
+            $('#BlogSec').hide();
+            $('#BlogSec2').hide();
+
+        }
+
+        else if (NType == "Immediately") {
+
+
+            $('#BlogSec2').hide();
+            $('#BlogSec').hide();
+            $('#BlogSec1').hide();
+
+        }
+        else if (NType == "SpecificTime") {
+
+
+            $('#BlogSec2').show();
+            $('#BlogSec').hide();
+            $('#BlogSec1').hide();
+
+        }
+        else if (NType == "Services") {
+
+
+            $('#BlogSec3').show();
+            $('#BlogSec').hide();
+            $('#BlogSec1').hide();
+            $('#BlogSec2').hide();
+        }
+        else if (NType == "Leadership") {
+            $('#BlogSec3').show();
+            $('#BlogSec').hide();
+            $('#BlogSec1').hide();
+            $('#BlogSec2').hide();
+        }
+        else if (NType == "SavedEvents") {
+            $('#BlogSec3').show();
+            $('#BlogSec').hide();
+            $('#BlogSec1').hide();
+            $('#BlogSec2').hide();
+        }
+
+
+    }
+}
+
+
+    $('#NotificationDialog').dialog
+        ({
+            autoOpen: false,
+            width: 450,
+            modal: true
+        });
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            AppUsersBind($(this).text());
+        });
+    }
+
+    function SearchClear() {
+        $('#txtsearch').val('');
+        AppUsersBind(1);
+    }
+    function ClearSearch() {
+        $('#txtsearch').val('');
+
+        $('#hdnPageNo').val(1);
+         AppUsersBind(1);
+    }
+
+
+    $('.search_test').SumoSelect({ search: true, searchText: 'Enter here.' });
+
+       function AppUsersBind(Pageno) {
+
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#txtsearch').val().trim();
+
+        $.ajax({
+            url: '@Url.Action("NotificationUsersList", "Notification")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items},
+            success: function (result) {
+                $('#divDetails').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+
+    function UsersView(NotificationID) {
+        var imgloc = $('#imgloc').val();
+        $.ajax({
+            url: '@Url.Action("NotificationView", "Notification")',
+            type: 'POST',
+            data: { NotificationID: NotificationID },
+            datatype: "JSON",
+            success: function (result) {
+               
+                if (result.ok) {
+                   
+                  
+                    var objNotification = result.data;
+                    $('#Vlbltitle').html('View Notification');
+                    //$('#VlblName').html(objNotification.Title);
+                   // $('#VlblBody').html(objNotification.Body);
+
+                    var body = objNotification.Body.replace(/\n/g, "<br>");
+                    $("#VlblBody").html(body);
+
+                    var Title = objNotification.Title.replace(/\n/g, "<br>");
+                    $("#VlblName").html(Title);
+
+
+                    $('#lblKumar').html('Notification Preview Details');
+                    if (objNotification.imageurl != '') {
+                        var imageUrl = imgloc + objNotification.imageurl;
+
+                        $('#test1').attr('src', imageUrl).show();
+                    }
+                    
+                    
+                    $('#Kumar').modal('show');
+
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+
+    }
+
+
+</script>
+
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedTime" />
+<input id="hdnsortorder" type="hidden" value="Desc" />
+
+<div class="card">
+
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+
+
+            <div class="col-lg-3 col-md-3 col-6">
+                <div class="input-box">
+                    <label class="form-label">Search<span class="text-danger"></span></label>
+                    <div class="input-group mb-3">
+
+                        <input type="text" name="txtsearch" id="txtsearch" class="form-control" value="" placeholder="Title" />
+
+                    </div>
+
+                </div>
+            </div>
+
+
+
+            <div class="col-lg-2 col-2" id="clearhide">
+                <div>
+                    <label>&nbsp;</label>
+                </div>
+                <button type="button" class="btn btn-primary px-3" onclick="AppUsersBind(1);">Search</button>
+                <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+            </div>
+
+
+            <div class="col-lg-4 col-4 text-end ms-auto">
+                <div class="btn-align">
+                    <a class="btn btn-primary" style="margin-right: 10px;" onclick="SendNotification();">Send Notification</a>
+                    @*<a onclick="selectall('StudentCheck', 1);" id="AStudentCheck" class="btn btn-danger pull-right r-m10"><span aria-hidden="true" class=""></span><span class="dis-in l-p7">Select/Clear All</span></a>*@
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="divDetails" class="clearfix">
+
+
+    </div>
+
+</div>
+
+
+
+<div class="modal fade" id="Kumar" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+
+        <input type="hidden" id="imgloc" value="@((siteUrl ?? "") + "/Notification/NormalImages/")" />
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><span id="lblKumar"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+
+                    <div class="col-lg-12 mb-4">
+                        <div class="input-box">
+                            <label class="form-label">Title :</label>
+                            <span id="VlblName"></span>
+                        </div>
+                    </div>
+
+
+                    <div class="col-lg-12 mb-4">
+                        <div class="input-box">
+                            <label class="form-label">Body :</label>
+                            <span id="VlblBody"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-12">
+
+                        <div class="notification-img">
+                            <label>Image</label>
+                            <img class="form-control" src="" width="100" id="test1" />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<style>
+    .notification-img img {
+        max-width: 200px;
+        text-align: center;
+    }
+    .notification-img {
+        justify-content: center;
+        display: flex;
+        flex-direction: column;
+    }
+        .input-box .form-label, .notification-img label {
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+
+    #VlblName, #VlblBody {
+        white-space: pre-line;
+    }
+</style>
+
+
+<div class="modal fade" id="NotificationDialog" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+
+    <input name="AppuserIds" id="AppuserIds" value="" type="hidden" />
+
+    <div class="modal-dialog modal-lg">
+
+
+        <div class="modal-content">
+            <form id="NotificationForm">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+
+
+
+                        <div class="col-lg-12 col-md-6 mb-3">
+                            <div class="input-box">
+                                <label class="form-label"> Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="Title" name="Title" placeholder="Title">
+
+
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="col-lg-12 col-md-6 mb-3">
+                            <div class="input-box">
+                                <label class="form-label"> Body <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="Body" name="Body" rows="4" placeholder="Body"></textarea>
+                            </div>
+                        </div>
+
+
+
+
+                        <div class="col-lg-12 col-md-6 mb-3">
+                            <label class="form-label">
+                                Image
+
+                            </label>
+                            <input type="file" id="BannerUrl" name="BannerUrl" class="form-control">
+
+                        </div>
+
+
+                        <div class="col-lg-12 col-md-6 mb-3">
+                            <div class="input-box">
+                                <label class="form-label">Delivery Schedule <span class="text-danger">*</span></label>
+
+                                <select class="form-control" id="Action" name="Action" onchange="ItemSelect();">
+                                    <option value="">Select</option>
+
+                                    <option value="Immediately">Immediately</option>
+
+                                    <option value="SpecificTime">Specific Time</option>
+
+                                </select>
+
+
+                            </div>
+                        </div>
+
+
+                        <div class="col-lg-12 col-md-6 mb-3" id="BlogSec2" style="display:none">
+                            <div class="input-box">
+                                <label class="form-label">Schedule Date&Time :<span class="text-danger">*</span> </label>
+                                <input type="text" class="form-control" name="PaymentDate" id="PaymentDate" value="">
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+
+                    <input type="submit" id="submitButton" class="btn btn-primary" value="Submit" />
+
+                    <a onclick=" $('#NotificationDialog').dialog('close')" class="btn btn-secondary" data-bs-dismiss="modal">Close</a>
+
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+
+
+<script>
+    $(document).ready(function () {
+
+        // Initialize jQuery Validation
+        $("#NotificationForm").validate({
+            rules: {
+                Title: { required: true },
+                Body: { required: true },
+                Action: { required: true },
+                PaymentDate: {
+                    required: function () {
+                        return $("#Action").val() === "SpecificTime"; // required only if Specific Time selected
+                    }
+                }
+            },
+            messages: {
+                Title: "Please enter a title",
+                Body: "Please enter body content",
+                Action: "Please select delivery schedule",
+                PaymentDate: "Please select a payment date"
+            },
+
+
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+        });
+
+        // Submit button click
+        $("#submitButton").on("click", function (e) {
+            e.preventDefault();
+
+            if ($("#NotificationForm").valid()) {
+                // Only call NotificationSending if form is valid
+                NotificationSending();
+            }
+        });
+
+    });
+
+</script>

@@ -1,0 +1,320 @@
+﻿@{
+    List<AWS_AssociationToolCore.Entities.Sponsors> lstSponsors = new List<AWS_AssociationToolCore.Entities.Sponsors>();
+    List<AWS_AssociationToolCore.Entities.Sponsors> lstMediaSponsors = new List<AWS_AssociationToolCore.Entities.Sponsors>();
+    List<AWS_AssociationToolCore.Entities.SponsorCategories> lstSponsorCategories = new List<AWS_AssociationToolCore.Entities.SponsorCategories>();
+
+    // ✅ Argument 1 → CommitteeCategoryMaster
+    List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster> lstCommitteeCategories = new List<AWS_AssociationToolCore.Entities.CommitteeCategoryMaster>();
+    // ✅ Argument 3 → CommitteeCategories
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeTypes = new List<AWS_AssociationToolCore.Entities.CommitteeCategories>();
+    List<AWS_AssociationToolCore.Entities.Members> lstCommitteeMembers = new List<AWS_AssociationToolCore.Entities.Members>();
+    List<AWS_AssociationToolCore.Entities.Members> lstCommittees = new List<AWS_AssociationToolCore.Entities.Members>();
+
+    AWS_AssociationToolCore.BLL.Sponsors _Sponsors = new AWS_AssociationToolCore.BLL.Sponsors();
+    AWS_AssociationToolCore.Entities.Sponsors objSponsors = new AWS_AssociationToolCore.Entities.Sponsors();
+    AWS_AssociationToolCore.Entities.Chapters objChapters = new AWS_AssociationToolCore.Entities.Chapters();
+    AWS_AssociationToolCore.BLL.Chapters _Chapters = new AWS_AssociationToolCore.BLL.Chapters();
+    AWS_AssociationToolCore.BLL.Committees _Committees = new AWS_AssociationToolCore.BLL.Committees();
+
+    string cname = "global";
+    if (ViewBag.cname != null && ViewBag.cname != "")
+    {
+        cname = ViewBag.cname;
+    }
+
+    int status = 0;
+    int qstatus = 0;
+    Int64 ChapterId = 0;
+
+    if (!string.IsNullOrEmpty(cname))
+    {
+        objChapters = _Chapters.GetChaptersListByName(cname, ref qstatus);
+    }
+
+    ChapterId = objChapters.ChapterId;
+    if (ChapterId == 0)
+    {
+        ChapterId = 1;
+    }
+
+    _Sponsors.FEGetListRightBlock(ChapterId, ref lstSponsors, ref lstMediaSponsors, ref status);
+
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status1);
+
+    var imglocsponsor = objAppInfo.AdminImageUrl + "Sponsors/";
+
+    lstCommittees = _Committees.FECommitteesGetList(
+        ref lstCommitteeCategories,
+        ref lstCommitteeMembers,
+        ref lstCommitteeTypes,
+        "", ChapterId, ref status);
+
+    var Heading = ViewBag.Heading;
+}
+
+<script type="text/javascript" src="Scripts/User/smk-accordion.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function ($) {
+        $(".accordion_example").smk_Accordion();
+        $('.input-group-addon').click(function () {
+            $(this).prev().focus();
+        });
+    });
+</script>
+
+<article class="clearfix right-block10 l-p30 tabhorizontal-l-p0">
+    @if (Heading == "NATS Committee")
+    {
+        if ((lstCommitteeTypes != null && lstCommitteeTypes.Count != 0) && cname == "global")
+        {
+            <article class="clearfix t-p20 white-bg">
+                <article class="cleafix border border-r5 b-m15">
+                    <ul class="clearfix accordion_example list-pn smk_accordion acc_with_icon sides b-m0" style="z-index:1">
+                        <li class="accordion_in">
+                            <article class="clearfix question-mark t-b-p10 l-r-p15 border-b gray4-t lblueborder l-h18 Roboto-Regular font15 acc_head mobile-l-p10">
+                                <article class="clearfix box-row">
+                                    <article class="clearfix box-12 t-p2">
+                                        <article class="cleafix">
+                                            <span class="position-r t-m5n font1 Muli-SemiBold">
+                                                <a href="#Honorary" class="black-t"> Honorary Board of Directors </a>
+                                            </span>
+                                        </article>
+                                    </article>
+                                </article>
+                            </article>
+                        </li>
+                        <li class="accordion_in">
+                            <article class="clearfix question-mark t-b-p10 l-r-p15 border-b gray4-t lblueborder l-h18 Roboto-Regular font15 acc_head mobile-l-p10">
+                                <article class="clearfix box-row">
+                                    <article class="clearfix box-12 t-p2">
+                                        <article class="cleafix">
+                                            <span class="position-r t-m5n font1 Muli-SemiBold">
+                                                <a href="#board-of-directors" class="black-t"> Board of Directors </a>
+                                            </span>
+                                        </article>
+                                    </article>
+                                </article>
+                            </article>
+                        </li>
+                       @*  @foreach (var item in lstCommitteeTypes)
+                        {
+                            // ✅ lstCommitteeCategories is CommitteeCategoryMaster - use correct property
+                            var Category = lstCommitteeCategories.FindAll(x => x.Type == item.Type);
+                            if (item.Type != "Board of Directors")
+                            {
+                                <li class="accordion_in">
+                                    <article class="clearfix question-mark t-b-p10 l-r-p15 border-b gray4-t lblueborder l-h18 Roboto-Regular font15 acc_head mobile-l-p10">
+                                        <article class="clearfix box-row">
+                                            <article class="clearfix box-12 t-p2">
+                                                <article class="cleafix">
+                                                    <span class="black-t Muli-SemiBold">@item.Type</span>
+                                                </article>
+                                            </article>
+                                        </article>
+                                    </article>
+                                    <article class="font13 l-h20 Roboto-Medium acc_content shadow1" style="display: block;">
+                                        @if (Category != null && Category.Count != 0)
+                                        {
+                                            <ul class="clearfix t-b-p15 l-p20 list-pn sides-sublist border-b3 lblueborder1 mobile-l-p10">
+                                                @foreach (var citem in Category)
+                                                {
+                                                    var Members = lstCommitteeMembers.FindAll(x => x.CommitteeCategoryId == citem.CommitteeCategoryId);
+                                                    if (Members != null && Members.Count != 0 && citem.CategoryName != "Honorary Board of Directors")
+                                                    {
+                                                        <li><a href="#@AWS_AssociationToolCore.BLL.Common.EncodeURL(citem.CategoryName)" class="font1"> @citem.CategoryName </a></li>
+                                                    }
+                                                }
+                                            </ul>
+                                        }
+                                    </article>
+                                </li>
+                            }
+                        } *@
+                    </ul>
+                </article>
+            </article>
+        }
+        else
+        {
+            <article class="clearfix t-p20 white-bg">
+                <article class="cleafix border border-r5 b-m15">
+                    <ul class="clearfix accordion_example list-pn smk_accordion acc_with_icon sides b-m0" style="z-index:1">
+                        <li class="accordion_in acc_active">
+                            <article class="clearfix question-mark t-b-p10 l-r-p15 border-b gray4-t lblueborder l-h18 Roboto-Regular font15 acc_head mobile-l-p10">
+                                <article class="clearfix box-row">
+                                    <article class="clearfix box-12 t-p2">
+                                        <article class="cleafix">
+                                            <span class="black-t Muli-SemiBold"> Committees </span>
+                                        </article>
+                                    </article>
+                                </article>
+                            </article>
+                            <article class="font13 l-h20 Roboto-Medium acc_content shadow1" style="display: block;">
+                                @if (lstCommitteeCategories != null && lstCommitteeCategories.Count != 0)
+                                {
+                                    <ul class="clearfix t-b-p15 l-p20 list-pn sides-sublist border-b3 lblueborder1 mobile-l-p10">
+                                        @foreach (var citem in lstCommitteeCategories)
+                                        {
+                                            var CMembers = lstCommitteeMembers.FindAll(x => x.CommitteeCategoryId == citem.CommitteeCategoryId);
+                                            if (CMembers != null && CMembers.Count != 0 && citem.CategoryName != "Honorary Board of Directors")
+                                            {
+                                                <li><a href="#@AWS_AssociationToolCore.BLL.Common.EncodeURL(citem.CategoryName)" class="font1"> @citem.CategoryName </a></li>
+                                            }
+                                        }
+                                    </ul>
+                                }
+                            </article>
+                        </li>
+                    </ul>
+                </article>
+            </article>
+        }
+    }
+
+    @if (Heading == "PatrikaRegistrations")
+    {
+        <article class="clearfix t-p20 white-bg">
+            <article class="cleafix border border-r5 b-m15">
+                <ul class="clearfix list-pn sides-sublist b-m3 lblueborder1 mobile-l-p10">
+                    @for (int i = DateTime.Now.Year; i >= DateTime.Now.Year - 8; i--)
+                    {
+                        <li>
+                            <article class="clearfix box-row border-t">
+                                <article class="clearfix box-12 t-p2">
+                                    <article class="cleafix">
+                                        <span class="position-r t-m5n font1 font17 HandelGothic-Regular">
+                                            <a onclick="YearSearch(@i)" class="black-t"> @i </a>
+                                        </span>
+                                    </article>
+                                </article>
+                            </article>
+                        </li>
+                    }
+                </ul>
+            </article>
+        </article>
+    }
+
+    <article class="clearfix akshdipi-bor border2 l-r-p20 t-b-p20">
+        <ul class="clearfix m0 list-pn akshrlis-li">
+            <li>
+                <a class="dis-b akshrdip-bg t-b-p3 l-p8 border-radius2" href="@Url.Action("Index", "PatrikaRegistrations", new { cname = cname })">
+                    <span class="dis-b m0 l-h12 font18 white-t letterspa1 nats-Light">
+                        <i class="akshra-ico r-m10">&nbsp;</i>అక్షర దీపిక
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a class="dis-b activit-bg t-b-p3 l-p8 border-radius2" href="@Url.Action("ServicesIndex", "Services", new { cname = cname })">
+                    <span class="dis-b m0 l-h12 font14 white-t Muli-SemiBold t-t-u">
+                        <i class="natactiv-ico r-m10">&nbsp;</i>Active Causes
+                    </span>
+                </a>
+            </li>
+            @if (this.User.Identity.IsAuthenticated &&
+                        this.User.Identity.Name != null &&
+                        Context.Session != null &&
+                        Context.Session.GetString("ChapterName") != null)
+            {
+                <li>
+                    <a class="dis-b becommem-bg t-b-p3 l-p8 border-radius2"
+                       href="@Url.Action("LogOff", "Members", new { cname = Context.Session.GetString("ChapterName") })">
+                        <span class="dis-b m0 l-h12 font14 white-t Muli-SemiBold t-t-u">
+                            <i class="becommem-ico r-m10">&nbsp;</i> Logout
+                        </span>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li>
+                    <a class="dis-b becommem-bg t-b-p3 l-p8 border-radius2" href="@cname/member-registration">
+                        <span class="dis-b m0 l-h12 font14 white-t Muli-SemiBold t-t-u">
+                            <i class="becommem-ico r-m10">&nbsp;</i> Become A Member
+                        </span>
+                    </a>
+                </li>
+            }
+            <li>
+                <a class="dis-b natdonat-bg t-b-p3 l-p8 border-radius2" href="@cname/donate-now?ServiceId=10">
+                    <span class="dis-b m0 l-h12 font14 white-t Muli-SemiBold t-t-u">
+                        <i class="natdont-ico r-m10">&nbsp;</i>Donate Now
+                    </span>
+                </a>
+            </li>
+        </ul>
+    </article>
+
+    <article class="clearfix akshdipi-bor border2 l-r-p25 t-m10 t-c">
+        @if (lstSponsors != null && lstSponsors.Count != 0)
+        {
+            <h4 class="clearfix m0 t-p25 l-h16 HandelGotD-Ligh t-t-u font22">
+                <a class="cheircol-t">Sponsors</a>
+            </h4>
+            <img src="Content/User/images/orange-border.png" class="t-m12 b-m15" alt="Border" width="53" height="3" />
+            <article class="clearfix sponsors position-r overflow-h sponsminhei">
+                <ul class="clearfix m0 list-pn sponstiklis">
+                    @foreach (var item in lstSponsors)
+                    {
+                        <li>
+                            @if (item.RedirectUrl != null && item.RedirectUrl != "")
+                            {
+                                <a href="@item.RedirectUrl" target="@item.Target">
+                                    <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocsponsor + item.LogoUrl), imglocsponsor + "no-image.png")"
+                                         class="width100" alt="Media" width="203" height="109"
+                                         style="min-height:106px; max-height:106px;" />
+                                </a>
+                            }
+                            else
+                            {
+                                <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocsponsor + item.LogoUrl), imglocsponsor + "no-image.png")"
+                                     class="width100" alt="Media" width="203" height="109"
+                                     style="min-height:106px; max-height:106px;" />
+                            }
+                        </li>
+                    }
+                </ul>
+            </article>
+        }
+
+        @if (lstMediaSponsors != null && lstMediaSponsors.Count != 0)
+        {
+            <h4 class="clearfix m0 t-p25 l-h16 HandelGotD-Ligh t-t-u font22">
+                <a class="cheircol-t"> Media Partners</a>
+            </h4>
+            <img src="Content/User/images/orange-border.png" class="t-m12 b-m15" alt="Border" width="53" height="3" />
+            <article class="clearfix sponsors position-r overflow-h sponsminhei b-m25">
+                <ul class="clearfix m0 list-pn sponstiklis">
+                    @foreach (var item in lstMediaSponsors)
+                    {
+                        <li>
+                            @if (item.RedirectUrl != null && item.RedirectUrl != "")
+                            {
+                                <a href="@item.RedirectUrl" target="@item.Target">
+                                    <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocsponsor + item.LogoUrl), imglocsponsor + "no-image.png")"
+                                         class="width100" alt="Media" width="203" height="109"
+                                         style="min-height:106px; max-height:106px;" />
+                                </a>
+                            }
+                            else
+                            {
+                                <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocsponsor + item.LogoUrl), imglocsponsor + "no-image.png")"
+                                     class="width100" alt="Media" width="203" height="106"
+                                     style="min-height:106px; max-height:106px;" />
+                            }
+                        </li>
+                    }
+                </ul>
+            </article>
+        }
+
+        <article class="clearfix akshrdip-bg b-m20 mobile-b-m10">
+            <article class="clearfix Raleway-Bold t-t-u t-c white-t font13 l-h14 t-b-p10 font-w5">
+                <a href="@Url.Action("Sponsors", "Gallery", new { cname = cname })" class="white-t">View all sponsors</a>
+            </article>
+        </article>
+    </article>
+</article>

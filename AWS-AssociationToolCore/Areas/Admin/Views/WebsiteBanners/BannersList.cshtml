@@ -1,0 +1,344 @@
+﻿@using System.Configuration;
+@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+    var ChapterId = ViewBag.ChapterId;
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status1);
+    List<AWS_AssociationToolCore.Entities.WebsiteBanners> lstBannerslist = ViewBag.Bannerslist;
+    // var imglocNormal = Session["BaseUrl"] + "Content/WebsiteBanners/NormalImages/";
+    var imgloc = objAppInfo.BaseUrl + "Content/WebsiteBanners/ThumbImages/";
+
+    //var imgloc = System.Configuration.ConfigurationManager.AppSettings["baseurl"] + "Content/WebsiteBanners/ThumbImages/";
+    var imglocNormal1 = objAppInfo.BaseUrl + "Content/WebsiteBanners/NormalImages/";
+
+    var imglocNormal = objAppInfo.BaseUrl +  "Content/WebsiteBanners/NormalImages/";
+
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+}
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+
+<script type="text/javascript">
+
+    function WebsiteBannersStatus(WebsiteBannerId) {
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("WebsiteBannersStatus", "WebsiteBanners")', // the URL of the controller action method
+            data: { WebsiteBannerId: WebsiteBannerId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                    //$('#divmessage').html(result.data);
+                    //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    ThemeBannerBind($('#hdnPageNo').val());
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+    function DeleteBanner(WebsiteBannerId, BannerUrl) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteBanner", "WebsiteBanners")',  // the URL of the controller action method
+                data: { WebsiteBannerId: WebsiteBannerId, BannerUrl: BannerUrl }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    if (result.ok) {
+                        //$('#divmessage').html(result.data);
+                        //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                        ThemeBannerBind($('#hdnPageNo').val());
+                    }
+                    else {
+                        //$('#divmessage').html(result.data);
+                        //$('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    }
+                },
+            });
+        }
+    }
+
+    function UpdateOrderNo(i, WebsiteBannerId) {
+        var OrderNo = parseInt($('#OrderNo' + i).val());
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("WebsiteBannerOrderNo", "WebsiteBanners")',
+            data: { OrderNo: OrderNo, WebsiteBannerId: WebsiteBannerId },
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                var div = '';
+                if (result.ok) {
+                    //$('#divmessage').html(result.data);
+                    //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    ThemeBannerBind(1);
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+</script>
+
+
+<div class="card-body">
+    <div class="table-responsive">
+
+        @if (Total == -1)
+        {
+            <div class="norecords">Sorry failed processing your request.</div>
+        }
+        else
+        {
+            <table class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+
+                        <th width="8%" class="text-center">S.No</th>
+                        <th width="15%">Picture</th>
+                        <th>
+                            <a style="color: black;" onclick="javascript:sortresult('BannerTitle');" class="white-t-u aws-h-a">
+                                Banner Title @if (sortcolumn == "BannerTitle")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+                        <th width="15%">
+                            <a style="color: black;" onclick="javascript:sortresult('OrderNo');" class="white-t-u aws-h-a">
+                                Order No @if (sortcolumn == "OrderNo")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+
+                        </th>
+                        <th width="15%">
+                            <a style="color: black;" onclick="javascript:sortresult('UpdatedTime');" class="white-t-u aws-h-a">
+                                Posted Date @if (sortcolumn == "UpdatedTime")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+                        <th width="8%">Status</th>
+
+                        <th class="text-center" width="80">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (lstBannerslist.Count != 0)
+                    {
+                        int i = 0;
+                        foreach (var item in lstBannerslist)
+                        {
+                            <tr>
+                                <td align="center">@item.RId</td>
+
+
+
+                                <td>
+                                    <main class="main">
+                                        <div class="container__main">
+                                            <div class="card mb-0">
+                                                <div class="card-image align-items-center d-flex">
+                                                    <a class='lightview' href="@(imglocNormal1 + item.BannerUrl)" data-fancybox="gallery" data-caption="Caption Images 1" title="@item.BannerTitle">
+
+                                                        <img width="100px" title="@item.BannerTitle" alt="@item.BannerUrl" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal1 + item.BannerUrl), imglocNormal1 + "no-imagefinal.jpg")" class="borwhite5 border-radius shadow" />
+
+                                                    </a>
+                                                </div>
+
+
+
+                                            </div>
+
+                                        </div>
+                                    </main>
+
+                                </td>
+
+
+                                <td>@item.BannerTitle</td>
+
+
+                                <td>
+                                    <input type="text" maxlength="3" style="width:50px;" id="OrderNo@(i)" value="@item.OrderNo" onkeypress="return Common.isNumberKey(event)" />
+                                    <a onclick="UpdateOrderNo(@i,@item.WebsiteBannerId);" title="Update"><i class="fa fa-fw fa-refresh"></i></a>
+
+                                </td>
+
+
+                                <td>@(item.UpdatedTime != null && item.UpdatedTime != DateTime.MinValue ? item.UpdatedTime.ToString("MM/dd/yyyy") : "N/A")</td>
+
+                                <td>
+                                    <div class="menu-hover">
+                                        @{ var isChecked = item.IsActive ? "checked" : ""; }
+                                        @{var titleValue = item.IsActive ? "Active" : "Disabled";}
+
+                                        <div>
+                                            <label class="switch" title="@titleValue">
+                                                <input type="checkbox" onclick="WebsiteBannersStatus(@item.WebsiteBannerId)" @isChecked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="table-actions d-flex align-items-center gap-3 fs-6">
+
+                                        @if (ViewBag.IsEdit == true )
+                                        {
+                                            <a class="text-warning cursor-pointer" onclick="EditBanner(@item.WebsiteBannerId);" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                        }
+                                        @if (ViewBag.IsDelete == true)
+                                        {
+
+                                            <a class="text-danger cursor-pointer" onclick="DeleteBanner(@item.WebsiteBannerId, '@item.BannerUrl');" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                        }
+                                    </div>
+
+
+
+                                    @*<div class="d-flex align-items-center gap-2 fs-6 cus-btn-group ">
+                                            <a class="text-warning cursor-pointer" onclick="EmployeeTypesEdit(@item.WebsiteBannerId);" title="" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                            <a class="text-danger" onclick="DeleteEmployeeType(@item.WebsiteBannerId, '@item.Name');" title="" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                        </div>*@
+                                </td>
+
+
+
+
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+
+
+    </div>
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                <div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="ThemeBannerBind();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+
+    *, *::before, *::after {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        list-style: none;
+        list-style-type: none;
+        text-decoration: none;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    .main .container__main {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 1rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .main .card {
+        color: #252a32;
+        border-radius: 2px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.24);
+    }
+
+    .main .card-image {
+        position: relative;
+        display: block;
+        width: 100%;
+        padding-top: 70%;
+        background: #fff;
+    }
+
+        .main .card-image img {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    @@media only screen and (max-width: 600px) {
+        .main .container__main {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-gap: 1rem;
+        }
+    }
+</style>

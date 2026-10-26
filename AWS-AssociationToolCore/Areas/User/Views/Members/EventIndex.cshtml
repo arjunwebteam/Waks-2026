@@ -1,0 +1,95 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var MemberId = ViewBag.MemberId;
+    var ChapterName = ViewBag.cname;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "My Events | Registered Member Events – " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "View the list of events you have registered for in the " + objAppInfo.SiteName;
+    ViewBag.MetaKeywords = "Registered events " + objAppInfo.SiteName + " , my event list, Telugu community participation, member event details";
+
+    ViewBag.PageHeading = "My Events";
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        PagerClickBind();
+    });
+
+    function Donarsbind(Pageno) {
+         var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = ($.trim($('#txtsearch').val()));
+        var MemberId = @MemberId;
+
+        $.ajax({
+            url: '@Url.Action("FEEventList", "Members")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, MemberId: MemberId},
+            success: function (result) {
+                $('#divDetails').html(result);
+                PagerClickBind();
+            }
+        });
+
+    }
+
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        Donarsbind(1);
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Donarsbind($(this).text());
+        });
+    }
+
+</script>
+<script>
+    $(document).ready(function () {
+        LoadDonarList();
+    });
+
+    function LoadDonarList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("FEEventList", "Members")',
+    data: {
+                   tab    : 'DonorsList'
+
+               },
+               success: function (data) {
+                $("#divDetails").html(data);
+            },
+            error: function () {
+                $("#divDetails").html('<p class="text-danger">Failed to load FEEventList.</p>');
+            }
+        });
+    }
+</script>
+<input id="TotalPages" type="hidden" value="1" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedDate" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+<input id="hdnuserid" type="hidden" value="0" />
+
+            <div class="cus-about-sec" id="divDetails">
+
+                <p>
+                    <strong>Note:</strong> Please note that this statement will only contain Registrations made online through the website. The information used for your reference only and can't be used for any other purpose.
+                </p>
+
+              @*   @{Html.RenderAction("FEEventList", "Members");} *@
+            </div>
+       

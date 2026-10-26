@@ -1,0 +1,119 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    Layout = null;
+
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+
+    List<AWS_AssociationToolCore.Entities.AppUsers> lstAppUsers = ViewBag.lstAppUsers;
+
+    // ✅ Use Session instead of FormsAuthentication + HttpCookie
+    string userRole = HttpContextAccessor.HttpContext?.Session.GetString("userrole") ?? string.Empty;
+}
+
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table  class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <td valign="middle" width="3%" style="text-align: center;" class="blue-t">#</td>
+                    <th class="text-center" width="3%">S.No.</th>
+                    <th width="15%">Name</th>
+                    <th width="15%">Email</th>
+
+                    <th width="15%">DeviceID</th>
+                    <th class="text-Left" width="5%"> App Type </th>
+
+                    <th class="text-center" width="5%">App Version</th>
+
+
+
+
+
+                    <th class="text-center" width="5%">Action</th>
+                </tr>
+
+
+            </thead>
+            <tbody>
+                @if (lstAppUsers.Count != 0)
+                {
+                    //int i = 0;
+                    Int64 i = (((PageNo - 1) * Items) + 1);
+                    Int64 se = 1;
+                    foreach (var item in lstAppUsers)
+                    {
+                <tr valign="top">
+
+                    <td align="center" width="3%" valign="middle" class="t-c" style="padding: 3px 8px;">
+                        <input type="checkbox" class="CStudentCheck" id="StudentCheck-@se" name="StudentCheck" value="@item.UserID" style="opacity:1; position:inherit;" />
+                    </td>
+
+                    <td align="center">
+                        @item.RId
+                    </td>
+
+
+                    <td>@item.Name</td>
+                    <td>@item.Email</td>
+                    <td>@item.DeviceID</td>
+                    <td align="left">@item.AppType</td>
+                    <td align="center">@item.AppVersion</td>
+
+
+
+                    <td align="center">
+                        <div class="table-actions d-flex align-items-center gap-3 fs-6" style="justify-content: center;">
+
+                            @*<a title="Edit" class="r-p5" href="@Url.Action("EditAppUsers", "AppUsers", new { UserID = item.UserID })"><i class="fa fa-pencil-square-o"></i></a>*@
+
+                            <a id="12" onclick="javascript:Delete(@item.UserID);" class="ntdelete"><i class="fa fa-trash-o"></i></a>
+
+                        </div>
+                    </td>
+                </tr>
+                        i++;
+                        se++;
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+
+                }
+            </tbody>
+        </table>
+
+    </div>
+
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                <div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="AppUsersBind();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pagination-centered"))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

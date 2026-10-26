@@ -1,0 +1,249 @@
+@model List<AWS_AssociationToolCore.Models.TicketPdfViewModel>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Event Tickets</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Helvetica, Arial, sans-serif;
+        }
+
+        .page {
+            width: 100%;
+            page-break-after: always;
+        }
+
+            .page:last-child {
+                page-break-after: auto;
+            }
+
+        .ticket-row {
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        /* Make text slightly smaller for compact layout */
+        .compact-text {
+            font-size: 90%;
+        }
+    </style>
+</head>
+<body>
+    @{
+        int ticketCount = 0;
+        int ticketsPerPage = 3;
+    }
+
+    @foreach (var ticket in Model)
+    {
+        // Open a new page every 3 tickets
+        if (ticketCount % ticketsPerPage == 0)
+        {
+            if (ticketCount > 0)
+            {
+                @:</div>
+            }
+            @:<div class="page">
+            }
+
+            <!-- Individual Ticket -->
+            <div class="ticket-row">
+                <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#ffa200; margin:0; padding:0;">
+                    <tr>
+                        <td style="padding:8px;">
+                            <!-- Ticket Container -->
+                            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#ffffff; border:2px solid #922119;">
+                                <tr>
+                                    <!-- Left Column - Orange -->
+                                    <td width="280" style="background:#ffa200; padding:15px 12px; vertical-align:top;">
+                                        <!-- Logo -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding-bottom:6px;">
+                                                    <img src="@ticket.LogoUrl" alt="Logo" width="140" style="display:block; max-width:140px;" />
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Organizer -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="font-family:Helvetica, Arial, sans-serif; font-size:10px; color:#911e17; font-weight:bold; text-transform:uppercase; padding:4px 0;">
+                                                    Telugu Association
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Event Title -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:6px;">
+                                            <tr>
+                                                <td align="center" style="font-family:Helvetica, Arial, sans-serif; font-size:12px; font-weight:bold; color:#ffffff; text-transform:uppercase; padding:8px 4px 4px;">
+                                                    @ticket.EventName
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Event Subtitle -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="font-family:Helvetica, Arial, sans-serif; font-size:10px; font-weight:bold; color:#ffffff; padding:0 4px 6px;">
+                                                    @*Sahasra Lingabhishekam Registration*@
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Batch Info -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%" align="center">
+                                            <tbody>
+                                                <tr>
+                                                    <td align="center" style="padding:12px 0 0;">
+                                                        <table cellpadding="0" cellspacing="0" border="0" align="center" style="background:rgba(255,255,255,0.15); border-radius:25px; border:1px dashed rgba(255,255,255,0.4); max-width:100%;">
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td style="text-align: center; padding:6px 8px; font-size:10px; color:white;font-weight: 600; word-wrap:break-word; word-break:break-word;">
+                                                                        @ticket.Category
+                                                                    </td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </td>
+
+                                    <!-- Middle Column -->
+                                    <td width="280" style="background:#fffdf7; padding:15px 12px; border-right:2px dashed #e6cdb3; vertical-align:top;">
+                                        <!-- Event Date & Time -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:10px;">
+                                            <tr>
+                                                <td style="padding-bottom:5px; font-family:Helvetica, Arial, sans-serif; font-size:9px; color:#922119; text-transform:uppercase; font-weight:bold;">
+                                                    <span style="margin-right:4px;"> <img src="@ticket.CalendarUrl" style="height:7px;"> </span> EVENT DATE AND TIME
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background: linear-gradient(90deg, #ffa200 0%, #fa9f00 100%); color: white; border-radius: 10px; box-shadow: 0 5px 12px rgba(74,30,124,0.2); overflow: hidden;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td style="padding:8px;">
+                                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                                        <tbody>
+                                                                            <tr>
+                                                                                <td width="100%" style="text-align:center; padding:8px; background:rgba(255,255,255,0.1); border-radius:8px; border:1px solid rgba(255,255,255,0.2);">
+                                                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                                                        <tbody>
+                                                                                            <tr>
+                                                                                                <td style="font-family: Helvetica, Arial, sans-serif; font-size: 12px; font-weight: bold; text-transform: uppercase; padding-bottom: 0px; word-wrap: break-word; word-break: break-word;">
+                                                                                                    @ticket.StartDate.ToString("yyyy - MMM - dd (hh:mm tt)").ToUpper()
+                                                                                                </td>
+                                                                                            </tr>
+                                                                                        </tbody>
+                                                                                    </table>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Event Location -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:10px;">
+                                            <tr>
+                                                <td style="padding-bottom:5px; font-family:Helvetica, Arial, sans-serif; font-size:9px; color:#922119; text-transform:uppercase; font-weight:bold;padding-top:12px;">
+                                                    <span style="margin-right:4px;"> <img src="@ticket.LocationUrl" style="height:7px;"> </span> EVENT LOCATION
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding-top:4px">
+                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #ffcc00; color: #2d0b5a; border-radius: 6px; box-shadow: 0 3px 10px rgba(255,204,0,0.3);">
+                                                        <tr>
+                                                            <td style="padding: 6px 12px; font-family: Helvetica, Arial, sans-serif; font-size: 11px; font-weight: bold; word-wrap: break-word; word-break: break-word;">
+                                                                @*<span style="margin-right:4px;"> <img src="@ticket.routeUrl" style="height:7px;"> </span>*@  @ticket.Location
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Ticket Holder -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="padding-bottom:5px; font-family:Helvetica, Arial, sans-serif; font-size:9px; color:#922119; text-transform:uppercase; font-weight:bold; padding-top:12px;">
+                                                    <span style="margin-right:4px;"> <img src="@ticket.HOLDERUrl" style="height:7px;"> </span>  TICKET HOLDER
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-family:Helvetica, Arial, sans-serif; font-size:14px; font-weight:bold; color:#2d0b5a; text-transform:uppercase;padding-top:4px">
+                                                    @ticket.SponsorName
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+
+                                    <!-- Right Column -->
+                                    <td width="280" style="background:#faf2eb; padding:15px 12px; vertical-align:top;">
+                                        <!-- Ticket Details Box -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #fffdf7; border: 2px dashed #9a8a5b; margin-bottom: 12px;">
+                                            <!-- Top colored bar -->
+                                            <tr>
+                                                <td style="height: 3px; background: linear-gradient(90deg, #922119, #c8ac6a, #fa9f00);"></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding:10px;">
+                                                    <!-- Ticket Details Title -->
+                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td align="center" style="padding-bottom:8px; font-family:Helvetica, Arial, sans-serif; font-size:9px; color:#922119; text-transform:uppercase; font-weight:bold;">
+                                                                <span style="margin-right:4px;"> <img src="@ticket.TicketDetailsUrl" style="height:7px;"> </span> TICKET DETAILS
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+
+                                                    <!-- Ticket Number -->
+                                                    <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td align="center" style="font-family:Courier, monospace; font-size:19px; font-weight:bold; color:#2d0b5a;">
+                                                                @ticket.TicketId
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- QR Code -->
+                                        <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center">
+                                                    <img src="@ticket.QRCodeUrl" alt="QR Code" width="95" height="95" style="display:block;" />
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            ticketCount++;
+
+            // Close the page div after the last ticket
+            if (ticketCount == Model.Count)
+            {
+            @:</div>
+        }
+    }
+</body>
+</html>

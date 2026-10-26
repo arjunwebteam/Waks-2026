@@ -1,0 +1,28 @@
+﻿@{
+    var lstVideos = (List<AWS_AssociationToolCore.Entities.Videos>)ViewBag.lstVideos;
+
+    Int64 ChapterId = ViewBag.ChapterId;
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+}
+
+<h2 class="sec-title text-center">@objAppInfo.PresidentPhone Video Gallery</h2>
+@if (lstVideos != null && lstVideos.Count != 0)
+{
+    <div class="gal-grid gallery-owl owl-carousel owl-btns-show aws-video-popup">
+        @foreach (var item in lstVideos)
+        {
+            <a class="video-item " href="https://www.youtube.com/embed/@(item.VideoUrl)">
+                <img class="v-icon" src="https://i1.ytimg.com/vi/@(item.VideoUrl)/hqdefault.jpg" />
+            </a>
+        }
+
+    </div>
+}

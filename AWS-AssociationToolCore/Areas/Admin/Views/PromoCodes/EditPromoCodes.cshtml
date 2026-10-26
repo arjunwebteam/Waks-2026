@@ -1,0 +1,249 @@
+﻿@{
+    ViewBag.Title = "EditPromoCodes";
+
+    ViewBag.Pageheading = "Edit Promo Code";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    AWS_AssociationToolCore.Entities.PromoCodes objPromoCodes = ViewBag.objPromoCodes;
+
+    Int64 mid = ViewBag.mid;
+}
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+<script type="text/javascript" src="Scripts/Admin/jquery-ui-timepicker-addon.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        $('#wPromoCodes').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+
+    });
+
+
+
+    function ResetValidateClass() {
+        $('#ServiceId').removeClass("validate");
+        $('#PromoCode').removeClass("validate");
+        $('#StartDate').removeClass("validate");
+        $('#EndDate').removeClass("validate");
+        $('#NoOfUsers').removeClass("validate");
+        $('#MinimumOrderAmount').removeClass("validate");
+        $('#MaxDiscountAmount').removeClass("validate");
+        $('#DiscountType').removeClass("validate");
+        $('#Discount').removeClass("validate");
+    }
+
+
+</script>
+
+
+@using (Html.BeginForm("AddPromoCodes", "PromoCodes", FormMethod.Post, new { enctype = "multipart/form-data", @id = "PromocodeForm", @name = "PromocodeForm" }))
+{
+    <input type="hidden" name="PromoCodeId" id="PromoCodeId" value="@objPromoCodes.PromoCodeId" />
+    <input type="hidden" id="mid" name="mid" value="@ViewBag.mid" />
+    <div class="card">
+        <div class="card-body">
+
+            <div class="row  g-3">
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">PromoCode<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="PromoCode" id="PromoCode" value="@objPromoCodes.PromoCode" placeholder="Promo Code">
+                    </div>
+                </div>
+
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Start Date <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="StartDate" name="StartDate" placeholder="Start Date" value="@objPromoCodes.StartDate.ToString("MM/dd/yyyy")">
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">End Date <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="EndDate" name="EndDate" placeholder="End Date" value="@objPromoCodes.EndDate.ToString("MM/dd/yyyy")">
+                    </div>
+                </div>
+
+
+
+
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">No Of Users<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" onkeypress="return Common.isNumberKey(event)" name="NoOfUsers" id="NoOfUsers" placeholder="No Of Users" value="@objPromoCodes.NoOfUsers">
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Discount Type <span class="text-danger">*</span></label>
+                        <select class="single-select" name="DiscountType" onclick="ResetValidateClass();">
+                            <option value="">Select Discount Type</option>
+                            <option @(objPromoCodes.DiscountType == "Percent" ? "selected='selected" : "") value="Percent">Percentage</option>
+
+
+
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Discount <span class="text-danger">*</span></label>
+<input type="text"
+       class="form-control"
+       id="Discount"
+       name="Discount"
+       value="@(Convert.ToDecimal(objPromoCodes.Discount) % 1 == 0 
+                ? Convert.ToInt32(objPromoCodes.Discount).ToString() 
+                : objPromoCodes.Discount.ToString())"
+       onkeypress="return Common.isNumberKey(event)"
+       maxlength="3"
+       placeholder="Promo Code">                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Description</label>
+                        <textarea type="text" class="form-control" id="Message" name="Message" placeholder="MetaKeywords">@objPromoCodes.Message</textarea>
+                    </div>
+                </div>
+
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-lg-12 d-flex justify-content-end">
+            <button type="submit" class="btn btn-success px-3 me-2">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+            <a class="btn btn-primary" href="@Url.Action("Index", "PromoCodes",new { mid=mid})">Cancel</a>
+        </div>
+    </div>
+}
+
+<script>
+
+    $(document).ready(function () {
+
+        $.validator.addMethod("greaterThan", function (value, element, param) {
+            let startDate = $(param).val();
+            return startDate && value >= startDate;
+        }, "End date must be greater than or equal to start date.");
+
+
+        $("#PromocodeForm").validate({
+            rules: {
+
+                PromoCode: "required",
+
+
+                StartDate: "required",
+                EndDate: {
+                    required: true,
+                    greaterThan: "#StartDate"
+                },
+                NoOfUsers: "required",
+                DiscountType: "required",
+                 Discount: {
+                    required: true,
+                    number: true,
+                    range: [0, 100]
+                }
+            },
+            messages: {
+
+                PromoCode: "Please Enter Promo Code",
+                StartDate: "Please enter a start date.",
+                EndDate: {
+                    required: "Please enter an end date.",
+                    greaterThan: "End date must be after or the same as start date."
+                },
+
+                NoOfUsers: "Please Enter No Of Users",
+                DiscountType: "Please Select Discount Type",
+               Discount: {
+                    required: "Please enter a discount.",
+                    number: "Please enter a valid number.",
+                    range: "Discount must be between 0 and 100."
+                }
+            },
+
+
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+</script>
+
+
+<script>
+    $(document).ready(function () {
+
+
+        $(function () {
+            $("#StartDate,#EndDate").datepicker({
+
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: 'mm/dd/yy'
+            });
+        });
+
+
+
+    });
+
+
+</script>

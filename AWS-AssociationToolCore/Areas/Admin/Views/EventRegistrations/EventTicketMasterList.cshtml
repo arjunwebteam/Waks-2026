@@ -1,0 +1,264 @@
+﻿@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+
+
+    List<AWS_AssociationToolCore.Entities.EventRegistrationCounts> lstRegistrationCount = ViewBag.lstRegistrationCount;
+
+    AWS_AssociationToolCore.Entities.EventUserInfo objEventUserInfo = ViewBag.objEventUserInfo;
+
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+}
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+
+    function UpdateVisitCount(i, EventRegCountId) {
+        var VisitCount = parseInt($('#VisitCount' + i).val());
+        
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("EventTicketMasterVisitCountUpdate", "EventRegistrations")',
+            data: { VisitCount: VisitCount, EventRegCountId: EventRegCountId },
+            success: function (result) {
+                var div = '';
+                if (result.ok) {
+                    alert('Check-In Count Updated Successfully.');
+                   // $("#divmessage").html(result.data);
+                    RegistrationCountBind(1);
+                    //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+                else {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+    function paymentbind(type) {
+        $('#PaymentType').val(type);
+
+        if (type == 'Pending') {
+            $('#PaymentStatusId').attr("style", "pointer-events: none;");
+            $('#ButtonHide').hide();
+        }
+    }
+
+</script>
+
+@if (objEventUserInfo.FirstName != null && objEventUserInfo.FirstName != "")
+{
+<div class="box validation">
+    <div class="box-header">
+        <h3 class="box-title dis-in">Event Registration Details </h3>
+    </div>
+    @using (Html.BeginForm("UpdateEventUser", "EventRegistrations", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <input type="hidden" id="EventUserInfoId" name="EventUserInfoId" value="@objEventUserInfo.EventUserInfoId" />
+        <input type="hidden" id="EventOrderId" name="EventOrderId" value="@objEventUserInfo.EventOrderId" />
+        <input type="hidden" id="EventId" name="EventId" value="@objEventUserInfo.EventId" />
+                     
+        <input type="hidden" id="FirstName" name="FirstName" value="@objEventUserInfo.FirstName" />                     
+        <input type="hidden" id="LastName" name="LastName" value="@objEventUserInfo.LastName" />
+        <input type="hidden" id="Email" name="Email" value="@objEventUserInfo.Email" />
+        <input type="hidden" id="City" name="City" value="@objEventUserInfo.City" />
+        <input type="hidden" id="State" name="State" value="@objEventUserInfo.State" />
+        <input type="hidden" id="Mobile" name="Mobile" value="@objEventUserInfo.Mobile" />
+        <input type="hidden" id="PaymentMethodId" name="PaymentMethodId" value="@objEventUserInfo.PaymentMethodId" />        
+        <input type="hidden" id="TransactionId" name="TransactionId" value="@objEventUserInfo.TransactionId" />
+        <input type="hidden" id="PaymentBy" name="InsertedBy" value="@objEventUserInfo.InsertedBy" />
+        <input type="hidden" id="AmountPaid" name="AmountPaid" value="@objEventUserInfo.TotalAmount" />
+        <input type="hidden" name="type" id="type" value="Ticket Master" />
+        <input type="hidden" id="PaymentType" name="PaymentType" value="" />
+        <div class="box-body">
+            <div class="row">
+                <div class="col-xs-12 col-lg-4 col-sm-6">
+                    <label>First Name :</label>
+                    <label class="t-p5 black-t">@objEventUserInfo.FirstName @objEventUserInfo.LastName</label>
+                </div>
+                <div class="col-xs-12 col-lg-4 col-sm-6">
+                    <label>Email :</label>
+                    <label class="t-p5 black-t">@objEventUserInfo.Email</label>
+                </div>
+                <div class="col-xs-12 col-lg-4 col-sm-6">
+                    <label>Mobile :</label>
+                    <label class="t-p5 black-t">@objEventUserInfo.Mobile</label>
+                </div>
+            </div>
+        </div>
+        <div class="box-header">
+            <h3 class="box-title dis-in">Payment Details</h3>
+        </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-xs-12 col-lg-2 col-sm-6">
+                    <label>Pay.Method :</label>
+                    <label class="t-p5 black-t">@(objEventUserInfo.PaymentMethod == null ? "N/A" : (objEventUserInfo.PaymentMethod == "Cash/Cheque" ? "Check" : objEventUserInfo.PaymentMethod))</label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Transaction Id  :</label>
+                    <label class="t-p5 black-t">@(objEventUserInfo.TransactionId == null ? "N/A" : objEventUserInfo.TransactionId)</label>
+                </div>
+                <div class="col-xs-12 col-lg-2 col-sm-6">
+                    <label>Amount :</label>
+                    <label class="t-p5 black-t">$ @(objEventUserInfo.TotalAmount == null ? "N/A" : objEventUserInfo.TotalAmount.ToString())<span id="payamount"></span></label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    @if (objEventUserInfo.PaymentStatus == "Completed")
+                    {
+                        <label>Pay.Status :</label>
+                        <label class="t-p5 black-t">@(objEventUserInfo.PaymentStatus == null ? "N/A" : objEventUserInfo.PaymentStatus.ToString())</label>
+                    }
+                    else
+                    {                                
+                        <div class="row">
+                            <div class="col-xs-12 col-lg-6 col-sm-6">
+                                <label>Pay.Status :</label>
+                            </div>
+                            <div class="col-xs-12 col-lg-6 col-sm-6">
+                                <select class="form-control" name="PaymentStatusId" id="PaymentStatusId">
+                                    @if (lstPaymentStatus != null)
+                                    {
+                                        <option value="">Select</option>
+                                        foreach (var item in lstPaymentStatus)
+                                        { 
+                                        <option onclick="paymentbind('@item.PaymentStatus1');"  @(item.PaymentStatusId == objEventUserInfo.PaymentStatusId ? "selected=selected" : "") value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                                        }
+                                    }
+                                </select>
+                                <span class="field-validation-error" id="spanPaymentStatusId"></span>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="col-xs-12 col-lg-2 col-sm-6">
+                    @if (objEventUserInfo.PaymentStatus == "Completed")
+                    {
+                    }
+                    else
+                    {                                           
+                        <div class="text-left" id="ButtonHide">
+                            <input type="submit" value="Update" onclick="return Validate()" name="send" class="button2 btn btn-primary">
+                        </div>  
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+}
+
+@if (Total == -1)
+{
+    <div class="norecords">Sorry failed processing your request.</div> 
+}
+else
+{
+    <div class="clearfix" style="width: 370px; text-align: center!important; margin-left: auto; margin-right: auto;">
+        <div id="divmessage">
+            @if (TempData["message"] != null)
+            { @Html.Raw(TempData["message"].ToString())}
+
+            @if (ViewBag.message != null)
+            { @Html.Raw(ViewBag.message.ToString())}
+        </div>
+        <table width="100%" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th width="10%" style="text-align: center; background-color: #c0dbd0; border: 1px solid #1cbb79;">
+                        <a onclick="javascript:sortresult('RegistrationTitle');" class="white-t-u">Reg.<br />Title @if (sortcolumn == "RegistrationTitle")
+                                                                                                             {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" /> }</a>
+                    </th>
+                     <th width="3%" style="text-align: center; background-color: #c0dbd0; border: 1px solid #1cbb79;">
+                        <a onclick="javascript:sortresult('VisitCount');" style="text-align: center;" class="white-t-u">Check-In.<br /> Pen @if (sortcolumn == "VisitCount")
+                                                                                                                                     {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" /> }</a>
+                    </th>
+                    <th width="3%" style="text-align: center; background-color: #c0dbd0; border: 1px solid #1cbb79;">
+                        <a onclick="javascript:sortresult('Count');" style="text-align: center;" class="white-t-u">Checked<br />In @if (sortcolumn == "VisitCount")
+                                                                                                                             {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" /> }</a>
+                    </th>
+                   
+                </tr>
+            </thead>
+            <tbody>
+                @if (lstRegistrationCount != null && lstRegistrationCount.Count != 0)
+                {
+                    Int64 i = 1;
+                    foreach (var item in lstRegistrationCount)
+                    { 
+                    <tr>
+                        <td style="text-align: center; border: 1px solid #1cbb79;">@item.RegistrationTitle <span style="padding-left:10px; color:#f00; font-weight:bold;">(@item.Count)</span>
+                        </td>
+                         <td style="border: 1px solid #1cbb79; text-align: left;">
+                            <article class="row">  
+                                <article class="col-xs-12 col-lg-12 col-sm-6">                             
+                            <select class="form-control b-m0" name="VisitCount@(i)" id="VisitCount@(i)" onchange="UpdateVisitCount(@i,@item.EventRegCountId);">
+                                <option value="">Select</option>
+                                @if (item.Count != 0)
+                                {
+                                    var acount = item.Count - item.VisitCount;
+
+                                    for (int c = 1; c <= acount; c++)
+                                    {
+
+                                    <option @*@(c == item.VisitCount ? "selected=select" : "")*@ value="@c">@c</option>
+                                    }
+                                }
+                                else
+                                {
+                                    for (int c = 0; c <= 10; c++)
+                                    {
+                                    <option @(c == (item.Count <= 5 ? item.Count : 2) ? "selected=select" : "") value="@c">@c</option>
+                                    }
+                                }
+                                @*<option @(item.VisitCount == 1 ? "selected=selected" : "") value="1">1</option>
+                                     <option @(item.VisitCount == 2 ? "selected=selected" : "") value="2">2</option>
+                                     <option @(item.VisitCount == 3 ? "selected=selected" : "") value="3">3</option>
+                                     <option @(item.VisitCount == 4 ? "selected=selected" : "") value="4">4</option>
+                                     <option @(item.VisitCount == 5 ? "selected=selected" : "") value="5">5</option>
+                                     <option @(item.VisitCount == 6 ? "selected=selected" : "") value="6">6</option>
+                                     <option @(item.VisitCount == 7 ? "selected=selected" : "") value="7">7</option>
+                                     <option @(item.VisitCount == 8 ? "selected=selected" : "") value="8">8</option>
+                                     <option @(item.VisitCount == 9 ? "selected=selected" : "") value="9">9</option>
+                                     <option @(item.VisitCount == 10 ? "selected=selected" : "") value="10">10</option>*@
+                            </select>
+                                    </article>
+                                  
+                                </article>                             
+                        </td>
+                        <td style="text-align: center; border: 1px solid #1cbb79;">@item.VisitCount
+                        </td>
+                       
+
+                    </tr>
+                                i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td class="norecords" colspan="9">No Tickets Found.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+}
+
+
+@Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pagination-centered"))

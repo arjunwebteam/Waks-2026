@@ -1,0 +1,57 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Payment Cancelled | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Your payment was canceled. Please try again or contact support for assistance.";
+    ViewBag.MetaKeywords = "Payment cancelled Telugu association, transaction failed, retry payment, Telugu event payment issue";
+
+    ViewBag.PageHeading = "Payment Cancelled..!";
+}
+
+<div class="container">
+    <div class="aws-inner-content">
+        <div class="">
+            <div class="aws-left-sec">
+
+                <div class="aws-bdr"></div>
+                <div class="aws-acknowledgement-box aws-ac-error">
+                    <div class="row justify-content-center">
+                        <div class="col-md-7">
+                            <div class="printer-top"></div>
+                            <div class="paper-container">
+                                <div class="printer-bottom"></div>
+
+                                <div class="paper">
+                                    <div class="main-contents">
+                                        <div class="success-icon"><i class="bi bi-x-lg"></i></div>
+                                        <div class="aws-title2 mb-2 text-success text-center">Payment Cancelled..!</div>
+                                        <div class="success-description">
+                                            Payment Cancelled..!
+                                        </div>
+
+
+                                    </div>
+                                    <div class="jagged-edge"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+

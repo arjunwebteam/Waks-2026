@@ -1,0 +1,405 @@
+﻿@using Microsoft.AspNetCore.Http
+@{
+    var lstUpcommingEvents = (List<AWS_AssociationToolCore.Entities.Events>)ViewBag.lstUpcommingEvents;
+    var lstPastEvents = (List<AWS_AssociationToolCore.Entities.Events>)ViewBag.lstPastEvents;
+
+    int status = 0;
+    
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var imgFlyer = objAppInfo.BaseUrl + "Content/events/flyers/";
+
+    var imglocEvent1 = objAppInfo.BaseUrl + "Content/events/banners/thumb/";
+    var imglocNormal = objAppInfo.BaseUrl + "Content/events/flyers/";
+
+    Int64 ChapterId = ViewBag.ChapterId;
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+
+    var Type = ViewBag.Type;
+    //var imglocNormal = "~/Content/WebsiteBanners/NormalImages/";
+
+}
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var userName = User.Identity?.Name;
+}
+
+<style>
+    .btn-gold {
+        background: #ff9b0d;
+        color: #fff;
+        font-size: 14px;
+        padding: 10px 22px;
+        border-radius: 6px;
+        font-weight: 400;
+        display: inline-block;
+        transition: all .4s linear;
+        line-height: 100%;
+        height: 40px;
+    }
+</style>
+@if (lstUpcommingEvents != null && lstUpcommingEvents.Count != 0)
+{
+    @foreach (var item in lstUpcommingEvents)
+    {
+        <!-- ✅ ADD THIS WRAPPER DIV -->
+        <div class="main_left_cards">
+
+            <div class="event-card">
+                @if (item.EventType == "Past")
+                {
+                    <span class="badge">Past Event</span>
+                }
+                else
+                {
+                    <span class="badge">Upcoming Event</span>
+                }
+                <div class="event_details">
+                    <h2>
+                        @if (item.EventName.Length >= 40)
+                        {
+                            @Html.Raw(item.EventName.Substring(0, 40)) @("...")
+                        }
+                        else
+                        {
+                            @Html.Raw(item.EventName)
+                        }
+                    </h2>
+                    <ul>
+                        <li>
+                            <img src="content/user/images/cal-icon.png" alt="">
+                            @Html.Raw(item.EndDate.ToString("dddd, d'th' MMMM, yyyy"))
+                        </li>
+                        <li>
+                            <img src="content/user/images/clock.png" alt="">
+                            @Html.Raw(item.StartDate.ToString("hh:mm tt")) to @Html.Raw(item.EndDate.ToString("hh:mm tt"))
+                        </li>
+                             @if (!string.IsNullOrEmpty(item.Location))
+                       {
+                        <li>
+                            <img src="content/user/images/location.png" alt="">
+                            @item.Location
+                        </li>
+                       }
+                       @if (!string.IsNullOrEmpty(item.City))
+                       {
+                            <li>
+                                <img src="content/user/images/location.png" alt="">
+                                @item.City
+                            </li>
+                       }
+                        @if (!string.IsNullOrEmpty(item.StateName))
+        {
+                            <li>
+                                <img src="content/user/images/location.png" alt="">
+                                @item.StateName
+                            </li>
+        }
+                      
+                    </ul>
+                    @if (item.EventId == 20425)
+                    {
+                        <div class="events_btns">
+                            <a href="https://events.humanitix.com/haasya-gaanotsava" target="_blank" class="btn-gold">Buy Tickets</a>
+                            <a target="_blank" href="https://events.humanitix.com/haasya-gaanotsava"
+                               class="btn-outline">View Details</a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="events_btns">
+                            @if (item.IsRegistration == true && item.RegistrationEndDate.Date >= DateTime.UtcNow.Date)
+                            {
+                                if (item.PageTitle == "Yes")
+                                {
+
+                                    if (isAuthenticated && userName != null && chapterName != null)
+                                    {
+                                        <a class="btn-gold" href="@Url.Action("EventRegistration", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(item.EventName), eid = item.EventId, cname = chapterName })"><span><span></span> </span> Buy Ticket</a>
+
+                                    }
+                                    else
+                                    {
+                                        string eurl = "EventName=" + AWS_AssociationToolCore.BLL.Common.EncodeURL(item.EventName) + "&eid=" + item.EventId + "&cname=" + chapterName;
+
+                                        <a class="btn-gold" href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })"><span><span></span> </span> Buy Ticket</a>
+
+                                    }
+                                }
+                                else
+                                {
+
+
+                                    <a class="btn-gold" href="@Url.Action("EventRegistration", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName), eid = item.EventId, cname = chapterName })"><span><span></span> </span> Buy Ticket</a>
+
+
+
+
+                                }
+                            }
+                            else if (item.RegistrationEndDate.Date >= DateTime.UtcNow.Date && item.MetaKeywords != null && item.MetaKeywords != "")
+                            {
+                                if (item.PageTitle == "Yes")
+                                {
+                                    if (isAuthenticated && userName != null && chapterName != null)
+                                    {
+
+
+                                        <a class="btn-gold" target="_blank" href="@item.MetaKeywords"><span><span></span> </span>Register Know</a>
+
+
+
+                                    }
+                                    else
+                                    {
+                                        string eurl = "event/upcoming/" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName) + "?eid=" + item.EventId;
+                                        <a class="btn-gold"target="_blank"  href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })"><span><span></span> </span>Register Know</a>
+
+
+
+                                    }
+                                }
+                                else
+                                {
+                                    <a class="btn-gold" target="_blank" href="@item.MetaKeywords"><span><span></span> </span>Register Know</a>
+
+                                }
+
+
+                                
+                            }
+
+                            @if (item.IsCulturalRegistration == true && item.RegistrationEndDate.Date >= DateTime.UtcNow.Date)
+                            {
+                                if (item.PageTitle == "Yes")
+                                {
+                                    if (isAuthenticated && userName != null && chapterName != null)
+                                    {
+                                        <a class="btn-gold" href="cultural-registration?EventName=@item.EventName&amp;EventId=@item.EventId&amp;cname=@chapterName">
+                                            <span><span></span></span> Cultural Registration
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        string eurl = "EventName=" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName) + "&eid=" + item.EventId + "&cname=" + chapterName;
+
+                                        <a class="btn-gold" href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })">
+                                            <span><span></span></span> Cultural Registration
+                                        </a>
+                                    }
+                                }
+                                else
+                                {
+                                    <a class="btn-gold" href="cultural-registration?EventName=@item.EventName&amp;EventId=@item.EventId&amp;cname=@chapterName">
+                                        <span><span></span></span> Cultural Registration
+                                    </a>
+                                }
+                            }
+
+
+                            <a href="@Url.Action("EventDetails", "Event", new { cname = Context.Session.GetString("ChapterName"), EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName), Type = "upcoming", eid = item.EventId })"
+                               class="btn-outline">View Details</a>
+                        </div>
+
+                          <div class="events_btns">
+
+                   
+                    </div>
+                    }
+                    
+               
+                </div>
+            </div>
+           
+
+            <div class="poster">
+                <img width="100px"
+                     title="@item.EventName"
+                     alt="@item.EventName"
+                     src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + item.Flyer, imglocNormal + "flyer-no2.jpg"))"
+                     class="d-block w-100">
+            </div>
+
+        </div>
+        <!-- ✅ END WRAPPER DIV -->
+    }
+}
+else
+{
+    @if (lstPastEvents != null && lstPastEvents.Count != 0)
+    {
+        @foreach (var item in lstPastEvents)
+        {
+            <!-- ✅ ADD THIS WRAPPER DIV -->
+            <div class="main_left_cards">
+
+                <div class="event-card">
+                    <span class="badge">Past Event</span>
+                    <div class="event_details">
+                        <h2>
+                            @if (item.EventName.Length >= 40)
+                            {
+                                @Html.Raw(item.EventName.Substring(0, 40)) @("...")
+                            }
+                            else
+                            {
+                                @Html.Raw(item.EventName)
+                            }
+                        </h2>
+                        <ul>
+                            <li>
+                                <img src="content/user/images/cal-icon.png" alt="">
+                                @Html.Raw(item.EndDate.ToString("dddd, d'th' MMMM, yyyy"))
+                            </li>
+                            <li>
+                                <img src="content/user/images/clock.png" alt="">
+                                @Html.Raw(item.StartDate.ToString("hh:mm tt")) to @Html.Raw(item.EndDate.ToString("hh:mm tt"))
+                            </li>
+                            @if (!string.IsNullOrEmpty(item.Location))
+                       {
+                        <li>
+                            <img src="content/user/images/location.png" alt="">
+                            @item.Location
+                        </li>
+                       }
+                       @if (!string.IsNullOrEmpty(item.City))
+                       {
+                            <li>
+                                <img src="content/user/images/location.png" alt="">
+                                @item.City
+                            </li>
+                       }
+                        @if (!string.IsNullOrEmpty(item.StateName))
+        {
+                            <li>
+                                <img src="content/user/images/location.png" alt="">
+                                @item.StateName
+                            </li>
+        }
+                        </ul>
+                        @if (item.EventId == 20425)
+                        {
+                            <div class="events_btns">
+                                <a href="https://events.humanitix.com/haasya-gaanotsava" target="_blank" class="btn-gold">Registrations closed</a>
+                                <a target="_blank" href="https://events.humanitix.com/haasya-gaanotsava"
+                                   class="btn-outline">View Details</a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="events_btns">
+                                @if (item.IsRegistration == true && item.RegistrationEndDate.Date >= DateTime.UtcNow.Date)
+                                {
+                                    if (item.PageTitle == "Yes")
+                                    {
+
+                                        if (isAuthenticated && userName != null && chapterName != null)
+                                        {
+                                            <a class="btn-gold" href="@Url.Action("EventRegistration", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(item.EventName), eid = item.EventId, cname = chapterName })"><span><span></span> </span> Buy Ticket</a>
+
+                                        }
+                                        else
+                                        {
+                                            string eurl = "EventName=" + AWS_AssociationToolCore.BLL.Common.EncodeURL(item.EventName) + "&eid=" + item.EventId + "&cname=" + chapterName;
+
+                                            <a class="btn-gold" href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })"><span><span></span> </span> Buy Ticket</a>
+
+                                        }
+                                    }
+                                    else
+                                    {
+
+
+                                        <a class="btn-gold" href="@Url.Action("EventRegistration", "Event", new { area = "User", EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName), eid = item.EventId, cname = chapterName })"><span><span></span> </span> Buy Ticket</a>
+
+
+
+
+                                    }
+                                }
+                                else if (item.RegistrationEndDate.Date >= DateTime.UtcNow.Date && item.MetaKeywords != null && item.MetaKeywords != "")
+                                {
+                                    if (item.PageTitle == "Yes")
+                                    {
+                                        if (isAuthenticated && userName != null && chapterName != null)
+                                        {
+
+
+                                            <a class="btn-gold" target="_blank" href="@item.MetaKeywords"><span><span></span> </span>Register Know</a>
+
+
+
+                                        }
+                                        else
+                                        {
+                                            string eurl = "event/upcoming/" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName) + "?eid=" + item.EventId;
+                                            <a class="btn-gold" target="_blank" href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })"><span><span></span> </span>Register Know</a>
+
+
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <a class="btn-gold" target="_blank" href="@item.MetaKeywords"><span><span></span> </span>Register Know</a>
+
+                                    }
+
+
+
+                                }
+
+                                @if (item.IsCulturalRegistration == true && item.RegistrationEndDate.Date >= DateTime.UtcNow.Date)
+                                {
+                                    if (item.PageTitle == "Yes")
+                                    {
+                                        if (isAuthenticated && userName != null && chapterName != null)
+                                        {
+                                            <a class="btn-gold" href="cultural-registration?EventName=@item.EventName&amp;EventId=@item.EventId&amp;cname=@chapterName">
+                                                <span><span></span></span> Cultural Registration
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            string eurl = "EventName=" + AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName) + "&eid=" + item.EventId + "&cname=" + chapterName;
+
+                                            <a class="btn-gold" href="@Url.Action("LogOn", "Members", new { area = "User", url = eurl })">
+                                                <span><span></span></span> Cultural Registration
+                                            </a>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <a class="btn-gold" href="cultural-registration?EventName=@item.EventName&amp;EventId=@item.EventId&amp;cname=@chapterName">
+                                            <span><span></span></span> Cultural Registration
+                                        </a>
+                                    }
+                                }
+
+
+                                <a href="@Url.Action("EventDetails", "Event", new { cname = Context.Session.GetString("ChapterName"), EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(@item.EventName), Type = "upcoming", eid = item.EventId })"
+                                   class="btn-outline">View Details</a>
+                            </div>
+
+                            <div class="events_btns">
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="poster">
+                    <img width="100px"
+                         title="@item.EventName"
+                         alt="@item.EventName"
+                         src="@(AWS_AssociationToolCore.BLL.Common.ValidateImage(imglocNormal + item.Flyer, imglocNormal + " flyer-no2.jpg"))"
+                         class="d-block w-100">
+                </div>
+
+            </div>
+            <!-- ✅ END WRAPPER DIV -->
+        }
+    }
+}

@@ -1,0 +1,561 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var objEvents = (AWS_AssociationToolCore.Entities.Events)ViewBag.objEvents;
+    var Memberdetails = (AWS_AssociationToolCore.Entities.Members)ViewBag.Memberdetails;
+
+    int status = 0;
+    Int64 cid = ViewBag.cid;
+    string cname = ViewBag.cname;
+}
+
+<script type="text/javascript" src="Scripts/User/jquery.validate.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () { 
+        $('.closable').append('<span class="closelink" title="Close"></span>');
+        $('.closelink').click(function () {
+            $(this).parent().fadeOut('600', function () { $(this).remove(); });
+        }); 
+        $("#DateofBirth").datepicker({ changeMonth: true, changeYear: true, yearRange: "-40:+0", altField: '.date', altFormat: 'mm/dd/yy' });
+
+            $("#EventForm1").validate({
+                rules: {
+                    FirstName: "required",
+                    LastName: "required",
+                    ContactEmail: "required",
+                    ContactEmail: { required: true, email: true }, 
+                    DateofBirth: "required",
+                    GradeinSchool: "required",
+                    /*SchoolName: "required",*/
+                    Notes: "required",
+                    ContactFullName: "required",
+                    ContactPhone: { required: true, phone: true },
+                    MCaptcha: "required"
+                },
+                messages: {
+                    FirstName: "First Name Required",
+                    LastName: "Last Name Required",
+                    ContactEmail: "Email Required",
+                    ContactEmail: { required: "Email Required", email: "Please enter valid email address" },
+                    DateofBirth: "Date of Birth Required",
+                    GradeinSchool: "Gender Required",
+                   /* SchoolName: "Class Attending Required",*/
+                    Notes: "Address Required",
+                    ContactFullName: "Contact FullName Required",
+                    ContactPhone: { required: "Phone Number Required", phone: "Please enter valid Phone Number" },
+                    MCaptcha: "Captcha Required",
+                },
+                onfocusout: function (element) {
+                    this.element(element);
+                },
+            }); 
+    });
+
+    function Validate(stype) {
+
+        var return_val = true;
+        var alertvalidation = '';
+        var validationcount = 0;
+        var alertimg = '<img src="Content/User/images/alert-icon.png" alt="alert" width="20" height="19"> ';
+
+        if ($('#FirstName').val() == "") { alertvalidation = alertvalidation + alertimg + ' First Name Required <br/>'; }
+        if ($('#LastName').val() == "") { alertvalidation = alertvalidation + alertimg + ' Last Name Required <br/>'; }
+        if ($('#ContactEmail').val() == "") { alertvalidation = alertvalidation + alertimg + ' Email Address Required <br/>'; }
+        if ($('#ContactEmail').val() != "") {
+            if (!Common.CheckEmail($.trim($('#ContactEmail').val()))) { alertvalidation = alertvalidation + alertimg + ' Please enter valid email address <br/>'; }
+        }
+        if ($('#DateofBirth').val() == "") { alertvalidation = alertvalidation + alertimg + ' Dateof Birth Required <br/>'; }
+        /*if ($('#SchoolName').val() == "") { alertvalidation = alertvalidation + alertimg + ' Class Attending Required <br/>'; }*/
+        if ($('#Notes').val() == "") { alertvalidation = alertvalidation + alertimg + ' Address Required <br/>'; }
+        if ($('#ContactFullName').val() == "") { alertvalidation = alertvalidation + alertimg + ' Contact Full Name Required <br/>'; }
+        if ($('#ContactPhone').val() == "") { alertvalidation = alertvalidation + alertimg + ' Contact Phone Required <br/>'; }
+
+        if(@objEvents.MemberAmount != 0) {
+            if ($('#CardNumber').val() == "") { alertvalidation = alertvalidation + alertimg + ' Card Number Required <br/>'; }
+            if ($('#CSVMonth').val() == "") { alertvalidation = alertvalidation + alertimg + ' CSV Month Required <br/>'; }
+            if ($('#CSVYear').val() == "") { alertvalidation = alertvalidation + alertimg + ' CSV Year Required <br/>'; }
+            if ($('#Cvv').val() == "") { alertvalidation = alertvalidation + alertimg + ' CVV Required <br/>'; }
+        }
+
+        if ($('#txtCaptcha').val() == "") { alertvalidation = alertvalidation + alertimg + ' Captcha Required <br/>'; }
+
+        var str = Common.GetCaptcha();
+
+        if ($('#txtCaptcha').val() != "") {
+            if ($('#txtCaptcha').val() != str) { document.getElementsByName('MCaptcha')[0].placeholder = 'Captcha Mismatched.'; $('#spantxtCaptcha').show().html('Captcha Mismatched. <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#txtCaptcha').focus().addClass("validate"); return_val = false; } else { $('#spantxtCaptcha').hide().html(''); $('#txtCaptcha').focus().removeClass("validate"); }
+        }
+
+        if ($('#txtCaptcha').val() != "") {
+            if ($('#txtCaptcha').val() != str) { alertvalidation = alertvalidation + alertimg + ' Captcha Mismatched <br/>'; }
+        }
+        $('#txtCaptcha').focus();
+        if (alertvalidation != "" && stype == "final") {
+            $('#alertvalidation').html(alertvalidation);
+            ValidationAlertShow();
+        }
+
+        return return_val;
+    }
+
+
+
+    function ResetValidateClass() {
+        $('#ItemName').removeClass("validate");
+        $('#ItemCategory').removeClass("validate");
+        $('#ItemDuration').removeClass("validate");
+        $('#ItemDescription').removeClass("validate");
+        $('#FirstName').removeClass("validate");
+        $('#LastName').removeClass("validate");
+        $('#EmailId').removeClass("validate");
+        $('#Mobile').removeClass("validate");
+        $('#City').removeClass("validate");
+        $('#State').removeClass("validate");
+        $('#txtCaptcha').removeClass("validate");
+
+            }
+            function CreloadCaptcha() {
+                document.getElementById('CUcaptcha').src = document.getElementById('CUcaptcha').src + '/';
+            }
+
+            var specialKeys = new Array();
+            specialKeys.push(8); //Backspace
+    specialKeys.push(9); //Tab
+    specialKeys.push(32); //Space
+    specialKeys.push(46); //Delete
+    specialKeys.push(36); //Home
+    specialKeys.push(35); //End
+    specialKeys.push(37); //Left
+    specialKeys.push(39); //Right
+
+
+    function onlyAlphabets(e, t) {
+                try {
+                    if (window.event) {
+                var charCode = window.event.keyCode;
+            }
+            else if (e) {
+                var charCode = e.which;
+        }
+            else { return true; }
+            if ((charCode == 32) || (charCode > 64 && charCode < 91) || (charCode > 96 && charCode < 123) || (specialKeys.indexOf(e.keyCode) != -1 && e.charCode != e.keyCode))
+                return true;
+            else
+                return false;
+        }
+        catch (err) {
+            alert(err.Description);
+        }
+    }
+    function phonenochange(event) {
+        if (event.keyCode == 8 || event.keyCode == 46) {
+        }
+        else {
+            var ph = $('#ContactPhone').val();
+            if (ph.length == 3) { $('#ContactPhone').val(ph + '-'); }
+            if (ph.length == 7) { $('#ContactPhone').val(ph + '-'); }
+        }
+    }
+
+    function calculate_total() {
+        total5 = 0;
+        total5 = '@objEvents.MemberAmount';
+        total5 = parseInt(total5);
+        total5 = parseFloat(total5 + (total5 * parseInt(2) / 100)).toFixed(2);
+        document.getElementById("total").innerHTML = "$" + (total5);
+        $('#AmountPaid').val(total5);
+    }
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#ValidationAlert').dialog
+            ({
+                autoOpen: false,
+                width: 470,
+                modal: true
+            });
+    });
+
+    function ValidationAlertShow() {
+        $('#ValidationAlert').dialog('open');
+    }
+</script>
+
+<!--- DILOG BOX Login [start] --->
+<section id="ValidationAlert" style="display: none; overflow: visible;">
+
+    <span style="position:absolute; right:-25px;top:-25px;"><a class="cursor-p latomedium red-t" onclick=" $('#ValidationAlert').dialog('close')"><img src="Content/User/images/close-icon.png" class="t-m1" alt="Close" width="35" height="35" /></a></span>
+    <span class="clearfix Raleway-Bold font16">Your Form Not Submitting due to below reasons.</span>
+    <article class="clearfix dialog-content red-t t-b-p5 font14 Poppins-Regular" id="alertvalidation"></article>
+    <article class="clearfix t-c">
+        <button type="button" class="btn btn-success Roboto-Regular t-t-u dis-in border-radius m5 l-r-p15 t-b-p5" onclick=" $('#ValidationAlert').dialog('close')"> OK </button>
+    </article>
+</section>
+<!--- DILOG BOX Login [end] --->
+
+<article class="clearfix lates-gray-bg t-b-p7 mobile-t-b-p10 mobilev-b-p0 mobilev-t-p96">
+    <ul class="bread-crum-list list-f list-pn m0 tabhorizontal-t-p30 font14 mobile-font12 mobile-v-t-p5 mobile-hide">
+        <li>
+            <a class="t-t-u" href="@cname/upcoming-events">Upcoming Events</a>
+        </li>
+        <li>
+            <a class="t-t-u" href="@Url.Action("EventDetails", "Event", new { EventName = AWS_AssociationToolCore.BLL.Common.EncodeURL(objEvents.EventName), Type = "upcoming", eid = objEvents.EventId, cname = cname })"> @objEvents.EventName </a>
+        </li>
+        <li>
+            <a class="t-t-u"> Event Registration </a>
+        </li>
+    </ul>
+</article>
+
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <!-------------------------------------------------------------------------------------------------->
+        @*<span class="pull-right">
+                <a href="@Url.Action("Index","Event", new {cname = cname})" class="blue-t">
+                    <img src="Content\User\images\back-button-circular.png" alt="" title="" class="t-b-m0" width="24" height="24">
+                    Back to Events
+                </a>
+            </span>*@
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font26 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5">Event Registration - @objEvents.EventName </h3>
+        </article>
+        <article class="l-r-m-auto" style="max-width:800px;">
+            <article class="clearfix white-bg shadow t-b-m10 border-t3 border-radius4" style="border-color:#d66ac1;">
+                <article class="clearfix part-row">
+                    <article class="clearfix part-6">
+                        <article class="clearfix">
+                            <article class="clearfix  p10 mobile-t-b-p5 tablet-l-r-p10">
+                                <label class="b-m0 t-c">
+                                    <i class="cla-d-icon red-t Roboto-Medium border-b">Event On : </i> <span class="Poppins-Medium font13 dk-t1 l-p10  dis-b tablet-l-p5">
+    @if (objEvents.StartDate.Date == objEvents.EndDate.Date)
+    {
+        if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy") (@objEvents.UpdatedBy)</span>
+        }
+        else if (objEvents.StartDate.ToString("hh:mm tt") != "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+        }
+        else if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") != "12:00 AM")
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy") @objEvents.EndDate.ToString("hh:mm tt") (@objEvents.UpdatedBy)</span>
+        }
+        else if (objEvents.StartDate.ToString("hh:mm tt") == objEvents.EndDate.ToString("hh:mm tt"))
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+        }
+        else
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") -to- @objEvents.EndDate.ToString("hh:mm tt") (@objEvents.UpdatedBy)</span>
+        }
+    }
+    else
+    {
+        if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy") -to-<br /> @objEvents.EndDate.ToString("MMM dd, yyyy") (@objEvents.UpdatedBy)</span>
+        }
+        else if (objEvents.StartDate.ToString("hh:mm tt") != "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") == "12:00 AM")
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") -to-<br /> @objEvents.EndDate.ToString("MMM dd, yyyy") (@objEvents.UpdatedBy)</span>
+        }
+        else if (objEvents.StartDate.ToString("hh:mm tt") == "12:00 AM" && objEvents.EndDate.ToString("hh:mm tt") != "12:00 AM")
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy") -to-<br /> @objEvents.EndDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+        }
+        else
+        {
+            <span>@objEvents.StartDate.ToString("MMM dd, yyyy hh:mm tt") -to-<br /> @objEvents.EndDate.ToString("MMM dd, yyyy hh:mm tt") (@objEvents.UpdatedBy)</span>
+        }
+    }
+</span>
+                                </label>
+
+                            </article>
+                        </article>
+                    </article>
+                    <article class="clearfix part-6">
+                        <article class="clearfix border-l mobile-bor0 tablet-l-m0">
+                            <article class="clearfix p10 mobile-t-b-p5 tablet-l-r-p5">
+                                <label class="b-m0 t-c t-m25n mobile-t-m0">
+                                    @if (objEvents.Location != null && objEvents.Location != "")
+                                    {
+                                        <div class="location-address">
+                                            <a class="location-address-link black-t" href="https://www.google.com/maps/search/?api=1&amp;query=@objEvents.Location,@objEvents.PageTitle,@objEvents.City,@objEvents.StateName,@objEvents.ZipCode" target="_blank">
+                                                <div class="location-address-link-icon-container">
+                                                    <i class="fas fa-map-pin location-address-link-icon"></i>
+                                                </div>
+                                                <div class="location-address-link-text">
+                                                    <span id=" location-webaddress"></span>
+                                                    <span id="location-street"></span><br>
+                                                    <span id="location-city"></span>
+                                                    <span id="location-state"></span>
+                                                    <span id="location-zipcode"></span>
+                                                    <i class="loc-d-icon red-t Roboto-Medium border-b">Location : </i>
+                                                    <span class="Poppins-Medium font13 dk-t1 dis-b l-p10 tablet-l-p5"> @objEvents.Location <br /> @objEvents.City, @objEvents.StateName @objEvents.ZipCode</span>
+
+                                                </div>
+                                            </a>
+                                        </div>
+                                    }
+                                </label>
+                            </article>
+                        </article>
+                    </article>
+                </article>
+            </article>
+            <article class="clearfix white-bg p25 mobile-p10 tabhorizontal-minheight0" style="min-height: 980px;">
+                @using (Html.BeginForm("EventRegistrationForm1", "Event", FormMethod.Post, new { name = "EventForm1", id = "EventForm1", onSubmit = "return Validate('final');" }))
+                {
+                    <input type="hidden" value="@objEvents.EventName" id="EventName" name="EventName" />
+                    <input type="hidden" value="@objEvents.EventId" id="EventId" name="EventId" />
+                    <input type="hidden" value="@ViewBag.MemberId" id="MemberId" name="MemberId" />
+                    <input type="hidden" value="@cid" id="RegistrationCategoryId" name="RegistrationCategoryId" />
+                    <input type="hidden" value="@cname" id="ChapterName" name="ChapterName" />
+                    if (objEvents.MemberAmount != 0)
+                    {
+                        <input type="hidden" id="AmountPaid" value="@objEvents.MemberAmount" name="AmountPaid" />
+                        <input type="hidden" value="PayPal" id="PaymentMethod" name="PaymentMethod" />
+                    }
+                    else
+                    {
+                        <input type="hidden" value="" id="PaymentMethod" name="PaymentMethod" />
+                        <input type="hidden" id="AmountPaid" value="0" name="AmountPaid" />
+                    }
+
+                    <article class="clearfix part-row">
+                        <article class="clearfix part-6">
+                            <h3 class="font24 m0 l-h32 b-p10 t-p25 Raleway-Bold red-t mobile-t-p5">Player Details</h3>
+                            <img alt="Border" class="tabhorizontal-t-m10 tabhorizontal-b-m15" src="Content/User/images/orange-border.png" width="53" height="3">
+                        </article>
+                        <article class="clearfix part-6"></article>
+                    </article>
+                    <article class="clearfix part-row">
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 t-p20 black-t1 b-m2 r-p5"> First Name <span class="red-t">*</span> </label>
+                            <article class="clearfix r-m5 mobile-r-m0">
+                                <input id="FirstName" class="form-control get-a-loan" name="FirstName" type="text">
+                                <span class="errormsg" id="spanFirstName"></span>
+                            </article>
+                        </article>
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-l-p0 Roboto-Regular font13 l-h26 t-p20 black-t1 b-m2 l-p5"> Last Name <span class="red-t">*</span> </label>
+                            <article class="clearfix l-m5 mobile-r-m0 mobile-l-m0">
+                                <input id="LastName" class="form-control get-a-loan" name="LastName" type="text">
+                                <span class="errormsg" id="spanLastName"></span>
+                            </article>
+                        </article>
+                    </article>
+                    <article class="clearfix part-row">
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 black-t1 b-m2 l-p5"> Contact Email <span class="red-t">*</span> </label>
+                            <article class="clearfix r-m5 mobile-r-m0">
+                                <input id="ContactEmail" name="ContactEmail" class="form-control get-a-loan" type="text">
+                                <span class="errormsg" id="spanContactEmail"></span>
+                            </article>
+                        </article>
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 black-t1 b-m2"> Date of Birth <span class="red-t">*</span> </label>
+                            <article class="clearfix l-m5 mobile-l-m0 mobile-l-m0">
+                                <input id="DateofBirth" class="form-control get-a-loan" name="DateofBirth" type="text">
+                                <span class="errormsg" id="spanDateofBirth"></span>
+                            </article>
+                        </article>
+                    </article>
+                    <article class="clearfix part-row">
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 black-t1 b-m2"> Gender <span class="red-t">*</span> </label>
+                            <article class="clearfix r-m5 mobile-r-m0 mobile-l-m0">
+                                <article class="clearfix dropdown">
+                                    <select class="dropdown-select ui-select" style="min-height:44px;" id="GradeinSchool" placeholder="" name="GradeinSchool">
+                                        <option value="" selected="selected">--Select--</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                    <span class="errormsg" id="spanGradeinSchool"></span>
+                                </article>
+                            </article>
+                        </article>
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 black-t1 b-m2"> Class Attending </label>
+                            <article class="clearfix l-m5 mobile-l-m0">
+                                <input id="SchoolName" class="form-control get-a-loan" name="SchoolName" type="text">
+                                <span class="errormsg" id="spanSchoolName"></span>
+                            </article>
+                        </article>
+                    </article>
+                    <article class="clearfix part-row">
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 black-t1 b-m2"> Parent Name (At least one parent must be Telugu speaking ) <span class="red-t">*</span> </label>
+                            <article class="clearfix r-m5 mobile-r-m0 mobile-l-m0">
+                                <input id="ContactFullName" name="ContactFullName" class="form-control get-a-loan" type="text">
+                                <span class="errormsg" id="spanContactFullName"></span>
+                            </article>
+                        </article>
+                        <article class="clearfix part-6 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 black-t1 b-m2"> Contact Phone <span class="red-t">*</span> </label>
+                            <article class="clearfix l-m5 mobile-r-m0 mobile-l-m0">
+                                <input id="ContactPhone" class="form-control get-a-loan" onkeypress="phonenochange(event); return Common.isNumberKey(event);" maxlength="12" name="ContactPhone" type="text">
+                                <span class="errormsg" id="spanContactPhone"></span>
+                            </article>
+                        </article>
+                    </article>
+                    <article class="clearfix part-row">
+                        <article class="clearfix part-12 position-r">
+                            <label class="clearfix mobile-r-p0 Roboto-Regular font13 l-h26 black-t1 b-m2"> Address (Please include full Address with Zip Code)<span class="red-t">*</span></label>
+                            <article class="clearfix mobile-r-m0 mobile-l-m0">
+                                <textarea id="Notes" name="Notes" class="form-control get-a-loan" type="text"></textarea>
+                                <span class="errormsg" id="spanNotes"></span>
+                            </article>
+                        </article>
+                    </article>
+                    <label class="font15  checkboxstyle t-p10 mobile-t-p10 position-r">
+                        <input name="TermsandConditions" id="Terms" checked="checked" value="true" type="checkbox" />
+                        <span for="checkbox" class="dis-in"><span class="font14 mobile-font14 v-align-m l-h20 l-p5">By clicking this check box, that they have agreed to the terms and conditions.</span></span>
+                        <span class="errormsg" id="spanTerms"></span>
+                    </label>
+                    if (objEvents.MemberAmount != 0)
+                    {
+                        <h2 class="font24 m0 l-h32 b-p10 t-p25 Raleway-Bold red-t mobile-t-p5"> Payment Info </h2>
+                        <article class="clearfix border2 border-radius10 bluegrayborder t-b-m10 p10 mobilev-p5 shadow" style="border-color: #396dad;">
+                            <article class="clearfix part-row">
+                                <article class="clearfix part-6 position-r">
+                                    <article class="clearfix r-p20 mobile-p10 mobile-b-p0">
+                                        <h4 class="Poppins-Regular b-m10 t-m0 l-h20 font18 dk-t mobile-t-m0">Total Amount </h4>
+
+                                        <span class="font22 Impact red-t l-p5 t-m1n"><span class="red-t">$</span> <span id="total">@objEvents.MemberAmount</span></span>
+                                        <span class="error3" id="spanAmount"></span>
+                                    </article>
+                                </article>
+                                <article class="clearfix part-6">
+                                    <article class="clearfix font13 poppinsregular l-h24 tabhorizontal-p10 b-p5">
+                                        <h4 class="clearfix Poppins-Regular t-m0 blue-t l-h20 font18 border-b dis-in b-p5 mobile-font18">Payment by using PayPal</h4>
+                                        <br>
+                                        <img src="Content/User/images/paypal.png" alt="PayPal" width="116" height="59">
+                                    </article>
+                                </article>
+                            </article>
+                            <article class="clearfix t-p10">
+                                <article class="part-row clearfix">
+                                    <article class="part-6">
+                                        <article class="clearfix r-p10 tablet-r-p5 mobile-r-p0 position-r">
+                                            <label>Card Number <span class="red-t">*</span></label>
+                                            <input type="text" onkeypress="return Common.isNumberKey(event);" onclick="ResetValidateClass();" maxlength="19" class="form-control" placeholder="Card Number *" style="min-height: 40px;" name="CardNumber" id="CardNumber">
+                                            <span id="spanCardNumber" class="errormsg"></span>
+                                        </article>
+                                    </article>
+                                    <article class="part-6">
+                                        <article class="clearfix l-p10 tablet-l-p5 mobile-l-p0">
+                                            <label>Card Name </label>
+                                            <input type="text" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" class="form-control" placeholder="Name on card " style="min-height: 40px;" name="CardName" id="CardName">
+                                        </article>
+                                    </article>
+                                </article>
+                                <article class="part-row clearfix">
+                                    <article class="part-6">
+                                        <article class="clearfix r-p10 tablet-r-p5 mobile-r-p0">
+                                            <article class="part-row clearfix">
+                                                <article class="part-6">
+                                                    <article class="clearfix r-p10 tablet-r-p5 mobile-r-p0 position-r">
+                                                        <label>Month <span class="red-t">*</span> </label>
+                                                        <article class="clearfix dropdown">
+                                                            <select class="dropdown-select" id="CSVMonth" name="CSVMonth" style="min-height: 40px;">
+                                                                <option value="">Expiry Month *</option>
+                                                                <option value="01">January(01)</option>
+                                                                <option value="02">February(02)</option>
+                                                                <option value="03">March(03)</option>
+                                                                <option value="04">April(04)</option>
+                                                                <option value="05">May(05)</option>
+                                                                <option value="06">June(06)</option>
+                                                                <option value="07">July(07)</option>
+                                                                <option value="08">August(08)</option>
+                                                                <option value="09">September(09)</option>
+                                                                <option value="10">October(10)</option>
+                                                                <option value="11">November(11)</option>
+                                                                <option value="12">December(12)</option>
+                                                            </select>
+                                                        </article>
+                                                        <span id="spanCSVMonth" class="errormsg"></span>
+                                                    </article>
+                                                </article>
+                                                <article class="part-6 mobile-t-p10">
+                                                    <article class="clearfix l-p10 tablet-l-p5 mobile-l-p0 position-r">
+                                                        <label>Year <span class="red-t">*</span> </label>
+                                                        <article class="clearfix dropdown">
+                                                            <select class="dropdown-select" id="CSVYear" name="CSVYear" style="min-height: 40px;">
+                                                                <option value="">Expiry Year *</option>
+                                                                @*<option value="2021">2021</option>
+        <option value="2022">2022</option>*@
+                                                                <option value="2023">2023</option>
+                                                                <option value="2024">2024</option>
+                                                                <option value="2025">2025</option>
+                                                                <option value="2026">2026</option>
+                                                                <option value="2027">2027</option>
+                                                                <option value="2028">2028</option>
+                                                                <option value="2029">2029</option>
+                                                                <option value="2030">2030</option>
+                                                                <option value="2031">2031</option>
+                                                                <option value="2032">2032</option>
+                                                                <option value="2033">2033</option>
+                                                                <option value="2034">2034</option>
+                                                                <option value="2035">2035</option>
+                                                                <option value="2036">2036</option>
+                                                                <option value="2037">2037</option>
+                                                                <option value="2038">2038</option>
+                                                                <option value="2039">2039</option>
+                                                                <option value="2040">2040</option>
+                                                                <option value="2041">2041</option>
+                                                                <option value="2042">2042</option>
+                                                                <option value="2043">2043</option>
+                                                            </select>
+                                                        </article>
+                                                        <span id="spanCSVYear" class="errormsg"></span>
+                                                    </article>
+                                                </article>
+                                            </article>
+                                        </article>
+                                    </article>
+                                    <article class="part-6">
+                                        <article class="clearfix l-p10 tablet-l-p5 mobile-l-p0 position-r">
+                                            <label>CVV <span class="red-t">*</span> </label>
+                                            <input type="text" onkeypress="return Common.isNumberKey(event);" maxlength="4" onclick="ResetValidateClass();" class="form-control" placeholder="CVV *" style="min-height: 40px;" name="Cvv" id="Cvv">
+                                            <span id="spanCvv" class="errormsg"></span>
+                                        </article>
+                                    </article>
+                                </article>
+                            </article>
+                        </article>
+                    }
+                    <article class="clearfix t-p10">
+                        <article class="clearfix position-r">
+                            <article class="clearfix part-5">
+                                <article class="clearfix r-p10 tabhorizontal-r-p5 mobilev-r-p0 position-r">
+                                    <article class="clearfix">
+                                        <label for="Security Code Roboto-Regular">Security Code <span class="red-t">*</span></label>
+
+                                        <input class="form-control" id="txtCaptcha" name="MCaptcha" placeholder="Security Code *" onchange="Validate();" type="text">
+                                    </article>
+                                    <span class="errormsg" id="spantxtCaptcha"></span>
+                                </article>
+                            </article>
+                            <article class="clearfix part-7 mobile-t-c tabhorizontal-t-c l-p7 mobile-t-m0">
+                                <label class="t-p25 tabhorizontal-t-p5"></label>
+                                <article class="clearfix l-p10 tabhorizontal-l-p5 mobilev-l-p0">
+                                    <img alt="Captcha" id="CUcaptcha" src="User/Members/ShowCaptchaImage" style="min-height:38px!important;" width="150" height="33" border="0"> <span class="l-p10 mobilev-l-p0"> <a href="javascript:CreloadCaptcha();"> <img src="Content/User/images/refresh.png" alt="Refresh" width="33" height="33" border="0"> </a> </span>
+                                </article>
+                            </article>
+                        </article>
+                    </article>
+                    <article class="clearfix b-p10 t-p10 mobile-dis-b">
+                        <input value="SUBMIT" class="btn subm-grad-bg btn-sm btn-block pull-right white-t font18 l-r-p30 t-b-p10 t-t-u" style="max-width:190px; background-color: #ff811b;/*! text-align: center; */" type="submit">
+                    </article>
+                }
+            </article>
+        </article>
+    </article>
+</article>
+
+@*FEGetEventByCategoryId*@
+

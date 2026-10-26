@@ -1,0 +1,68 @@
+﻿@{
+    Layout = null;
+}
+@{
+
+    var tab = ViewBag.tab;
+
+    var cname = ViewBag.cname;
+
+    AWS_AssociationToolCore.Entities.Members objMember = ViewBag.objMembers;
+}
+
+<div class="aws-profile-btn-list">
+    <div>
+        <a href="@Url.Action("Profile", "Members", new { tab = "Profile", cname = objMember.ChapterName })" class="@(tab == "Profile" ? "active" : "")"><i class="bi bi-person-circle"></i> Profile</a>
+    </div>
+    <div>
+        <button title="change password" class="@(tab == "change" ? "active" : "")" data-bs-toggle="modal" data-bs-target="#changePassword"><i class="bi bi-shield-lock"></i> Change Password</button>
+    </div>
+
+
+    <div>
+        <a href="@Url.Action("MemberInfo", "Members")" class="@(tab == "MemberInfo" ? "active" : "")"><i class="bi bi-person-circle"></i>Membership Info</a>
+    </div>
+
+    <div>
+        <a href="@Url.Action("DonorsList", "Members")" class="@(tab == "DonorsList" ? "active" : "")"><i class="bi bi-person-circle"></i> Donations</a>
+    </div>
+
+    <div>
+        <a href="@Url.Action("FEMemEventsList", "Members")" class="@(tab == "FEMemEventsList" ? "active" : "")"><i class="bi bi-person-circle"></i>Event Registrations</a>
+    </div>
+    @*     <div>
+        <form method="post" action="@Url.Action("CancelSubscription", "Members")"
+              onsubmit="return confirm('Are you sure you want to cancel your subscription? This action cannot be undone.');">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="@(tab == "CancelSubscription" ? "active" : "")"
+                   >
+                <i class="bi bi-x-circle text-danger"></i> Cancel Subscription
+            </button>
+        </form>
+    </div> *@
+
+@*     @if (objMember.ExpiryDate != null && objMember.ExpiryDate != DateTime.MinValue)
+    {
+        if (ViewBag.daysRemaining <= 10)
+        {
+            <div>
+                <a href="@Url.Action("MembershipRenewal", "Members", new { str = "renewal", cname = @cname })"><i class="bi bi-person-circle"></i>Membership Renewal</a>
+            </div>
+        }
+
+
+    } *@
+    <div>
+        <a href="@Url.Action("SubscriptionDetails", "Members")" class="@(tab == "SubscriptionDetails" ? "active" : "")"> <i class="bi bi-credit-card"></i> Subscription Details</a>
+    </div>
+    <div>
+        <a href="@Url.Action("LogOff", "Members")"><i class="bi bi-box-arrow-left"></i> Log Out</a>
+    </div>
+</div>
+
+
+
+
+
+
+

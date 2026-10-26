@@ -1,0 +1,55 @@
+﻿@{
+    Layout = null;    
+
+    var lstDonors = (List<AWS_AssociationToolCore.Entities.ServiceDonations>)ViewBag.lstDonors;
+
+    Int64 MemberId = ViewBag.MemberId;
+
+    var ChapterName = ViewBag.cname;
+}
+
+<div class="">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>S.No</th>
+                <th>Cause</th>
+                <th>Amount</th>
+                <th>Pay.Method</th>
+                <th>Pay.Status</th>
+                <th>Pay.Date</th>                
+            </tr>
+        </thead>
+        <tbody>
+            @if (lstDonors != null && lstDonors.Count != 0)
+            {
+                Int64 i = 1;
+                foreach (var item in lstDonors)
+                {
+            <tr>
+                <td align="left" style="text-align: center;">@i</td>
+                <td align="left" valign="middle">@item.FirstName</td>
+                <td align="left" valign="middle">$@item.Amount</td>
+                <td align="left" valign="middle">@item.PaymentMethod</td>
+                <td align="left" valign="middle">@item.PaymentStatus</td>
+                <td align="left" valign="middle">@(item.OrderDate == DateTime.MinValue ? "N/A" : item.OrderDate.ToString("MM/dd/yyyy"))</td>
+               
+            </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td class="norecords" colspan="7">No Donations Found.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+
+

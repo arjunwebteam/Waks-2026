@@ -1,0 +1,127 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+
+    var location = System.Configuration.ConfigurationManager.AppSettings["baseurl"];
+
+    AWS_AssociationToolCore.Entities.InnerPages objLifeMembers = ViewBag.objLifeMembers;
+
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+
+    var lstMembershipType = (List<AWS_AssociationToolCore.Entities.MembershipTypes>)objMembers.lstMembershipType;
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    string cname = ViewBag.cname;
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        PagerClickBind();
+    });
+
+    function Membersbind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = ($.trim($('#txtsearch').val()));
+        var MembershipTypeId = $('#MembershipTypeId').val();
+
+        $.ajax({
+            url: '@Url.Action("FEMembersList", "Members")',
+            type: 'GET',
+            cache: false,
+            data: { MembershipTypeId: MembershipTypeId, Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items },
+            success: function (result) {
+                $('#divMemberDetails').html(result);
+                PagerClickBind();
+            }
+        });
+
+    }
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        $('#MembershipTypeId').val('');
+        Membersbind(1);
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Membersbind($(this).text());
+        });
+    }
+
+</script>
+<script>
+    $(document).ready(function () {
+        LoadEventsList();
+    });
+
+    function LoadEventsList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("FEMembersList", "Members")',
+           
+            success: function (data) {
+                $("#divMemberDetails").html(data);
+            },
+            error: function () {
+                $("#divMemberDetails").html('<p class="text-danger">Failed to load events.</p>');
+            }
+        });
+    }
+</script>
+<input id="TotalPages" type="hidden" value="1" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="MemberId" />
+<input id="hdnsortorder" type="hidden" value="ASC" />
+<input id="hdnuserid" type="hidden" value="0" />
+
+                <div class="cus-about-sec member_list">
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-xl-4">
+
+                            <div class="pos-relative">
+                                <fieldset class="">
+                                    <legend class="float-none w-auto px-1">Search by <span class="input-imp"></span></legend>
+                                    <input type="text" class="input-box" name="txtsearch" id="txtsearch" placeholder="Member-Id / First Name / Last Name ">
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-4">
+
+                            <div class="pos-relative">
+                                <fieldset class="">
+                    <legend class="float-none w-auto px-1">MembershipType <span class="input-imp"></span></legend>
+                                    <select class="input-box" name="MembershipTypeId" id="MembershipTypeId" placeholder="">
+                                        @if (lstMembershipType != null)
+                                        {
+                                            <option value="">-- Select Type --</option>
+                                            foreach (var item in lstMembershipType)
+                                            {
+                                                <option value="@item.MembershipTypeId">@item.MembershipType</option>
+                                            }
+                                        }
+
+
+                                    </select>
+                                </fieldset>
+                            </div>
+
+
+                        </div>
+                        <div class="col-xl-3 text-left">
+                            <label>&nbsp;</label>
+                            <input type="button" value="Search" class="btn btn-primary px-3 mt-3 font14" onclick="Membersbind();" style="background-color: #ff3f3e; border: 1px solid #ff3f3e;">
+            <input type="reset" value="Clear" class="btn btn-danger px-3 mt-3 font14" onclick="ClearSearch();" style="background-color: #756b6b;border: 1px solid#756b6b;">
+                        </div>
+                        <article class="clearfix t-p20" id="divMemberDetails">
+@*                             @{Html.RenderAction("FEMembersList", "Members");}
+ *@                        </article>
+                    </div>
+                </div>
+              

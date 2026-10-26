@@ -1,0 +1,52 @@
+﻿
+@{
+    ViewBag.Title = "News - Telugu Association Tool - TAT";
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var lstNews = (List<AWS_AssociationToolCore.Entities.News>)ViewBag.lstNews;
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+    var imglocNormal = objAppInfo.AdminImageUrl + "news/";
+
+
+    AWS_AssociationToolCore.BLL.InnerPages _InnerPages = new AWS_AssociationToolCore.BLL.InnerPages();
+
+
+    ViewBag.Title = "Latest News | " + objAppInfo.SiteName + " Updates";
+    ViewBag.MetaDescription = "Stay updated with the latest news, announcements, and events from the " + objAppInfo.SiteName;
+    ViewBag.MetaKeywords = objAppInfo.SiteName + " news, latest Telugu updates, Telugu community announcements, Telugu events news";
+
+    ViewBag.PageHeading = "Latest News";
+}
+
+        <!------------------------------------------------------------------------------------------------------------------->
+        <ul class="clearfix list-pn eventsli-li2 m0 ">
+            @if (lstNews != null && lstNews.Count != 0)
+            {
+                foreach (var item in lstNews)
+                {
+
+                    <li>
+                        <article class="clearfix blockrow border-b akshdipi-bor b-p30">
+                            <article class="clearfix left-block17 ">
+                                <img src="@(imglocNormal + item.ImageUrl)" alt="News" width="" height="">
+                            </article>
+                    <article class="clearfix right-block17">
+                        <article class="clearfix t-b-p15 l-r-p25 tabhorizontal-t-b-p5 mobile-l-r-p0 mobile-t-p15">
+                            <h1 class="font24 m0 l-h32 b-p15 Raleway-Bold tabhorizontal-l-h24 tabhorizontal-font20 tabhorizontal-b-p5"><a href="" target="_blank" class="mistex-t">@item.Title</a></h1>
+                            <h3 class="m0 font18 l-h28 evendat-t t-t-u Muli-Light">@*Auguest 04, 2020*@ @item.PostDate.ToString("MMMM dd, yyyy")</h3>
+                        </article>
+                    </article>
+                </article>
+               </li>
+                }
+            }
+          </ul>
+        <!------------------------------------------------------------------------------------------------------------------->
+   

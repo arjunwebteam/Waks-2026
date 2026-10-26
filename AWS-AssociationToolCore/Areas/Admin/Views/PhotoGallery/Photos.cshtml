@@ -1,0 +1,171 @@
+﻿@{
+    ViewBag.Title = "Photos";
+
+    ViewBag.Pageheading = "Photos";
+
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    Int64 PhotoCategoryId = ViewBag.PhotoCategoryId;
+    var catlist = (List<AWS_AssociationToolCore.Entities.PhotoCategories>)ViewBag.catlist;
+
+
+    bool IsEdit = ViewBag.IsEdit;
+    bool IsView = ViewBag.IsView;
+    bool IsDelete = ViewBag.IsDelete;
+    bool IsExport = ViewBag.IsExport;
+    bool IsAdd = ViewBag.IsAdd;
+    Int64 Mid = ViewBag.mid;
+    Int64 ChapterId = ViewBag.ChapterId;
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+}
+<script>
+    $(document).ready(function () {
+        loadMenuItems();
+    });
+
+    function loadMenuItems() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("PhotosList", "PhotoGallery")',
+            data: {
+                IsEdit    : '@ViewBag.IsEdit',
+                IsView    : '@ViewBag.IsView',
+                IsDelete  : '@ViewBag.IsDelete',
+                PhotoCategoryId  : '@ViewBag.PhotoCategoryId',
+                IsExport  : '@ViewBag.IsExport',
+                IsAdd     : '@ViewBag.IsAdd',
+                Mid       : '@ViewBag.mid',
+                ChapterId : '@(ViewBag.ChapterId == null || ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId)'
+            },
+            success: function (data) {
+                $("#divPhotoCategory").html(data);
+            },
+            error: function () {
+                $("#divPhotoCategory").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    }
+</script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wGallery, #wPhotoGallery').addClass('active');
+        $('#PhotoCategoryId').val(@PhotoCategoryId);
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        PagerClickBind();
+    });
+    function Delete(PhotoId, ImageFileName) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("PhotoDelete", "PhotoGallery")',  // the URL of the controller action method
+                data: { PhotoId: PhotoId, ImageFileName: ImageFileName }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    PhotosBind($('#hdnPageNo').val());
+                    
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            PhotosBind($(this).text(), $('#hdnsorting').val());
+        });
+    }
+
+    function PhotosBind(Pageno) {
+
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#txtsearch').val();
+        var PhotoCategoryId = $('#PhotoCategoryId').val();
+
+        $.ajax({
+            url: '@Url.Action("PhotosList", "PhotoGallery")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, PhotoCategoryId: PhotoCategoryId, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid', ChapterId: @ChapterId},
+            success: function (result) {
+                $('#divPhotoCategory').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function Select(check) {
+        var arr = document.getElementsByName(check);
+        if (arr[0].checked == true) {
+            Common.selectAll('checkbox', check);
+        }
+        else {
+            Common.clearAll('checkbox', check);
+        }
+    }
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+       // $('#PhotoCategoryId').val('').trigger('change');
+        PhotosBind(1);
+    }
+</script>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedTime" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+<input type="hidden" id="hdnimgvalidate" value="0" />
+
+    <div class="card">
+        <div class="card-header py-3 mb-3">
+            <div class="row gx-2">
+                <div class="col-lg-3 col-md-6 col-8">
+                    <div class="input-box">
+                        <label class="form-label">Gallery : <span class="text-danger">*</span></label>
+                        <select class="single-select" id="PhotoCategoryId" name="PhotoCategoryId" placeholder="Photo Category">
+                            <option>-- Select --</option>
+                            @if (catlist != null)
+                            {
+                                foreach (var item in catlist)
+                                {
+
+                                    <option value="@(item.PhotoCategoryId)">@(item.CategoryName)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-2">
+                    <div>
+                        <label>&nbsp;</label>
+                    </div>
+                    <button type="button" class="btn btn-primary px-3" onclick="PhotosBind();">Search</button>
+                    <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                </div>
+
+
+
+                <div class="col-7">
+                    <div class="btn-align">
+                        @if (IsAdd == true )
+                        {
+
+                            <a class="btn btn-danger pull-right m-1" href="@Url.Action("AddPhoto", "PhotoGallery", new { PhotoCategoryId = PhotoCategoryId, mid = Mid,ChapterId=ChapterId })">Add Photo</a>
+                        }
+                        <a class="btn btn-primary pull-right m-1" href="@Url.Action("Index", "PhotoGallery", new { mid = Mid })">Gallery</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="divPhotoCategory" class="clearfix">
+
+        </div>
+    </div>
+

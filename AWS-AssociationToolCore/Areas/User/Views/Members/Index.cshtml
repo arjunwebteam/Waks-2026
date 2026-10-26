@@ -1,0 +1,874 @@
+﻿@using Org.BouncyCastle.Asn1.Ocsp
+@{
+    Layout = null;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+    var baseurl = /*System.Configuration.ConfigurationManager.AppSettings["baseurl"]*/   objAppInfo.BaseUrl;
+    var adminurl = /*System.Configuration.ConfigurationManager.AppSettings["baseurl"]*/   objAppInfo.BaseUrl;
+
+
+
+
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+    AWS_AssociationToolCore.Entities.Chapters objChapters = lstChapters.FirstOrDefault(x => x.ChapterId == (ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId));
+
+
+
+
+
+    //List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+    //AWS_AssociationToolCore.Entities.Chapters objChapters = lstChapters.FirstOrDefault(x => x.ChapterId == (ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId));
+
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems = ViewBag.lstMenuItems;
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems2 = ViewBag.lstMenuItems2;
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems3 = ViewBag.lstMenuItems3;
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems4 = ViewBag.lstMenuItems4;
+    List<AWS_AssociationToolCore.Entities.MenuItems> FooterMenuItems = ViewBag.FooterMenuItems;
+    List<AWS_AssociationToolCore.Entities.MenuItems> QuickLinkItems = ViewBag.QuickLinkItems;
+
+    //AWS_AssociationToolCore.Entities.AppInfo objAppInfo = ViewBag.objAppInfo;
+    //AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+
+    List<AWS_AssociationToolCore.Entities.WebsiteBanners> lstWebsiteBanners = ViewBag.lstWebsiteBanners;
+    AWS_AssociationToolCore.Entities.PageDetails objPInnerPages = ViewBag.objPInnerPages;
+    AWS_AssociationToolCore.Entities.PageDetails objWInnerPages = ViewBag.objWInnerPages;
+    AWS_AssociationToolCore.Entities.PageDetails objvInnerPages = ViewBag.objvInnerPages;
+
+    List<AWS_AssociationToolCore.Entities.Events> lstUpcommingEvents = ViewBag.lstUpcommingEvents;
+    List<AWS_AssociationToolCore.Entities.News> lstNews = ViewBag.lstNews;
+    List<AWS_AssociationToolCore.Entities.Sponsors> lstSponsors = ViewBag.lstSponsors;
+    List<AWS_AssociationToolCore.Entities.SponsorCategories> lstSponsorCategories = ViewBag.lstSponsorCategories;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeCategories = ViewBag.lstCommitteeCategories;
+    List<AWS_AssociationToolCore.Entities.Photos> lstPhotos = ViewBag.lstPhotos;
+    List<AWS_AssociationToolCore.Entities.Videos> lstVideos = ViewBag.lstVideos;
+    AWS_AssociationToolCore.Entities.Chapters objcChapters = new AWS_AssociationToolCore.Entities.Chapters();
+    AWS_AssociationToolCore.BLL.Chapters _Chapters = new AWS_AssociationToolCore.BLL.Chapters();
+
+
+    var imglocNormal = objAppInfo.AdminImageUrl + "WebsiteBanners/NormalImages/";
+    var imglocsponsor = objAppInfo.AdminImageUrl + "Sponsors/";
+    var imglocEvent = objAppInfo.AdminImageUrl + "events/banners/";
+    var gnimgloc = objAppInfo.AdminImageUrl + "photogallery/normalphoto/";
+    var gtimgloc = objAppInfo.AdminImageUrl + "photogallery/thumbphoto/";
+
+    Int64 ChapterId = 0;
+    var cname = "";
+    string ChapterName = "";
+
+    cname = ViewBag.cname;
+
+    int qstatus = 0;
+    if (cname != null && cname != "")
+    {
+        objcChapters = _Chapters.GetChaptersListByName(cname, ref qstatus);
+
+        ChapterName = cname;
+    }
+
+    ChapterId = objcChapters.ChapterId;
+
+    if (ChapterId == 0)
+    {
+        ChapterId = 1;
+
+        ChapterName = "global";
+    }
+
+
+    var Type = ViewBag.Type;
+    ViewBag.heading = "Home";
+
+    string str = "";
+    if (ViewBag.str != null && ViewBag.str != "")
+    {
+        str = ViewBag.str;
+    }
+
+    string str1 = "";
+    if (TempData["forgot"] != null)
+    {
+        str1 = TempData["forgot"].ToString();
+    }
+
+    string accyear = "";
+    int year = 0;
+    int mnt = DateTime.Now.Month;
+    year = (mnt >= 4 ? DateTime.Now.Year : DateTime.Now.Year - 1);
+    accyear = year + "-" + (year + 1);
+
+    ViewBag.ACStart = objAppInfo.SecretaryPhone;
+    ViewBag.ACEnd = objAppInfo.CustomerCareNumber;
+    // ✅ Session Set - ASP.NET Core
+    // ✅ Cast dynamic ViewBag to string before SetString
+
+    // ✅ Use Context.Session in Razor Views (.cshtml)
+    string sessionChapterId = ViewBag.ChapterId != null ? ViewBag.ChapterId.ToString() : string.Empty;
+    string sessionChapterName = ViewBag.cname != null ? ViewBag.cname.ToString() : string.Empty;
+
+    Context.Session.SetString("ChapterId", sessionChapterId);
+    Context.Session.SetString("ChapterName", sessionChapterName);
+
+
+    // ✅ Use Context.Request in Razor Views
+    string userAgentStr = Context.Request.Headers["User-Agent"].ToString().ToLower();
+    bool IsMobile = userAgentStr.Contains("mobile")  ||
+                    userAgentStr.Contains("android") ||
+                    userAgentStr.Contains("iphone")  ||
+                    userAgentStr.Contains("ipad");
+
+
+    var launch = ViewBag.w;
+    int pcurrentYear = DateTime.Now.Year;
+
+
+    var lstfChapters = lstChapters.FindAll(ch => !ch.ChapterName.Contains(objChapters.ChapterName));
+}
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+    var userName = User.Identity?.Name;
+    var chapterName = Context.Session?.GetString("ChapterName");
+}
+                        Html.RenderAction("UpcomingEvents", "Home");
+<script>
+ $(document).ready(function () {
+        LoadUpcomingEventsList();
+        });
+
+    function LoadUpcomingEventsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("UpcomingEvents", "Home")',
+        
+
+            success: function (data) {
+                    $("#divUpcomingEventsList").html(data);
+                },
+                error: function () {
+                    $("#divUpcomingEventsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+</script>
+<script>
+ $(document).ready(function () {
+        LoadLatestNewsList();
+        });
+
+    function LoadUpcomingEventsList() {
+            $.ajax({
+                type: "GET",
+                   url: '@Url.Action("LatestNews", "Home")',
+
+            success: function (data) {
+                    $("#divLatestNewsList").html(data);
+                },
+                error: function () {
+                    $("#divLatestNewsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+</script>
+<script>
+    $(document).ready(function () {
+           LoadBannerssList();
+           });
+
+       function LoadBannerssList() {
+               $.ajax({
+                   type: "GET",
+                      url: '@Url.Action("Banners", "Home")',
+
+               success: function (data) {
+                       $("#divBannersList").html(data);
+                   },
+                   error: function () {
+                       $("#divBannersList").html('<p class="text-danger">Failed to load events.</p>');
+                   }
+               });
+           }
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Basic Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- SEO Meta Tags -->
+
+    <meta name="description" content="@((string)ViewBag.MetaDescription != "" && (string)ViewBag.MetaDescription != null ? (string)ViewBag.MetaDescription : (objAppInfo.MetaDescription != null && objAppInfo.MetaDescription != "" ? objAppInfo.MetaDescription : "Telugu Association Tool"))" />
+    <meta name="keywords" content="@((string)ViewBag.MetaKeywords != "" && (string)ViewBag.MetaKeywords != null ? (string)ViewBag.MetaKeywords : (objAppInfo.MetaKeywords != null && objAppInfo.MetaKeywords != "" ? objAppInfo.MetaKeywords : "Telugu Association Tool"))" />
+    <title>@((string)ViewBag.Title != "" && (string)ViewBag.Title != null ? (string)ViewBag.Title : (objAppInfo.PageTitle != null && objAppInfo.PageTitle != "" ? objAppInfo.PageTitle : "Telugu Association Tool"))</title>
+
+    <meta charset="utf-8">
+    <base href="@(baseurl)" />
+
+
+
+    <meta name="author" content="Your Name or Company">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph Meta Tags for social media sharing (Facebook, LinkedIn) -->
+    <meta property="og:title" content="Telugu Association Tool">
+    <meta property="og:description" content="A brief description of your website.">
+    <meta property="og:image" content="https://yourwebsite.com/image.jpg">
+    <meta property="og:url" content="https://yourwebsite.com">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Your Website Name">
+    <!-- Open Graph Meta Tags for social media sharing (Facebook, LinkedIn) end-->
+    <!-- Favicon -->
+    <link rel="icon" href="https://yourwebsite.com/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="https://yourwebsite.com/favicon.ico" type="image/x-icon">
+
+    <!-- styles links -->
+    <link rel="stylesheet" href="Content/User/css/bootstrap.min.css">
+    <link rel="stylesheet" href="Content/User/css/style.css?ver=@System.Configuration.ConfigurationManager.AppSettings["Version"].ToString()">
+
+    <link rel="stylesheet" href="Content/User/css/responsive.css">
+    <link rel="stylesheet" href="Content/User/css/owl.carousel.min.css">
+    <link rel="stylesheet" href="Content/User/css/owl.theme.default.min.css">
+
+    <!-- For Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="Content/User/css/magnific-popup.min.css" rel="stylesheet" />
+
+    <!-- Jquery Liberary -->
+    <script src="Scripts/User/jquery.min.js"></script>
+    <script src="Scripts/User/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+        function NewletterShow() {
+            $('#NLSubscription').modal('show');
+        }
+
+
+
+
+    </script>
+
+
+    <script>
+        function Chapter(ChapterName) {
+
+            document.getElementById('chapterButton').innerHTML = '<i class="bi bi-list-ul"></i> ' + ChapterName;
+            window.location.href = '@baseurl' + ChapterName + '/index';
+
+        }
+        Chapter(ChapterName);
+    </script>
+
+    <style>
+        .form_15iP5 {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .view-btn {
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #de423b;
+            border: 1px solid #ec6220;
+            padding: 8px 23px;
+        }
+    </style>
+
+
+
+</head>
+<body>
+
+
+
+
+    <div class="modal" id="NLSubscription">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <!-- Modal Header -->
+                <div class="modal-header">
+                    <div class="modal-title">Newletter Subscription</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body py-0">
+                    <div class="cmn-inner-form">
+                        <div class="col-md-12 px-0">
+
+                            <iframe src=" https://cdn.forms-content-1.sg-form.com/a2bec94b-712d-11ee-b6d6-5e30e4c98a10" class="w-100 "></iframe>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal footer -->
+                <div class="modal-footer t-c" style="margin-left: auto;margin-right: auto;display: inherit;">
+                    <button type="button" class=" cmn-form-btn">CLOSE</button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <article class="clearfix position-r">
+        <article class="clearfix msg-caption">
+            <div id="divmessage">
+                <div class="pull-right mobile-pull-n" style="max-width:450px; min-width:450px;">
+                    @if (TempData["message"] != null)
+                    {
+                        @Html.Raw(TempData["message"].ToString())
+                    }
+                    @if (ViewBag.message != null)
+                    {
+                        @Html.Raw(ViewBag.message.ToString())
+                    }
+                </div>
+            </div>
+
+        </article>
+
+    </article>
+
+    <!-- Header section -->
+    <header class="header d-flex align-items-center wow fadeInUp" id="header">
+        <div class="container">
+            <div class="header-nav">
+                <div class="text-end">
+
+
+                    @if (isAuthenticated && userName != null && chapterName != null)
+                    {
+                        <a href="@Url.Action("Profile", "Members")">
+                            <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("LogOn", "Members")">
+                            <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
+                        </a>
+                    }
+
+                </div>
+
+
+
+                <nav id="navbar" class="navbar">
+                    @if (lstMenuItems != null && lstMenuItems.Count != 0)
+                    {
+                        <ul class="">
+                            <li class="menu-active"><a href="@Url.Action("Index", "Home")">Home</a></li>
+                            @foreach (var item in lstMenuItems)
+                            {
+                                Int64 menu2Count = lstMenuItems2.Count(x => x.PageParentId == item.MenuItemId);
+
+                                <li class="menu-item-has-children">
+                                    <a href="@(item.DocumentUrl != null && item.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item.DocumentUrl : (item.OtherUrl != null && item.OtherUrl != "" ? item.OtherUrl : (item.PageUrl != null && item.PageUrl != "" ? "p/" + item.PageUrl + "?mrid=" + item.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item.Target">@item.DisplayName<i class="bi dropdown-indicator bi-chevron-down"></i></a>
+                                    @if (lstMenuItems2 != null && lstMenuItems2.Count != 0)
+                                    {
+                                        if (item.SubMenuItemCount != 0)
+                                        {
+
+                                            <ul class="sub-menu ">
+
+                                                @foreach (var item2 in lstMenuItems2)
+                                                {
+                                                    if (item.MenuItemId == item2.PageParentId)
+                                                    {
+                                                        Int64 menu3Count = lstMenuItems3.Count(x => x.PageParentId == item2.MenuItemId);
+                                                        if (isAuthenticated && userName != null && chapterName != null)
+                                                        {
+                                                            if (item2.DisplayName != "Member Registration")
+                                                            {
+                                                                <li><a href="@(item2.DocumentUrl != null && item2.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item2.DocumentUrl : (item2.OtherUrl != null && item2.OtherUrl != "" ? item2.OtherUrl : (item2.PageUrl != null && item2.PageUrl != "" ? "p/" + item2.PageUrl + "?mrid=" + item2.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item2.Target">@item2.DisplayName</a></li>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <li><a href="@(item2.DocumentUrl != null && item2.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item2.DocumentUrl : (item2.OtherUrl != null && item2.OtherUrl != "" ? item2.OtherUrl : (item2.PageUrl != null && item2.PageUrl != "" ? "p/" + item2.PageUrl + "?mrid=" + item2.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item2.Target">@item2.DisplayName</a></li>
+                                                        }
+                                                    }
+                                                }
+
+                                            </ul>
+                                        }
+                                    }
+                                </li>
+                            }
+
+
+                            @if (isAuthenticated && userName != null && chapterName != null)
+                            {
+                                <li class="login-n"><a href="@Url.Action("Profile", "Members", new { cname = Context.Session.GetString("ChapterName") })"><img class="lock-icon pe-1" src="Content/User/images/login.png">Profile </a></li>
+                            }
+
+                            else
+                            {
+                                <li class="login-n"><a href="@Url.Action("LogOn", "Members", new { cname = Context.Session.GetString("ChapterName") })"><img class="lock-icon pe-1" src="Content/User/images/login.png">Login</a></li>
+                            }
+                        </ul>
+                    }
+                </nav>
+            </div>
+        </div>
+    </header>
+
+
+    <div class="offcanvas offcanvas-start" id="chaptersMenu">
+        <div class="offcanvas-header">
+            <h1 class="sec-title2 mb-0 pt-3">Chapters</h1>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body chapter-canvas">
+            @if (lstfChapters != null && lstfChapters.Count != 0)
+            {
+                <a class="bi" onclick="Chapter('@AWS_AssociationToolCore.BLL.Common.EncodeURL("Global")')" data-id="Global">Global</a>
+                foreach (var item in lstfChapters)
+                {
+                    if (item.ChapterId != 1)
+                    {
+                        <a class="bi" onclick="Chapter('@AWS_AssociationToolCore.BLL.Common.EncodeURL(item.ChapterName)')" data-id="@item.ChapterName">@item.ChapterName</a>
+                    }
+                }
+            }
+
+        </div>
+    </div>
+
+
+
+
+    <div class="position-relative">
+
+        <button class="chapter-btn" id="chapterButton" type="button" data-bs-toggle="offcanvas" data-bs-target="#chaptersMenu">
+            <i class="bi bi-list-ul"></i> @objChapters.ChapterName
+        </button>
+
+
+
+        <a href="@Url.Action("Index", "Home")">
+            <div class="logo-header">
+                <img class="logo-img img-fluid  my-0 logo_img_set" src="Content/User/images/logo.jpg" alt="">
+                <img class="mobile-logo img-fluid" src="Content/User/images/mobile-logo.gif" alt="">
+            </div>
+        </a>
+    </div>
+    <div class="header-btm-br"></div>
+    <!-- Header section end -->
+    <!-- banner section -->
+    <div class="banner-bg position-relative">
+        <div class="thorm-right-waves d-none d-xl-block"></div>
+
+        <img class="right-dgn d-none d-xl-block" src="Content/User/images/thoranam.png">
+        <img class="left-dgn d-none d-xl-block flip-img" src="Content/User/images/thoranam.png">
+        <div class="container container2 position-relative pt-lg-5 pt-4">
+
+
+            @{
+                <div id="divBannersList">
+                    <!-- Event Section -->
+                </div>
+               
+            }
+
+
+        </div>
+    </div>
+    <!-- banner section end -->
+    <!-- letest News -->
+
+    <div class="latest-sec pos-relative">
+        @{
+            <div id="divLatestNewsList">
+                <!-- Event Section -->
+            </div>
+           
+        }
+    </div>
+
+    <!-- letest News end -->
+    <!-- Homepage  body content section -->
+    <div class=" position-relative">
+        <!-- Buttons list section -->
+        <div class="banner-main">
+            <div class="container">
+                <div class="banner-block">
+
+                    <div class="banner-left">
+                        <div class="ban-bg innban-bg position-relative">
+                            <!---  Buttons Section Start ------>
+                            <div class="button-block innbutton-block">
+                                @if (QuickLinkItems != null && QuickLinkItems.Count != 0)
+                                {
+                                    <ul class="buttonslis">
+
+
+                                        @foreach (var item in QuickLinkItems)
+                                        {
+                                            if (isAuthenticated && userName != null && chapterName != null)
+                                            {
+                                                if (item.DisplayName == "Member Registration")
+                                                {
+                                                    <li>
+                                                        <a class="btn3" href="member-registration.html">
+                                                            <p class="mb-0">profile <span class="clk"> click here</span></p>
+                                                            <span class="btn-ico"><img src="Content/User/images/b1.png"></span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                                else
+                                                {
+                                                    <li>
+                                                        <a class="btn3" href="@(item.DocumentUrl != null && item.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item.DocumentUrl : (item.OtherUrl != null && item.OtherUrl != "" ? item.OtherUrl : (item.PageUrl != null && item.PageUrl != "" ? "p/" + item.PageUrl + "?mrid=" + item.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))">
+                                                            <p class="mb-0">@item.DisplayName <span class="clk"> click here</span></p>
+                                                            <span class="btn-ico"><img src="Content/User/images/b1.png"></span>
+                                                        </a>
+                                                    </li>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                <li>
+                                                    <a class="btn3" href="@(item.DocumentUrl != null && item.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item.DocumentUrl : (item.OtherUrl != null && item.OtherUrl != "" ? item.OtherUrl : (item.PageUrl != null && item.PageUrl != "" ? "p/" + item.PageUrl + "?mrid=" + item.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))">
+                                                        <p class="mb-0">@item.DisplayName <span class="clk"> click here</span></p>
+                                                        <span class="btn-ico"><img src="Content/User/images/b1.png"></span>
+                                                    </a>
+                                                </li>
+                                            }
+                                        }
+                                    </ul>
+                                }
+                            </div>
+                            <!---  Buttons Section End ------>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Buttons list section end -->
+        <div class="">
+            <img class="dsg-left d-none d-xl-block" src="Content/User/images/dsg-left.png">
+            <img class="dsg-rgt d-none d-xl-block" src="Content/User/images/dsg-rgt.png">
+        </div>
+        <div class="container">
+            <div class="home-grid">
+                <div>
+                    <!-- Welcome Content -->
+                    <div class="welcome-block text-center position-relative">
+                        <div>
+                            <img class="wel-left" src="Content/User/images/wel-left.png">
+                            <img class="wel-right" src="Content/User/images/wel-right.png">
+                        </div>
+
+                        <p class="mb-0">
+                            @Html.Raw(objWInnerPages.Description)
+                        </p>
+
+                        <div class="dt-btn mt-lg-3"> <a class="btn-bg-gray txt-up" href="@Url.Action("GetPageDetails", "PageDetails", new { PageUrl = AWS_AssociationToolCore.BLL.Common.EncodeURL("About Us") })">Know More</a> </div>
+                    </div>
+
+                    <!-- Event Section -->
+                    @{
+                        <div id="divUpcomingEventsList">
+                            <!-- Event Section -->
+                        </div>
+                    }
+
+
+                    <!-- Photo Gallery -->
+                    <div class="mt-3">
+                        <h2 class="sec-title text-center">@objAppInfo.PresidentPhone Photo Gallery</h2>
+                        @if (lstPhotos != null && lstPhotos.Count != 0)
+                        {
+                            <div class="gal-grid gallery-owl owl-carousel owl-btns-show">
+
+
+                                @foreach (var item in lstPhotos)
+                                {
+                                    <a href="@Url.Action("Photos", "Gallery", new { Year = pcurrentYear })" target="_blank">
+                                        <div class="g-box position-relative">
+                                            @if (item.ImageUrl != null && item.ImageUrl != "")
+                                            {
+                                                <img class="gallery__icon w-100" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((gnimgloc + item.ImageUrl), gnimgloc + "no-image.jpg")">
+                                            }
+                                            else
+                                            {
+                                                <img class="gallery__icon w-100" src="@(gnimgloc + "no-image.jpg")">
+                                            }
+
+                                            <div class="overlay">
+                                                <div class="text"><i class="bi bi-images"></i></div>
+                                            </div>
+                                        </div>
+                                    </a>
+                                }
+                            </div>
+                        }
+
+                        <h2 class="sec-title text-center">@objAppInfo.PresidentPhone Video Gallery</h2>
+                        @if (lstVideos != null && lstVideos.Count != 0)
+                        {
+                            <div class="gal-grid gallery-owl owl-carousel owl-btns-show aws-video-popup">
+                                @foreach (var item in lstVideos)
+                                {
+                                    <a class="video-item " href="https://www.youtube.com/embed/@(item.VideoUrl)">
+                                        <img class="v-icon" src="https://i1.ytimg.com/vi/@(item.VideoUrl)/hqdefault.jpg" />
+                                    </a>
+                                }
+
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div>
+                    @if (lstSponsorCategories != null)
+                    {
+                        int i = 1;
+
+
+                        <div class="aws-sponsers">
+
+                            <div class="row gy-lg-0 gy-4 gx-2">
+                                @foreach (var SponsorCategory in lstSponsorCategories)
+                                {
+                                    if (lstSponsors != null && lstSponsors.Count != 0 && SponsorCategory.SponsorsCount != 0)
+                                    {
+                                        <div class="col-lg-12 col-md-4 col-sm-6 col-6">
+
+                                            <div class="">
+                                                <h4 class="sec-title2 text-center @(i > 1 ? "mt-lg-3 " : " ")" style="background-color: #0c8420; color: white;">@SponsorCategory.CategoryName</h4>
+                                                <div class="aws-ticker2 aws-cmn-ticker">
+                                                    <ul class="m-0 p-0">
+                                                        @foreach (var item in lstSponsors)
+                                                        {
+                                                            if (item.SponsorCategoryId == SponsorCategory.SponsorCategoryId)
+                                                            {
+                                                                <li>
+                                                                    @if (item.RedirectUrl != null && item.RedirectUrl != "")
+                                                                    {
+                                                                        <img src="@(imglocsponsor + item.LogoUrl)" alt="">
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <img src="@(imglocsponsor + item.LogoUrl)" alt="">
+                                                                    }
+
+                                                                </li>
+                                                            }
+                                                        }
+                                                    </ul>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    }
+                                    i++;
+                                }
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Homepage  body content section end -->
+    <!-- footer section -->
+    <div class="footer-sec">
+        <div class="container">
+            <div class="footer-block">
+                <div class="row gx-5 gy-4 ftrow justify-center">
+                    <div class="col-md-7 col-lg-4 col-sm-6 fbx">
+                        <div class="footer-content fbox1">
+                            <div class="fcal-cd">
+                                <ul class="">
+                                    <li class="loc-fnt"><a><img class="me-2" src="Content/User/images/loc.png">@objAppInfo.CompanyAddress</a></li>
+                                    <li class="cal-fnt"><img class="me-2" src="Content/User/images/cal.png"><a href="tel:Will update soon..">Will update soon..</a></li>
+                                    <li class="mail-fnt"><a href="mailto:@objAppInfo.CompanyEmail"><img class="me-2" src="Content/User/images/mail.png">@objAppInfo.CompanyEmail  </a></li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5 col-lg-2 col-sm-6 fbx">
+                        <div class="footer-content fbox2">
+                            @if (FooterMenuItems != null && FooterMenuItems.Count != 0)
+                            {
+                                <ul class="foot-li">
+                                    @foreach (var item in FooterMenuItems)
+                                    {
+                                        if (isAuthenticated && userName != null && chapterName != null)
+                                        {
+                                            if (item.DisplayName != "Member Registration")
+                                            {
+                                                <li><a href="@(item.DocumentUrl != null && item.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item.DocumentUrl : (item.OtherUrl != null && item.OtherUrl != "" ? item.OtherUrl : (item.PageUrl != null && item.PageUrl != "" ? "p/" + item.PageUrl + "?mrid=" + item.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item.Target" title="@item.DisplayName">@item.DisplayName</a></li>
+                                            }
+                                            else
+                                            {
+
+
+                                                <li><a href="@Url.Action("Profile", "Members")" target="@item.Target" title="Profile">Profile</a></li>
+                                            }
+
+
+                                        }
+                                        else
+                                        {
+                                            <li><a href="@(item.DocumentUrl != null && item.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item.DocumentUrl : (item.OtherUrl != null && item.OtherUrl != "" ? item.OtherUrl : (item.PageUrl != null && item.PageUrl != "" ? "p/" + item.PageUrl + "?mrid=" + item.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item.Target" title="@item.DisplayName">@item.DisplayName</a></li>
+                                        }
+                                    }
+
+                                </ul>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-3 col-sm-6 fbx">
+                        <div class="footer-content fbox3">
+
+                            <div class="subscribe-box" style="text-align: center;">
+
+                                <div class="news-letter d-inline-flex w-100 justify-content-md-end gap-2">
+                                    <div><img class="" src="Content/User/images/subscribe.png" alt=""></div>
+                                    <h5 class="footer-title"><span class="d-block">Subscribe for</span> Newsletter</h5>
+                                </div>
+
+
+
+                                <div class="f-btn pos-relative" style="margin-top: -7px !important;">
+                                    <a href="p/subscribe-newsletter">
+                                        <img src="Content/User/images/news.png" width="156" height="40" />
+                                    </a>
+                                </div>
+                                <span id="spanNEmail" style="color:#ff3737;font-family: 'Poppins-Regular';font-style: normal;font-size: 12px;text-transform: capitalize;line-height: 20px;display: inline-block; font-weight:500; padding-top:5px;"></span>
+                            </div>
+
+
+
+
+
+
+                            <h4 class="footer-title text-md-end mb-10p mt-3">Follow Us On</h4>
+                            <div class="d-flex gap-2 justify-content-md-end footer-social">
+                                @if (objAppInfo.FacebookUrl != null && objAppInfo.FacebookUrl != "")
+                                {
+                                    <a href="@objAppInfo.FacebookUrl" target="_blank" title="Facebook">
+                                        <i class="bi bi-facebook" style="font-size: 20px;"></i>
+                                    </a>
+                                }
+                                @if (objAppInfo.TwitterUrl != null && objAppInfo.TwitterUrl != "")
+                                {
+                                    <a href="@objAppInfo.TwitterUrl" target="_blank" title="Twitter">
+                                        <i class="bi bi-twitter-x"></i>
+                                    </a>
+                                }
+                                @if (objAppInfo.YoutubeUrl != null && objAppInfo.YoutubeUrl != "")
+                                {
+                                    <a href="@objAppInfo.YoutubeUrl" target="_blank" title="Linkedin">
+                                        <i class="bi bi-youtube"></i>
+                                    </a>
+                                }
+                                @if (objAppInfo.GooglePlus != null && objAppInfo.GooglePlus != "")
+                                {
+                                    <a href="@objAppInfo.GooglePlus" target="_blank" title="Instagram">
+                                        <i class="bi bi-instagram"></i>
+                                    </a>
+                                }
+                            </div>
+
+
+
+                        </div>
+                    </div>
+                    <div class="col-md-4 col-lg-3 col-sm-6 fbx">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- footer section end -->
+    <div class="copy-right-block rsp-m-txt-center">
+        <!-- copyright-side-images -->
+
+        <div class="container position-relative">
+            <div class="row align-items gx-0">
+                <div class="col-md-7 col-lg-8">
+                    <p class="mb-0">© 2024 Telugu Association Tool. All rights reserved.</p>
+                </div>
+                <div class="col-md-5 col-lg-4">
+                    <div class="text-lg-end text-center">
+                        <p class="mb-0p">Design &amp; Developed by <a class="aw-txt" href="https://arjunweb.com/" target="_blank">Arjunweb</a><img class="aw-ico ml-5p" src="" width="20px"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="aws-app-menu d-md-none d-block">
+        <div class="d-flex">
+
+            <a href="@baseurl@cname/member-registration"><i class="bi bi-people"></i> <span>Member</span></a>
+
+            <a href="@baseurl@cname/volunteer-registration"><i class="bi bi-person-raised-hand"></i><span> Volunteer</span></a>
+            <a href="@baseurl@cname/donate-now"><i class="bi bi-currency-dollar"></i><span>Donate</span></a>
+            <div class="mobile-nav-toggle mobile-nav-show " role="button">  <i class=" bi bi-list "> </i>Menu</div>
+
+
+        </div>
+    </div>
+
+    <!-- scripts -->
+    <script src="Scripts/User/jquery.magnific-popup.min.js"></script>
+    <script src="Scripts/User/owl.carousel.min.js"></script>
+    <script src="Scripts/User/easy-ticker.min.js"></script>
+    <script src="Scripts/User/js.js"></script>
+    <script src="Scripts/User/external.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Initialize Magnific Popup
+            $('.aws-video-popup').magnificPopup({
+                delegate: 'a',
+                type: 'iframe',
+                iframe: {
+                    patterns: {
+                        youtube: {
+                            index: 'youtu',
+                            id: function (url) {
+                                // Extract video ID from URL
+                                var match = url.match(/[^\w-]([-\w]{11})[^-\w]?/);
+                                if (match && match[1]) {
+                                    return match[1];
+                                }
+                            },
+                            src: 'https://www.youtube.com/embed/%id%?autoplay=1'
+                        },
+                        vimeo: {
+                            index: 'vimeo.com/',
+                            id: '/',
+                            src: 'https://player.vimeo.com/video/%id%?autoplay=1'
+                        }
+                        // Add more patterns for other video platforms if needed
+                    }
+                },
+                gallery: {
+                    enabled: true
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

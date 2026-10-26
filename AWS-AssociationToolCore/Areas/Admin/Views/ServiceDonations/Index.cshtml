@@ -1,0 +1,549 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    ViewBag.Pageheading = "Donations";
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    var lstDonationCategories = ViewBag.lstDonationCategories as List<AWS_AssociationToolCore.Entities.DonationCategories>;
+    var objMembers = ViewBag.objMembers as AWS_AssociationToolCore.Entities.Members;
+
+    var lstPaymentMethod = objMembers?.lstPaymentMethod;
+    var lstPaymentStatus = objMembers?.lstPaymentStatus;
+
+    var lstServices = ViewBag.lstServices as List<AWS_AssociationToolCore.Entities.Services>;
+
+    long ServiceId = ViewBag.ServiceId ?? 0;
+    long ServiceDonationId = ViewBag.ServiceDonationId ?? 0;
+    string ServiceTitle = ViewBag.ServiceTitle ?? "";
+
+    string baseurl = HttpContextAccessor.HttpContext?.Session.GetString("BaseUrl") ?? "";
+
+    string Search = ViewBag.Search ?? "";
+
+    string UserEmail = HttpContextAccessor.HttpContext?.Session.GetString("UserEmail") ?? "";
+
+    bool IsEdit = Convert.ToBoolean(HttpContextAccessor.HttpContext?.Session.GetString("IsEdit") ?? "false");
+    bool IsView = Convert.ToBoolean(HttpContextAccessor.HttpContext?.Session.GetString("IsView") ?? "false");
+    bool IsDelete = Convert.ToBoolean(HttpContextAccessor.HttpContext?.Session.GetString("IsDelete") ?? "false");
+    bool IsExport = Convert.ToBoolean(HttpContextAccessor.HttpContext?.Session.GetString("IsExport") ?? "false");
+
+    bool IsAdd = ViewBag.IsAdd ?? false;
+    long Mid = ViewBag.mid ?? 0;
+    long ChapterId = ViewBag.ChapterId ?? 0;
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wDonate-Sponsors, #wDonations').addClass('active');
+        //$('#MMDonations').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        $("#StartDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+        $("#EndDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+
+        PagerClickBind();
+    });
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        ServiceDonationBind(1);
+    }
+
+    function ServiceDonationBind(Pageno) {
+
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+
+        var Search = $('#keyword').val();
+        var PaymentMethod = $('#PaymentMethod').val();
+        var PaymentStatus = $('#PaymentStatus').val();
+        var ServiceId = $('#ServiceId').val();
+        var StartDate = $('#StartDate').val();
+        var EndDate = $('#EndDate').val();
+        var ServiceDonationId = $('#ServiceDonationId').val();
+
+        $.ajax({
+            url: '@Url.Action("ServiceDonationsList", "ServiceDonations")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, StartDate: StartDate, EndDate: EndDate, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, ServiceId: ServiceId, PaymentMethod: PaymentMethod, PaymentStatus: PaymentStatus, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid', ChapterId:@ChapterId },
+            success: function (result) {
+                $('#divDetails').html(result);
+      
+                PagerClickBind();
+                myFunction();
+                payableAmount();
+            }
+        });
+    }
+
+    function Delete(ServiceDonationId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteServiceDonation", "ServiceDonations")',  // the URL of the controller action method
+                data: { ServiceDonationId: ServiceDonationId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    ServiceDonationBind($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    // function BulkValidate() {
+    //     if ($('#Document').val() == "") { $('#spanDocument').show().html('Required. <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#Document').focus(); return false; } else { $('#spanDocument').hide().html(' '); }
+    //     if (!Common.isDocument($('#Document').val())) { $('#spanDocument').html('Sorry image is invalid. Only allowed extensions are:<b>xls, xlsx</b>.'); $('#Document').focus(); return false; } else { $('#spanDocument').html(''); }
+
+    //     return true;
+    // }
+
+
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            ServiceDonationBind($(this).text());
+        });
+    }
+
+    function SearchClear() {
+        $('#txtsearch').val('');
+        ServiceDonationBind(1);
+    }
+    function ClearSearch() {
+        $('#keyword').val('');
+       /* $('#PaymentMethod').val('');*/
+        $('#PaymentStatus').val('');
+       /* $('#ServiceId').val('');*/
+        $('#ServiceId').val('').trigger('change');
+        $('#PaymentMethod').val('').trigger('change');
+
+        $('#StartDate').val('');
+        $('#EndDate').val('');
+        $('#hdnPageNo').val(1);
+        ServiceDonationBind(1);
+    }
+    function ServiceDonationstatus(ServiceDonationId) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("ServiceDonationsStatus", "ServiceDonations")',  // the URL of the controller action method
+                data: { ServiceDonationId: ServiceDonationId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    ServiceDonationBind(1);
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+    }
+
+    // function ExporttoExcel() {
+    //     var EndDate = $('#EndDate').val();
+    //     var StartDate = $('#StartDate').val();
+
+    //     var chapterId = '@ViewBag.ChapterId';
+
+    //     window.location.href = "ServiceDonations/DonorRegistrationsExportToExcel?Search=" + $('#keyword').val() + "&ServiceId=" + $('#ServiceId').val() + "&StartDate=" + StartDate + "&EndDate=" + EndDate + "&ChapterId=" + chapterId    + "&PaymentStatusId=" + $('#PaymentStatus').val() + "&PaymentMethodId=" + $('#PaymentMethod').val() + "";
+
+    // }
+        function ExporttoExcel() {
+        var EndDate = $('#EndDate').val();
+        var StartDate = $('#StartDate').val();
+        var chapterId = '@ViewBag.ChapterId';
+        var paymentStatus = $('#PaymentStatus').val() || 0;   // ← fix undefined
+        var paymentMethod = $('#PaymentMethod').val() || 0;   // ← fix undefined
+
+        window.location.href = "Admin/ServiceDonations/DonorRegistrationsExportToExcel?Search="
+            + $('#keyword').val()
+            + "&ServiceId=" + ($('#ServiceId').val() || 0)
+            + "&ChapterId=" + chapterId
+            + "&PaymentStatusId=" + paymentStatus
+            + "&PaymentMethodId=" + paymentMethod;
+    }
+
+    //     function ExporttoExcel() {
+    //     window.location.href = "Admin/CulturalRegistrations/CulturalRegistrationsExportToExcel?Search="
+    //         + $('#txtsearch').val()
+    //         + "&ChapterId="
+    //         + chapterId;
+    // }
+    function SendMailtoDonor(ServiceDonationId,mid) {
+        var val2 = confirm("Do you want to Send Tranaction details to this Donor?");
+        if (val2) {
+            window.location.href = "Admin/ServiceDonations/ServiceDonationMailling?ServiceDonationId=" + ServiceDonationId + "&mid=" + mid;
+        }
+    }
+
+
+    function Add() {
+
+        $("#AddMembershipType").modal('show');
+        $('#lbltitle').html('Add Donations Bulk Upload');
+    }
+
+</script>
+<script type="text/javascript">
+    function myFunction() {
+        $('#totalpaysection').show();
+        var x = document.getElementById("myDIV");
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        } else {
+            x.style.display = "none";
+        }
+    }
+    $(document).ready(function () {
+
+        $("#StartDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+        $("#EndDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+
+        $("[data-mask]").inputmask();
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+        PagerClickBind();
+    });
+</script>
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="" />
+<input id="hdnsortorder" type="hidden" value="" />
+@*<input id="txtitems" type="hidden" value="" />*@
+
+
+
+<div class="card">
+    <!-- /.box-header -->
+    <div class="card-header py-3 mb-3">
+        @if (ServiceId != 0)
+        {
+            <ul class="nav nav-tabs" style="display:none;">
+                <li><a href="@Url.Action("Index", "Services", new { ServiceId = ServiceId })">Services</a></li>
+                <li><a class="btn" href="@Url.Action("Index", "ServiceImages", new { ServiceId = ServiceId, ServiceTitle = ServiceTitle })">Service Images</a></li>
+                <li class="active"><a class="btn" href="@Url.Action("Index", "ServiceDonations", new { ServiceId = ServiceId, ServiceTitle = ServiceTitle })">Donations</a></li>
+            </ul>
+        }
+        <div class="row  gx-2">
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label"> Donation Cause :<span class="text-danger"></span></label>
+                    <select class="single-select" name="ServiceId" id="ServiceId">
+                        <option value=""> -- Select -- </option>
+                        @if (lstServices != null)
+                        {
+                            foreach (var item in lstServices)
+                            {
+                                <option @(ServiceId == item.ServiceId ? "selected = selected" : "") value="@item.ServiceId">@item.ServiceTitle </option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label"> Payment Method :<span class="text-danger"></span></label>
+                    <select class="single-select" name="PaymentMethod" id="PaymentMethod">
+                        <option value=""> -- Select -- </option>
+                        @if (lstPaymentMethod != null)
+                        {
+                            foreach (var item in lstPaymentMethod)
+                            {
+                                <option value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+         
+            <div class="col-xs-12 col-lg-3 col-sm-6">
+                <label>Date of Payment</label>
+                <div class="clearfix row">
+                    <div class="col-xs-12 col-lg-6 col-sm-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            <input type="text" data-mask="" data-inputmask="'alias': 'mm/dd/yyyy'" class="form-control" placeholder="From" name="StartDate" id="StartDate">
+                        </div>
+                    </div>
+                    <div class="col-xs-12 col-lg-6 col-sm-6">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                            <input type="text" data-mask="" data-inputmask="'alias': 'mm/dd/yyyy'" class="form-control" placeholder="To" name="EndDate" id="EndDate">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-1 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Search  <span class="text-danger"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="keyword" id="keyword" value="@Search" placeholder="First Name / Phone No">
+                      
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-2" id="clearhide">
+                <div>
+                    <label>&nbsp;</label>
+                </div>
+                <button type="button" class="btn btn-primary px-3" onclick="ServiceDonationBind();">Search</button>
+                <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+            </div>
+            <div class="col-lg-2 col-4 text-end ms-auto">
+                <div class="btn-align">
+                    @if (IsAdd == true)
+                    {
+                        <a href="@Url.Action("AddServiceDonation", "ServiceDonations", new { ServiceId = ServiceId,mid=@Mid,ChapterId=@ChapterId })" class="btn btn-primary " style="">Add Donation</a>
+
+                    }
+                    @if (IsExport == true)
+                        {
+                            <a class="cursor-pointer do new-download " data-bs-toggle="tooltip" style="border: 0; background: transparent; border: 1px solid #e8e6e7; padding: 10px; border-radius: 50%; /*! width: 100px; */ background-color: #e8e6e7;" onclick="ExporttoExcel();" title="Export to Data ">
+                                <i class="lni lni-download" style="font-size: 20px; color: black;"></i>
+                            </a>
+                       }
+
+
+                    </div>
+            </div>
+
+        </div>
+
+        <div class="text-end">
+
+        <a class="btn btn-primary" onclick="Add();">Bulk Upload</a>
+            </div>
+
+    </div>
+
+    <div id="divDetails" class="clearfix">
+    </div>
+
+    <script>
+
+
+        $(document).ready(function () {
+            LoadEventsList();
+        });
+
+               function LoadEventsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("ServiceDonationsList", "ServiceDonations")',
+                data: {
+                    ServiceId         : '@ServiceId',
+                    SortColumn        : "OrderDate",
+                    ServiceDonationId : '@ServiceDonationId',
+                    // ✅ ADD THIS — pass Search from URL/ViewBag
+                    Search            : '@Search',
+                    IsEdit            : '@IsEdit.ToString().ToLower()',
+                    IsView            : '@IsView.ToString().ToLower()',
+                    IsDelete          : '@IsDelete.ToString().ToLower()',
+                    IsExport          : '@IsExport.ToString().ToLower()',
+                    IsAdd             : '@IsAdd.ToString().ToLower()',
+                    Mid               : '@Mid',
+                    ChapterId         : '@(ChapterId == 0 ? 1 : ChapterId)'
+                },
+                success: function (data) {
+                    $("#divDetails").html(data);
+                },
+                error: function () {
+                    $("#divDetails").html('<p class="text-danger">Failed to load.</p>');
+                }
+            });
+        }
+
+    </script>
+
+ 
+    
+
+    <script>
+        function BulkValidate() {
+            var fileName = $('#Document').val();
+
+            if (!fileName) {
+                $('#spanDocument').html('Please select a file.');
+                return false;
+            }
+
+            var ext = fileName.split('.').pop().toLowerCase();
+            if (ext !== 'xls' && ext !== 'xlsx') {
+                $('#spanDocument').html('Invalid file type. Only XLS and XLSX files are allowed.');
+                return false;
+            }
+
+            $('#spanDocument').html('');
+            return true;
+        }
+    </script>
+
+    <div class="modal fade" id="AddMembershipType" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+             
+@using (Html.BeginForm("ServiceDonationsBulkUpload", "ServiceDonations", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VolunteerForm", @name = "VolunteerForm" }))
+                {
+
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-lg-12 col-md-6 mb-3">
+                                <label class="form-label">
+                                    Document <span class="text-danger">*</span>
+                                </label>
+
+
+                                <input type="file" name="Document" id="DocumentFile"
+                                class="form-control" accept=".xls,.xlsx" />
+
+                                <span class="text-danger" id="spanDocumentFile"></span>
+
+                                <div class="mt-2">
+                                    <label>Sample Doc : </label>
+                                    <a href="/Content/XlS/Donation-sample-sheet.xls" target="_blank">
+                                        Click here
+                                    </a> for Sample file.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary"
+                        onclick="return ModalBulkValidate();">
+                            Submit
+                        </button>
+                        <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+
+                }
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+</div>
+
+<script>
+    // ✅ Remove ALL old jQuery validate code and replace with this simple function
+    function ModalBulkValidate() {
+        var fileInput = document.getElementById('DocumentFile');
+        var spanDoc   = document.getElementById('spanDocumentFile');
+
+        if (!fileInput || fileInput.files.length === 0) {
+            spanDoc.innerHTML = 'Please select a file.';
+            return false;
+        }
+
+        var fileName = fileInput.files[0].name;
+        var ext = fileName.split('.').pop().toLowerCase();
+
+        if (ext !== 'xls' && ext !== 'xlsx') {
+            spanDoc.innerHTML = 'Invalid file type. Only XLS and XLSX files are allowed.';
+            return false;
+        }
+
+        spanDoc.innerHTML = '';
+        return true;
+    }
+</script>
+
+<script>
+    // $(document).ready(function () {
+    //     $.validator.addMethod("validImageExtension", function (value, element) {
+    //         if (element.files && element.files.length > 0) {
+    //             var allowedExtensions = ["xls"];
+    //             var fileName = element.files[0].name;
+    //             var extension = fileName.split('.').pop().toLowerCase();
+    //             return $.inArray(extension, allowedExtensions) !== -1;
+    //         }
+    //         return true; // If no file is selected, validation passes
+    //     }, "Only allowed extensions are:  XLS");
+    //     $("#VolunteerForm").validate({
+    //         rules: {
+
+    //             Document: {
+    //                 required: true,
+    //                 validImageExtension: true
+    //             }
+    //         },
+    //         messages: {
+
+    //             Document: {
+    //                 required: "Please select Documenet",
+    //                 validImageExtension: "Invalid file type. Only  XLS files are allowed."
+    //             }
+    //         },
+
+    //         errorElement: "div",
+    //         errorPlacement: function (error, element) {
+    //             // Add the `invalid-feedback` class to the error element
+    //             error.addClass("invalid-feedback");
+
+    //             if (element.prop("type") === "checkbox") {
+    //                 error.insertAfter(element.parent("label"));
+    //             } else {
+    //                 error.insertAfter(element);
+    //             }
+
+    //             // Move the error element after the fieldset element
+    //             if (element.closest(".input-box").length) {
+    //                 element.closest(".input-box").after(error);
+    //             }
+    //         },
+    //         highlight: function (element, errorClass, validClass) {
+    //             // Highlight the input, textarea, or select element with the `is-invalid` class
+    //             var $element = $(element);
+    //             if ($element.is('input, textarea, select')) {
+    //                 $element.addClass("is-invalid").removeClass("is-valid");
+    //             }
+
+
+    //         },
+    //         unhighlight: function (element, errorClass, validClass) {
+    //             // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+    //             var $element = $(element);
+    //             if ($element.is('input, textarea, select')) {
+    //                 $element.addClass("is-valid").removeClass("is-invalid");
+    //             }
+
+    //         },
+
+
+    //     });
+    // });
+
+
+
+
+</script>

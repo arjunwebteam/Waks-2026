@@ -1,0 +1,176 @@
+﻿@{
+    ViewBag.Title = "AddVideo";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    List<AWS_AssociationToolCore.Entities.VideoCategories> lstVideoCategories = ViewBag.lstVideoCategories;
+    Int64 VideoCategoryId = ViewBag.VideoCategoryId;
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wGallery, #wVideoGallery').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+    });
+
+    function Validate() {
+        //if ($.trim($('#VideoCategoryId').val()) == "") { $('#VideoCategoryId').focus().addClass('validate'); return false; } else { $('#spanVideoCategoryId').html(''); $('#VideoCategoryId').focus().removeClass('validate'); }
+        //if ($.trim($('#Heading').val()) == "") { $('#Heading').focus().addClass('validate'); return false; } else { $('#spanHeading').html(''); }
+        //if ($.trim($('#VideoUrl').val()) == "") { $('#VideoUrl').focus().addClass('validate'); return false; } else { $('#spanVideoUrl').html(''); $('#VideoUrl').focus().removeClass('validate'); }
+        ////if ($('#IsHome').val() == "") { $('#spanIsHome').html('Required.'); $('#IsHome').focus(); return false; } else { $('#spanIsHome').html(''); }
+
+        if ($.trim($('#VideoCategoryId').val()) == '') { document.getElementsByName('VideoCategoryId')[0].placeholder = 'Category Required'; $('#VideoCategoryId').focus().addClass("validate"); return false; } else { $('#VideoCategoryId').focus().removeClass("validate"); }
+        if ($.trim($('#Heading').val()) == '') { document.getElementsByName('Heading')[0].placeholder = 'Heading Required'; $('#Heading').focus().addClass("validate"); return false; } else { $('#Heading').focus().removeClass("validate"); }
+        if ($.trim($('#VideoUrl').val()) == '') { document.getElementsByName('VideoUrl')[0].placeholder = 'Video Url Required'; $('#VideoUrl').focus().addClass("validate"); return false; } else { $('#VideoUrl').focus().removeClass("validate"); }
+
+
+
+
+        return true;
+    }
+</script>
+
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>Add Video </h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li><a href="@Url.Action("Index", "VideoGallery", new { mid = ViewBag.Mid })"><i class="fa fa-youtube-play"></i>Video Categories</a></li>
+        <li><a href="@Url.Action("Videos", "VideoGallery", new { mid = ViewBag.Mid })"><i class="fa fa-youtube-play"></i>Videos</a></li>
+        <li class="active"><i class="fa fa-youtube-play"></i>Add Video</li>
+    </ol>
+</div>
+<!--end breadcumb -->
+
+<div class="content">
+    <div id="divmessage">
+        @if (TempData["message"] != null)
+        {@Html.Raw(TempData["message"].ToString())}
+
+        @if (ViewBag.message != null)
+        {@Html.Raw(ViewBag.message.ToString())}
+    </div>
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("AddVideo", "VideoGallery", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VideoGalleryForm", @name = "VideoGalleryForm" }))
+    {
+        <input type="hidden" name="IsAgree" id="IsAgree" value="true" />
+        <input type="hidden" name="mid" id="mid" value="@ViewBag.Mid" />
+
+        <div class="box validation">
+            <!-- /.box-header -->
+            <div class="box-header">
+                <h3 class="box-title dis-in">Add Videos</h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Category : <span class="red-t">*</span></label>
+                        <select id="VideoCategoryId" name="VideoCategoryId" class="form-control">
+                            <option value="">-- Select Category --</option>
+                            @if (lstVideoCategories.Count > 0)
+                            {
+                                foreach (var item in lstVideoCategories)
+                                {
+                                    <option @(item.VideoCategoryId == VideoCategoryId ? "selected = selected" : "") value="@(item.VideoCategoryId)">@(item.CategoryName)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Heading :<span class="red-t">*</span></label>
+                        <input type="text" placeholder="" id="Heading" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" name="Heading" class="form-control" />
+                        <span id="spanHeading" class="red-t"></span>
+                    </div>
+
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Video Description :</label>
+                        <input type="text" placeholder="" id="VideoDescription" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" name="VideoDescription" class="form-control" />
+                    </div>
+                </div>
+                    <div class="row">
+                        <div>
+                            <div class="col-xs-12 col-lg-4 col-sm-6">
+                                <label>Display Order : </label>
+                                <input type="text" placeholder="" id="DisplayOrder" maxlength="3" onkeypress="return Common.isNumberKey(event)" value="" onclick="ResetValidateClass();" name="DisplayOrder" class="form-control" />
+                                <span id="spanDisplayOrder" class="field-validation-error"></span>
+                            </div>
+
+                            @* <div class="col-xs-12 col-lg-4 col-sm-6">
+                    <label>IsHome : </label>
+                    <select class="form-control" id="IsHome" name="IsHome">
+                        <option value="">-- Select --</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                    <span id="spanIsHome" class="field-validation-error"></span>
+                </div>*@
+                            <div class="col-xs-12 col-lg-4 col-sm-6">
+                                <label>Video URL : <span class="red-t">*</span> <span class="red-t">Ex: (Video id is - y2atip0h-Kg)</span> </label>
+                                <input type="text" placeholder="Video URL" id="VideoUrl" maxlength="11" onkeypress="ResetValidateClass();" onclick="ResetValidateClass();" name="VideoUrl" class="form-control" />
+                                <span id="spanVideoUrl" class="field-validation-error"></span>
+
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+        </div>
+
+        <div class="box">
+            <!-- /.box-header -->
+            <div class="box-body text-right">
+                <input type="submit" @*onclick="return Validate()"*@ class="btn btn-primary" value="Submit" />
+                <a class="btn btn-info" href="@Url.Action("Videos", "VideoGallery", new { VideoCategoryId = VideoCategoryId, mid = ViewBag.Mid })">Cancel</a>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    }
+</div>
+<script>
+    $(document).ready(function () {
+        $("#VideoGalleryForm").validate({
+            rules: {
+                VideoCategoryId: "required",
+                Heading: "required",
+                VideoUrl: "required",
+            },
+            messages: {
+                VideoCategoryId: "Category Is Required",
+                Heading: "Heading Is Required",
+                VideoUrl: "Please enter a Video URL",
+            },
+
+
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                // Add the `help-block` class to the error element
+                error.addClass("help-block");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest("fieldset").length) {
+                    element.closest("fieldset").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).parents("fieldset").addClass("has-error").removeClass("has-success");
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).parents("fieldset").addClass("has-success").removeClass("has-error");
+            },
+
+        });
+
+
+    });
+
+
+</script>

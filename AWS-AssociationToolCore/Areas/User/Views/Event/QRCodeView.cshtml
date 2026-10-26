@@ -1,0 +1,935 @@
+﻿@using Microsoft.AspNetCore.Http.Extensions
+@using Microsoft.AspNetCore.Http
+@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+
+    var location = /*System.Configuration.ConfigurationManager.AppSettings["userimgurl"]*/  objAppInfo.AdminImageUrl + "MemberProfileImages/";
+
+
+    var objEventUserInfo = (AWS_AssociationToolCore.Entities.EventUserInfo)ViewBag.objEventUserInfo;
+    List<AWS_AssociationToolCore.Entities.EventRegistrationCounts> lstEventRegistrationCounts = ViewBag.lstEventRegCounts;
+
+    var imglocNormal = objAppInfo.AdminImageUrl + "Content/CulturalEvent/";
+
+    var type = ViewBag.type;
+    var uid = ViewBag.uid;
+    var MembershipType = ViewBag.MembershipType;
+
+    ViewBag.Title = "Event QR Code Preview | " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Preview your event QR code for quick access to " + objAppInfo.SiteName + " events and registrations.";
+    ViewBag.MetaKeywords = "Event QR code preview, Telugu event QR, QR access Telugu event, scan event code";
+
+    ViewBag.PageHeading = "Event Profile";
+
+}
+
+<style>
+    @@media only screen and (max-width: 576px) {
+        .aws-inner-content {
+            background-color: #fff;
+            padding: 20px 10px;
+            min-height: 150vh;
+        }
+
+        .cus-sub-head {
+            font-size: 16px;
+            font-weight: bold;
+        }
+    }
+</style>
+<style>
+    .table-light-border {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+        .table-light-border th,
+        .table-light-border td {
+            border: 1px solid #e0e0e0;
+            padding: 8px 12px;
+            vertical-align: middle;
+        }
+
+
+        .table-light-border thead th {
+            background: #fafafa;
+            font-weight: 700;
+            text-align: left;
+            font-size: 18px;
+        }
+
+
+        .table-light-border td.center,
+        .table-light-border th.center {
+            text-align: center;
+        }
+
+
+    .bold-t {
+        font-weight: 700;
+        display: inline-block;
+    }
+
+
+    .table-light-border tbody tr:nth-child(odd) {
+        background: #ffffff;
+    }
+
+    .table-light-border tbody tr:nth-child(even) {
+        background: #fbfbfb;
+    }
+
+
+    @@media screen and (max-width: 480px) {
+        .table-light-border,
+        .table-light-border thead,
+        .table-light-border tbody,
+        .table-light-border th,
+        .table-light-border td,
+        .table-light-border tr {
+            display: block;
+            width: 100%;
+        }
+
+            .table-light-border thead {
+                display: none;
+            }
+
+            .table-light-border td {
+                box-sizing: border-box;
+                width: 100%;
+                text-align: left;
+                padding: 10px;
+                border-left: none;
+                border-right: none;
+            }
+
+            .table-light-border tbody tr {
+                margin-bottom: 12px;
+                border-bottom: 1px solid #eee;
+            }
+    }
+
+
+
+    .styled-form-btns {
+        text-align: center;
+        justify-content: center;
+        display: flex;
+    }
+
+        .styled-form-btns input {
+            max-width: 150px !important;
+        }
+
+    /* ===== Custom Modal ===== */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+        backdrop-filter: blur(3px);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .custom-modal-content {
+        background: #fff;
+        border-radius: 10px;
+        width: 100%;
+        max-width: 465px;
+        padding: 15px;
+        position: relative;
+        animation: fadeIn 0.3s ease-in-out;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+
+    @@keyframes fadeIn {
+        from {
+            transform: scale(0.95);
+            opacity: 0;
+        }
+
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .close-modal {
+        position: absolute;
+        right: 15px;
+        top: 12px;
+        font-size: 20px;
+        color: #fff;
+        background: #800020;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+        .close-modal:hover {
+            background: #a52a2a;
+            transform: scale(1.1);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+    .modal-title {
+        text-align: center;
+        /*margin-bottom: -13px;*/
+        color: #800020;
+        font-weight: 600;
+    }
+
+    /* ===== Form Styles ===== */
+    .validation.styled-form {
+        .styled-form-btns margin-top: 16px;
+    }
+
+    .styled-form {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 25px 20px;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: 0.3s ease;
+    }
+
+        .styled-form.pop {
+            border-radius: 8px;
+            padding: 25px 20px;
+            background: #fff;
+            border: none;
+            box-shadow: none;
+        }
+
+        .styled-form:hover {
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        }
+
+        .styled-form.pop:hover {
+            box-shadow: none;
+        }
+
+        .styled-form .form-group {
+            margin-bottom: 15px;
+        }
+
+        .styled-form .form-control {
+            width: 100%;
+            min-height: 42px;
+            padding: 10px 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            transition: border-color 0.2s ease;
+        }
+
+            .styled-form .form-control:focus {
+                border-color: #be2b2b;
+                box-shadow: 0 0 4px rgba(190, 43, 43, 0.2);
+                outline: none;
+            }
+
+        .styled-form .btn {
+            display: inline-block;
+            background-color: #800020;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: 0.3s ease;
+            padding: 9px 44px;
+            font-size: 16px;
+        }
+
+            .styled-form .btn:hover {
+                background-color: #a52a2a;
+            }
+
+    .btn-from {
+        text-align: center;
+    }
+
+    /* ===== Modal Trigger Button ===== */
+    .open-modal-btn {
+        color: #800020;
+        font-weight: 600;
+        text-decoration: none;
+        position: relative;
+        transition: all 0.3s ease;
+        padding: 3px 6px;
+        border-radius: 4px;
+    }
+
+        .open-modal-btn::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -2px;
+            width: 0;
+            height: 2px;
+            background: #800020;
+            transition: width 0.3s ease;
+        }
+
+        .open-modal-btn:hover {
+            color: #a52a2a;
+            background: rgba(128,0,32,0.08);
+        }
+
+            .open-modal-btn:hover::after {
+                width: 100%;
+            }
+
+    /* ===== Event Details Section ===== */
+    .event-details {
+        font-family: "Poppins", Arial, sans-serif;
+        font-size: 14px;
+        color: #000;
+        line-height: 1.6;
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+        .event-details h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 15px 0 8px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+        }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px 20px;
+        margin-bottom: 15px;
+    }
+
+        .details-grid div {
+            word-break: break-word;
+        }
+
+        .details-grid strong {
+            font-weight: 500;
+            color: #000;
+        }
+
+        .details-grid span {
+            font-weight: 600;
+            color: #000;
+            display: inline-block;
+            margin-left: 4px;
+        }
+
+    .status {
+        color: #1a7f1a;
+        font-weight: 700;
+    }
+
+    .note {
+        font-size: 13px;
+        margin-top: 10px;
+    }
+
+        .note a {
+            color: #9a0906;
+            text-decoration: none;
+        }
+
+            .note a:hover {
+                text-decoration: underline;
+            }
+
+    .event-details-from > .row {
+        justify-content: center;
+        display: flex;
+    }
+
+    /* ===== Responsive ===== */
+    @@media screen and (max-width: 992px) {
+        .details-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media screen and (max-width: 600px) {
+        .details-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .event-details {
+            font-size: 13px;
+            padding: 10px;
+        }
+
+            .event-details h4 {
+                font-size: 15px;
+            }
+
+        .styled-form {
+            padding: 15px;
+        }
+
+        .text-center.btn-from.t-b-p10 {
+            margin-top: 15px;
+        }
+
+        .styled-form .form-label {
+            color: black;
+            font-size: 16px;
+            font-weight: 500;
+            padding-top: 9px;
+            padding-bottom: 0px;
+            margin-bottom: 0;
+        }
+
+        .event-details h4 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 15px 0 8px;
+            border-bottom: none;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #00000038;
+            display: inline-block;
+        }
+    }
+
+    @@media screen and (max-width: 480px) {
+        .custom-modal-content {
+            width: 90%;
+            padding: 20px;
+        }
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        Common.mfadeout();
+
+    });
+
+
+
+</script>
+<!--- DILOG BOX Login [end] --->
+<script type="text/javascript">
+    function SubmitCheckInJSON() {
+
+        // Validate comment
+        var comment = $('#Comment').val().trim();
+
+        if (comment === '') {
+            $('#spanComment').html('Required.');
+            $('#Comment').focus().addClass("red-border");
+            return false;
+        }
+        else {
+            $('#spanComment').html('');
+            $('#Comment').removeClass("red-border");
+        }
+
+        // Collect registration items
+        var registrationItems = [];
+
+        $('.reg-checkin').each(function () {
+
+            var checkinCount = $(this).val();
+
+            if (checkinCount !== '' && checkinCount !== undefined) {
+
+                registrationItems.push({
+                    EventRegistrationTypeId: $(this).data('id'),
+                    RegistrationTitle: $(this).data('title'),
+                    CheckinCount: parseInt(checkinCount),
+                    TotalCount: parseInt($(this).data('total')),
+                    Amount: parseFloat($(this).data('amount'))
+                });
+            }
+        });
+
+        // Build JSON object
+        var jsonData = {
+            EventUserInfoId: $('#EventUserInfoId').val(),
+            EventId: $('#EventId').val(),
+            EmployeeCode: $('#EmployeeCode').val(),
+            Status: 'Yes',
+            Comment: comment,
+            RegistrationItems: registrationItems
+        };
+
+        console.log("Sending Data :", jsonData);
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("InsertCommentsJson", "Event")',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(jsonData),
+
+            success: function (response) {
+
+                console.log(response);
+
+                if (response.success) {
+
+                    alert(response.message);
+
+                    if (response.redirectUrl != null) {
+                        window.location.href = response.redirectUrl;
+                    }
+                }
+                else {
+                    alert(response.message);
+                }
+            },
+
+            error: function (xhr, status, error) {
+
+                console.log(xhr.responseText);
+                alert("Error : " + error);
+            }
+        });
+    }</script>
+
+<article class="clearfix">
+    <div id="divmessage">
+        @if (TempData["message"] != null)
+        {
+            @Html.Raw(TempData["message"].ToString())
+        }
+
+        @if (ViewBag.message != null)
+        {
+            @Html.Raw(ViewBag.message.ToString())
+        }
+    </div>
+
+    <div id="divmessage">
+        @if (TempData["message1"] != null)
+        {
+            @Html.Raw(TempData["message1"].ToString())
+        }
+
+        @if (ViewBag.message1 != null)
+        {
+            @Html.Raw(ViewBag.message1.ToString())
+        }
+    </div>
+
+
+
+    @if (objEventUserInfo.ItemName != null && objEventUserInfo.ItemName != "")
+    {
+        <div class="mt-3">
+            <div class="cus-sub-head">
+                Personal Details
+            </div>
+            <div class="box-body">
+                <div class="row mt-2">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">First Name :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.FirstName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Last Name :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.LastName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Email :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.Email</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">City :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.City</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">State :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.State</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Mobile :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.Mobile</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 col-lg-12 col-sm-6">
+                        <label class="t-p5">Additional Info :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.Comments</label>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="">
+
+            <div class="cus-sub-head">
+                Competition Info
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5">Competition Name :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.ItemCategory</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label class="t-p5"> No of Participants :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.ItemName</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+    else
+    {
+        <div class="mt-2">
+
+            <div class="cus-sub-head">
+                Event Registration Details
+            </div>
+            <div class="">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>First Name :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.FirstName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Last Name :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.LastName</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>State :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.State</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>City :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.City</label>
+                    </div>
+                    <div class="col-xs-12 col-lg-6 col-sm-6">
+                        <label>Email :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.Email</label>
+                    </div>
+
+
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Mobile :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@objEventUserInfo.Mobile</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-12 col-lg-12 col-sm-6">
+                        <label class="t-p5">Additional Info :</label>
+                        <label class="t-p5 black-t">@objEventUserInfo.Comments</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- REGISTRATION TABLE -->
+    <!-- REGISTRATION TABLE -->
+    @if (lstEventRegistrationCounts != null && lstEventRegistrationCounts.Count != 0)
+    {
+        int k = 0;
+        <div class="mt-2">
+            <div class="cus-sub-head">
+                Registration Types - Check-In
+            </div>
+
+            <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-bordered">
+                <thead>
+                    <tr style="background-color:#000;">
+                        <th width="180" align="center" style="background-color:#c81515; color:#fff;">Registration Title</th>
+                        <th width="180" align="center" style="background-color:#c81515; color:#fff; text-align:center;">Reg.Count</th>
+                        <th width="100" align="center" style="background-color:#c81515; color:#fff; text-align:center;">Amount($)</th>
+                    </tr>
+                    @foreach (var item in lstEventRegistrationCounts)
+                    {
+                        <tr>
+                            <td width="180">
+                                <label class="t-p5 black-t">@item.RegistrationTitle</label>
+                            </td>
+                            @if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null && Context.Session != null && Context.Session.GetString("username") != null)
+                            {
+                                if (item.Count - Convert.ToInt32(item.CheckinCount) == 0)
+                                {
+                                    <td width="180" style="text-align:center;">
+                                        <label class="t-p5 black-t text-danger">Check-In Completed</label>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td width="180" style="text-align:center;">
+                                        <select id="CheckinCount_@(k)"
+                                                class="form-control reg-checkin"
+                                                data-index="@(k)"
+                                                data-id="@item.EventRegistrationTypeId"
+                                                data-title="@item.RegistrationTitle"
+                                                data-total="@item.Count"
+                                                data-amount="@item.Amount">
+                                            <option value="">-- Select --</option>
+                                            @for (int i = 1; i <= item.Count - Convert.ToInt32(item.CheckinCount); i++)
+                                            {
+                                                <option value="@i">
+                                                    @i
+                                                </option>
+                                            }
+                                        </select>
+                                    </td>
+                                }
+
+                            }
+                            else
+                            {
+                                <td width="180" style="text-align:center;">@item.Count</td>
+                            }
+                            <td width="100" style="text-align:center;">
+                                <label class="t-p5 black-t">$ @item.Amount</label>
+                            </td>
+                        </tr>
+                        k++;
+                    }
+                </thead>
+            </table>
+        </div>
+    }
+
+    @if (objEventUserInfo.lstEventParticipant.Count() != 0 && objEventUserInfo.lstEventParticipant != null)
+    {
+        <!-- end personal info form -->
+        <div class="box validation">
+            <div class="box-header">
+                <h3 class="box-title dis-in">Particpatnts</h3>
+            </div>
+            <table cellspacing="0" cellpadding="0" border="0" class="tbl membership" width="100%">
+                <tbody>
+                    <tr>
+                        <td>
+                            <table id="childinfo" name="childinfo" width="650" cellspacing="0" cellpadding="0" border="0" class="table table-hover span9 omb table_vam table-black tvm">
+                                <thead>
+                                    <tr>
+                                        <th width="180">First Name</th>
+                                        <th width="180">Last Name</th>
+                                        <th width="100" align="center">( Age )</th>
+                                        <th width="180" align="center">Parents Name</th>
+
+                                    </tr>
+                                    @if (objEventUserInfo.lstEventParticipant != null && objEventUserInfo.lstEventParticipant.Count != 0)
+                                    {
+                                        Int64 i = 0;
+                                        foreach (var Item in objEventUserInfo.lstEventParticipant)
+                                        {
+                                            <tr>
+                                                <td width="180">
+                                                    <label class="t-p5 black-t">@Item.FirstName</label>
+                                                </td>
+                                                <td width="110" align="center">
+                                                    <label class="t-p5 black-t">@Item.LastName</label>
+                                                </td>
+                                                <td width="180" align="center">
+                                                    <label class="t-p5 black-t">@Item.Age</label>
+                                                </td>
+                                                <td width="180" align="center">
+                                                    <label class="t-p5 black-t">@Item.Mobile</label>
+                                                </td>
+
+                                            </tr>
+                                            i++;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td width="180" colspan="4" class="t-c">
+                                                <label class="t-p5 black-t t-c">No User's Found</label>
+                                            </td>
+                                        </tr>
+                                    }
+                                </thead>
+                            </table>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    }
+
+    <div class="d-none">
+
+        <div class="cus-sub-head">
+            Payment Details
+        </div>
+        <div class="">
+            <div class="row">
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Payment Method :</label>
+                    <label class="t-p5 black-t" style="font-weight:600">@(objEventUserInfo.objEventOrderDetails.PaymentMethod == null ? "N/A" : objEventUserInfo.objEventOrderDetails.PaymentMethod)</label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Transaction Id  :</label>
+                    <label class="t-p5 black-t" style="font-weight:600">@(objEventUserInfo.objEventOrderDetails.TransactionId == null ? "N/A" : objEventUserInfo.objEventOrderDetails.TransactionId)</label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Amount :</label>
+                    <label class="t-p5 black-t" style="font-weight:600"> $ @(objEventUserInfo.objEventOrderDetails.AmountPaid == null ? "N/A" : objEventUserInfo.objEventOrderDetails.AmountPaid.ToString())<span id="payamount"></span></label>
+                </div>
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label>Payment Status :</label>
+                    <label class="t-p5 black-t" style="font-weight:600">@(objEventUserInfo.objEventOrderDetails.PaymentStatus == null ? "Pending" : objEventUserInfo.objEventOrderDetails.PaymentStatus)</label>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="clearfix">
+        <div class="cus-sub-head">
+            Check-In Status with Comments
+        </div>
+        <div class="">
+            @foreach (var item in lstEventRegistrationCounts)
+            {
+                <div class="row">
+                    <div class="col-xs-12 col-lg-12 col-sm-12">
+                        <label><strong><span class="text-success">@item.RegistrationTitle</span></strong> Check-In Count :</label>
+                        <label class="t-p5 black-t" style="font-weight:600">@(item.CheckinCount != null && item.CheckinCount != "" ? item.CheckinCount : "0")/@(item.Count)</label>
+                    </div>
+                </div>
+            }
+            <div class="row">
+                <div class="col-xs-12 col-lg-12 col-sm-12">
+                    <label>Check-In Status :</label>
+                    <label class="t-p5 black-t" style="font-weight:600">@(objEventUserInfo.Status != null && objEventUserInfo.Status != "" ? objEventUserInfo.Status : "N/A")</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12 col-lg-12 col-sm-12">
+                    <label>Comments :</label>
+                    <label class="t-p5 black-t" style="font-weight:600">@(objEventUserInfo.Comment != null && objEventUserInfo.Comment != "" ? objEventUserInfo.Comment : "N/A")</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHECK-IN FORM -->
+    @if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null && Context.Session != null && Context.Session.GetString("username") != null)
+    {
+        <div class="event-details-from mt-4" id="checkin">
+            <div class="row justify-center d-flex">
+                <div class="col-md-8 col-lg-8">
+                    @*<div class="event-details" style="text-align: center;">
+                        <h4>Update Registration Check-In</h4>
+                    </div>*@
+
+                    <div class="validation styled-form">
+                        <input id="EventUserInfoId" type="hidden"
+                               value="@objEventUserInfo.EventUserInfoId" />
+                        <input id="EventId" type="hidden"
+                               value="@objEventUserInfo.EventId" />
+                        <input id="EmployeeCode" type="hidden"
+                               value="@Context.Session.GetString("username")" />
+
+                        <div class="clearfix part-row b-p5">
+                            <div class="clearfix part-12">
+                                <label for="Comment" class="form-label">Comments *</label>
+                                <textarea id="Comment" name="Comment" placeholder="Enter your comments here..." class="form-control b-m10"></textarea>
+                                <span id="spanComment" style="color: red;"></span>
+                            </div>
+                        </div>
+
+                        <div class="text-center btn-from t-b-p10">
+                            <input value="Update Comments"
+                                   class="btn btn-danger btn-sm border-radius0 font18 px-5 py-2 text-uppercase btn-from"
+                                   type="button"
+                                   onclick="SubmitCheckInJSON();" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="my-3 fnt-Graphik-Regular">
+            <span class="clr1">Note : </span> Do you have login? If yes
+            <u class="px-2"><a data-bs-target="#loginpop" data-bs-toggle="modal" type="button" class="clr1 d-inline-block">Click here </a></u> to submit details
+        </div>
+    }
+    <!-- end other details form -->
+
+
+    <div class="adminfooter"></div>
+</article>
+
+<script>
+    $(document).ready(function () {
+        $("#MLogin").validate({
+            rules: {
+
+                Email: { required: true, email: true },
+                Password: {
+                    required: true,
+                    minlength: 5
+                },
+            },
+            messages: {
+                Email: { required: "Please enter email address", email: "Please enter valid email address" },
+                Password: {
+                    required: "Please provide a password",
+                    minlength: "Your password must be at least 5 characters long"
+                },
+            },
+            errorElement: "em",
+            errorPlacement: function (error, element) {
+                // Add the `help-block` class to the error element
+                error.addClass("help-block");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest("fieldset").length) {
+                    element.closest("fieldset").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                $(element).parents("fieldset").addClass("has-error").removeClass("has-success");
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                $(element).parents("fieldset").addClass("has-success").removeClass("has-error");
+            }
+
+        });
+
+
+    });
+
+
+</script>

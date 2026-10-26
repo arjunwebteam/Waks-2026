@@ -1,0 +1,90 @@
+﻿@{
+    var lstWebsiteBanners = (List<AWS_AssociationToolCore.Entities.WebsiteBanners>)ViewBag.lstWebsiteBanners;
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    
+  var imglocNormal = objAppInfo.BaseUrl + "Content/WebsiteBanners/NormalImages/";
+
+}
+
+<div class="banner-wrap position-relative">
+    <div class="banner-sec">
+        <div id="demo" class="carousel slide carousel-fade" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                @if (lstWebsiteBanners != null && lstWebsiteBanners.Count != 0)
+                {
+
+                    int i = 1;
+                    foreach (var item in lstWebsiteBanners)
+                    {
+
+                        <div class="carousel-item @(i == 1 ? "active" : "")">
+
+                            @if (item.RedirectUrl != null && item.RedirectUrl != "")
+                            {
+                                <div class="banner-icon-bar">
+
+                                    <img width="100px" title="@item.BannerTitle" alt="@item.BannerTitle" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.BannerUrl), imglocNormal + "no-newbenner2.png")" class="d-block w-100">
+
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="banner-icon-bar">
+                                    <img width="100px" title="@item.BannerTitle" alt="@item.BannerTitle" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.BannerUrl), imglocNormal + "no-newbenner2.png")" class="d-block w-100">
+
+                                </div>
+
+                            }
+                        </div>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <div class="banner-icon-bar">
+                        <img src="content/websitebanners/normalimages/no-newbenner2.png"
+                             alt="No Banner"
+                             class="d-block w-100">
+                    </div>
+                }
+            </div>
+            @if (lstWebsiteBanners != null && lstWebsiteBanners.Count > 1)
+            {
+                <button class="carousel-control-prev" type="button" data-bs-target="#demo" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#demo" data-bs-slide="next">
+                    <span class="carousel-control-next-icon"></span>
+                </button>
+            }
+            </div>
+    </div>
+</div>
+@* 
+<div class="carousel-indicators">
+    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" class="active"
+            aria-current="true" aria-label="Slide 1"></button>
+    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1"
+            aria-label="Slide 2"></button>
+    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="2"
+            aria-label="Slide 3"></button>
+</div>
+<div class="carousel-inner">
+    <div class="carousel-item active">
+        <img src="content/user/images/banner.jpg" class="d-block w-100"
+             alt="content/user/images/banner.jpg">
+    </div>
+    <div class="carousel-item">
+        <img src="https://click365.com.au/walks/wp-content/uploads/2026/02/xvidhana-soudha-in-bangalore-india-the-seat-scaled.jpeg.pagespeed.ic.GrZ9ci_IWU.jpg" class="d-block w-100"
+             alt="content/user/images/banner.jpg">
+    </div>
+    <div class="carousel-item">
+        <img src="https://click365.com.au/walks/wp-content/uploads/2026/03/x85caf0f1-35bc-41e0-94cf-1fe7b72898ed.png.pagespeed.ic.UK5ARcgjF8.jpg" class="d-block w-100"
+             alt="content/user/images/banner.jpg">
+    </div>
+</div> *@

@@ -1,0 +1,502 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+    Int64 ChapterId = ViewBag.ChapterId;
+
+    ViewBag.Pageheading = "Photo Gallery";
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+    bool IsAdd = Convert.ToBoolean(Context.Session.GetString("IsAdd"));
+    Int64 Mid = ViewBag.mid;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+}
+
+<script>
+    $(document).ready(function () {
+        $.ajax({
+            type : "GET",
+            url  : '@Url.Action("PhotosCategoryList", "PhotoGallery")',
+            data : {
+                IsEdit    : '@IsEdit',
+                IsView    : '@IsView',
+                IsDelete  : '@IsDelete',
+                IsExport  : '@IsExport',
+                IsAdd     : '@IsAdd',
+                Mid       : '@Mid',
+                ChapterId : '@(ChapterId == 0 ? 1 : ChapterId)'
+            },
+            success: function (data) {
+                $("#divPhotosCategoryList").html(data);
+            },
+            error: function () {
+                $("#divPhotosCategoryList").html('<p class="text-danger">Failed to load.</p>');
+            }
+        });
+    });
+</script>
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>
+
+<link rel="stylesheet" type="text/css" href="Content/Admin/lib/lightview/css/lightview/lightview.css" />
+<script type="text/javascript" src="Content/Admin/lib/lightview/js/spinners/spinners.js"></script>
+<script type="text/javascript" src="Content/Admin/lib/lightview/js/lightview/lightview.js"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('#wGallery, #wPhotoGallery').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('#wPhotoGallery').addClass('active');
+
+        PagerClickBind();
+    });
+
+    function Onload(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val();
+        var Search = $('#txtsearch').val();
+        var ChapterId = $('#ddlChapterId').val();
+
+        $.ajax({
+            url: '@Url.Action("PhotosCategoryList", "PhotoGallery")',
+            type: 'GET',
+            cache: false,
+            data: { Search: Search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, IsEdit: '@IsEdit', IsView: '@IsView', IsDelete: '@IsDelete', IsExport: '@IsExport', IsAdd: '@IsAdd', Mid: '@Mid', ChapterId: ChapterId },
+            success: function (result) {
+                $('#divPhotosCategoryList').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+
+    function sortresult(sortcolumn) {
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1);
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Onload($(this).text());
+        });
+    }
+
+    function Delete(PhotoCategoryId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeletePhotoCategory", "PhotoGallery")',  // the URL of the controller action method
+                data: { PhotoCategoryId: PhotoCategoryId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    Onload($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            });
+        }
+    }
+
+    function PhotoCategoryEdit(Id) {
+        $.ajax({
+            url: '@Url.Action("EditPhotoCategory", "PhotoGallery")',
+            type: 'POST',
+            data: { PhotoCategoryId: Id },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objDocument = result.data;
+                    $('#CategoryName').val(objDocument.CategoryName);
+                    $('#PhotoCategoryId').val(objDocument.PhotoCategoryId);
+                    $('#Year').val(objDocument.Year);
+                    $('#AlbumLink').val(objDocument.AlbumLink);
+                    $('#ChapterId').val(objDocument.ChapterId);
+                    $('#Add-PhotoCategory').modal('show');
+                    $('#lbltitle').html('Edit Photo Category');
+                    $('#Aspanfile').html('');
+                    $('#CategoryName').focus().removeClass("red-border");
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+    $(document).ready(function () {
+        $("#BannerUrl").change(function () {
+            validateBannerUrl();
+        });
+
+        function validateBannerUrl() {
+            $("#FormWebBanners").validate().resetForm();
+            $("#FormWebBanners").validate().element("#BannerUrl");
+        }
+
+        $.validator.addMethod("validImageExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                var allowedExtensions = ["jpg", "png", "gif", "jpeg"];
+                var fileName = element.files[0].name;
+                var extension = fileName.split('.').pop().toLowerCase();
+                return $.inArray(extension, allowedExtensions) !== -1;
+            }
+            return true;
+        }, "Only allowed extensions are: jpg, png, gif, jpeg");
+
+
+        var validateForm = $("#FormWebBanners").validate({
+            rules: {
+                CategoryName: "required",
+                Year: "required",
+            },
+            messages: {
+                CategoryName: "Category Name Is Required",
+                Year: "Year Is Required",
+            },
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+
+        $('.modal').on('hidden.bs.modal', function () {
+            // Reset form fields
+            $('#FormWebBanners')[0].reset();
+
+            // Reset form validations
+            validateForm.resetForm();
+
+            // Clear validation classes
+            $('.modal').find('.error').removeClass('is-valid is-invalid');
+            $('.modal').find('.form-control').removeClass('is-valid is-invalid');
+        });
+    });
+    function Add() {
+        clearInnerPageCategory();
+        $("#Add-PhotoCategory").modal('show');
+        $('#lbltitle').html('Add Gallery');
+    }
+
+    function clearInnerPageCategory() {
+        $('#CategoryName').val('');
+        $('#Year').val('');
+        $('#CategoryName').focus().removeClass("validate");
+        $('#Year').focus().removeClass("validate");
+
+
+    }
+    function Validate() {
+
+        var return_val = true;
+        if ($('#CategoryName').val() == '') { $('#CategoryName').addClass("validate"); return_val = false; } else { $('#CategoryName').removeClass("validate"); }
+
+
+        return return_val;
+    }
+
+    function ResetValidateClass() {
+        $('#CategoryName').removeClass("validate");
+        //$('#Year').removeClass("validate");
+    }
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        Onload(1);
+    }
+</script>
+
+
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedTime" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+<input type="hidden" id="hdnimgvalidate" value="0" />
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row  gx-2">
+
+
+            @if (objAppInfo.chapterStatus == "Yes")
+            {
+                <div class="col-lg-2 col-md-6 col-8">
+                    <div class="input-box">
+                        <label class="form-label"> <span class="text-danger"></span>Search by Chapter</label>
+                        <div class="input-group">
+
+                           
+                                <select class="form-control" id="ddlChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+
+                                    @if (lstChapters != null && lstChapters.Count != 0)
+                                    {
+                                        foreach (var item in lstChapters)
+                                        {
+                                            <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                        }
+                                    }
+
+
+                                </select>
+                                @*<span class="input-group-text pointer" style="cursor:pointer" onclick="MenuItemsBind(1);" id="basic-addon1"><i class="bi bi-search"></i></span>*@
+</div>
+                    </div>
+                </div>
+
+            }
+            <div class="col-lg-3 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Search <span class="text-danger">*</span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Gallery Name">
+
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="btn-align">
+                    <button type="button" class="btn btn-primary px-3" onclick="Onload(1);">Search</button>
+                    <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                </div>
+            </div>
+            <div class="col-lg-3 col-4 text-end ms-auto">
+                <div class="btn-align">
+                    @*<a href="@Url.Action("Photos", "PhotoGallery", new { mid = Mid })" class="btn btn-danger px-3 bx-pull-right">Photos</a>*@
+
+                    @if (IsAdd == true)
+                    {
+                        <button type="button" class="btn btn-primary" onclick="Add();">Add Gallery</button>
+
+                    }
+
+                </div>
+            </div>
+            @*<div class="col-lg-2 col-4 text-end ms-auto">
+            <div class="btn-align">
+                <a data-toggle="modal" href="@Url.Action("Photos", "PhotoGallery", new { mid = Mid})" class="btn btn-danger ">Photos</a>
+                @if (IsAdd == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+                {
+                    <button type="button" class="btn btn-primary " onclick="Add();">Add Gallery</button>
+                }
+            </div>
+        </div>*@
+        </div>
+    </div>
+
+
+
+    <div class="modal fade" id="Add-PhotoCategory" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("AddPhotoCategory", "PhotoGallery", FormMethod.Post, new { enctype = "multipart/form-data", @class = "m0", @id = "FormWebBanners", @name = "FormWebBanners" }))
+            {
+                <input type="hidden" id="PhotoCategoryId" name="PhotoCategoryId" value="0" />
+                <input type="hidden" id="mid" name="mid" value="@Mid" />
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-2">
+
+
+                            @if (objAppInfo.chapterStatus == "Yes")
+                            {
+                                <div class="col-lg-6">
+                                    <div class="input-box">
+                                        <label class="form-label">Chapters</label>
+
+                                            <select class="form-control" id="ChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+                                                <option value="">-- Select --</option>
+                                                @if (lstChapters != null && lstChapters.Count != 0)
+                                                {
+                                                    foreach (var item in lstChapters)
+                                                    {
+                                                        <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                                    }
+                                                }
+                                            </select>
+
+</div>
+                                </div>
+
+                            }
+
+
+
+
+
+
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Gallery Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="CategoryName" name="CategoryName" onkeypress="return Common.isChar(event)" placeholder="Gallery Name *">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Year <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="Year" name="Year" onkeypress="return Common.isNumberKey(event)" maxlength="4" placeholder="Year *">
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="input-box">
+                                    <label class="form-label">Album Link <span class="text-danger"></span></label>
+                                    <input type="text" class="form-control" id="AlbumLink" name="AlbumLink" placeholder="AlbumLink">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary modal-close-button" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            }
+
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal-dialog -->
+    </div>
+
+
+
+    <div id="divPhotosCategoryList" class="clearfix">
+
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $("#VolunteerForm").validate({
+            rules: {
+                CategoryName: "required",
+                Year: "required",
+            },
+            messages: {
+                CategoryName: "Gallery  Name Is Required",
+                Year: "Year Is Required",
+            },
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+</script>
+

@@ -1,0 +1,83 @@
+﻿@using Microsoft.AspNetCore.Http.Extensions
+@{ 
+    string returnurl = ViewBag.returnurl;
+    string cname = ViewBag.cname;
+}
+ 
+<script type="text/javascript">
+        $(document).ready(function () {
+            $('.closable').append('<span id="lblclose" class="closelink" title="Close"></span>');
+            $('.closelink').click(function () {
+                $(this).parent().fadeOut('600', function () { $(this).remove(); });
+            });
+        });
+
+ 
+    function LoginValidate() {
+
+            if ($('#Email1').val() == "") { $('#Email1').focus().addClass("validate"); $('#spanEmail1').show().html('Please Enter Email.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanEmail1').hide().html(''); $('#Email1').focus().removeClass("validate"); }
+            if (!Common.CheckEmail($.trim($('#Email1').val()))) { $('#spanEmail1').show().html('Please enter valid email address.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#Email1').focus().addClass("red-border"); return false; } else { $('#spanEmail1').html(''); }
+        if ($('#Password1').val() == "") { $('#Password1').focus().addClass("validate"); $('#spanPassword1').show().html('Password Required.<span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); return false; } else { $('#spanPassword1').hide().html(''); $('#Password1').focus().removeClass("validate"); }
+
+            return true;
+        }
+
+        function closeValidation(field) {
+            $(field).parent().hide();
+        }
+
+        function ResetValidateClass() {
+            $('#Email1').removeClass("validate");
+            $('#Password1').removeClass("validate");
+
+        }
+</script>
+
+
+<article class="clearfix white-bg shadow t-b-m10 p20 border-t3 border-radius4" style="border-color:#c81515;">
+    <p><span class="red-t">Note :-&nbsp;</span>If you have already Membership Account on NATS, Please <span class="red-t">Login here. </span></p>
+    <div id="divmessage">
+        @if (TempData["Message"] != null)
+        {@Html.Raw(TempData["Message"].ToString())}
+
+        @if (ViewBag.Message != null)
+        {@Html.Raw(ViewBag.Message.ToString())}
+    </div>
+    @using (Html.BeginForm("LogOn", "Members", FormMethod.Post, new { onSubmit = "return LoginValidate();" }))
+    {
+        <input type="hidden" id="ReturnUrl" name="ReturnUrl" value="@Context.Request.GetDisplayUrl()" />
+        <input type="hidden" id="cname" name="cname" value="@cname" />
+
+        <article class="clearfix part-row t-p10">
+            <article class="part-5 position-r">
+                <article class="clearfix r-p10 tabhorizontal-r-p5 mobile-r-p0">
+                    <article class="clearfix">
+                        <label class="Roboto-Regular font14"> Email <span class="red-t">*</span></label>
+                        <input class="form-control" name="Email" id="Email1" placeholder="Email *" onchange="LoginValidate();" onclick="ResetValidateClass();" type="text" style="min-height:40px;">
+                        <span class="errormsg" id="spanEmail1"></span>
+                    </article>
+                </article>
+            </article>
+            <article class="part-5 position-r">
+                <article class="clearfix l-p10 tabhorizontal-l-p5 mobile-l-p0">
+                    <article class="clearfix">
+                        <label class="Roboto-Regular font14"> Password <span class="red-t">*</span></label>
+                        <input class="form-control" placeholder="Password" id="Password1" name="Password" type="password" onchange="LoginValidate();" style="min-height:40px;">
+                        <span class="errormsg" id="spanPassword1"></span>
+                    </article>
+                </article>
+            </article>
+            <article class="part-2 position-r">
+                <label class="Roboto-Regular font14"> &nbsp; </label>
+                <button class="clearfix logbut t-b-p10 t-t-u Montserrat-Regular l-r-m10 white-t font18" value="Login" type="submit">Login</button>
+            </article>
+        </article>
+    }
+    <article class="clearfix t-c">
+        <span class="dis-b m0 l-h10 font14 black-t Roboto-Medium b-p20 t-c dis-in">
+            If you forget your password, Please
+            <a href="@Url.Action("ForgotPassword", "Members", new { cname = cname })" class="dis-in m0 l-h10 font14 forgpas-t Roboto-Medium t-p25 t-t-u"> Reset Here</a>
+        </span>
+    </article>
+
+</article>

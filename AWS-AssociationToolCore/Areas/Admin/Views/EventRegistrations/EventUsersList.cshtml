@@ -1,0 +1,283 @@
+﻿@using System.Configuration  
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+
+
+    List<AWS_AssociationToolCore.Entities.EventUserInfo> lstEventUserInfo = ViewBag.lstEventUserInfo;
+
+    string url = HttpContextAccessor.HttpContext.Session.GetString("UserSiteUrl") ?? ""; 
+
+    string userRole = HttpContextAccessor.HttpContext.Session.GetString("userrole") ?? "";
+}
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+    });
+    function EventUserInfoStatus(EventUserInfoId) {
+        $('#load' + EventUserInfoId + '').show();
+        $('#divStatus' + EventUserInfoId + '').hide();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("EventUserInfoStatus", "EventRegistrations")', // the URL of the controller action method
+            data: { EventUserInfoId: EventUserInfoId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                   /* $('#divmessage').html(result.data);*/
+                    EventRegistrationBind($('#hdnPageNo').val());
+                    //$('#load' + EventUserInfoId + '').hide();
+                    //$('#divStatus' + EventUserInfoId + '').show();
+                  /*  $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');*/
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+    function SendTickets(EventUserInfoId) {
+        $('#tload' + EventUserInfoId + '').show();
+        $('#tdiv' + EventUserInfoId + '').hide();
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SendTickets", "EventRegistrations")', // the URL of the controller action method
+            data: { EventUserInfoId: EventUserInfoId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                   /* $('#divmessage').html(result.data);*/
+                    //ClassifiedUserOrdersBind($('#hdnPageNo').val());
+                    $('#tload' + EventUserInfoId + '').hide();
+                    $('#tdiv' + EventUserInfoId + '').show();
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                }
+            }
+        });
+    }
+
+    function ResendQR(EventUserInfoId) {
+        $('#loadQR' + EventUserInfoId + '').show();
+        $('#divQR' + EventUserInfoId + '').hide();
+        var type = 'Event';
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ResendQRCode", "EventRegistrations")', // the URL of the controller action method
+            data: { EventUserInfoId: EventUserInfoId, type: type }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                   /* $('#divmessage').html(result.data);*/
+                    EventRegistrationBind($('#hdnPageNo').val());
+                    $('#loadQR' + EventUserInfoId + '').hide();
+                    $('#divQR' + EventUserInfoId + '').show();
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                }
+            }
+        });
+    }
+</script>
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+
+                    <th width="70" class="text-center">S.No</th>
+
+
+
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('FirstName');" class="white-t-u aws-h-a">
+                            First Name @if (sortcolumn == "FirstName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('LastName');" class="white-t-u aws-h-a">
+                            Last Name @if (sortcolumn == "LastName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                   
+                <th>
+                    Status
+                 
+                </th>
+                    
+
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('InsertedTime');" class="white-t-u aws-h-a">
+                            Booking Date @if (sortcolumn == "InsertedTime")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+
+
+                    <th> Amount </th>
+
+
+                    <th>
+                        <a style="color: black;" onclick="javascript:sortresult('TransactionId');" class="white-t-u aws-h-a">
+                            Transaction Id @if (sortcolumn == "TransactionId")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th>
+                        Payment
+                       
+                    </th>
+
+                    <th>
+                        P Status
+                      
+                    </th>
+
+
+                   @*  @if (ViewBag.IsEdit == true)
+                    {
+
+                        <th style="text-align:center">Resend</th>
+                    } *@
+                    @if(ViewBag.IsEdit == true || ViewBag.IsView == true || ViewBag.IsDelete == true)
+                    {
+                        <th class="text-center" width="50">Action</th>
+                    }
+                    </tr>
+            </thead>
+            <tbody>
+                @if (Total != 0)
+                {
+                    //int i = 1;
+                    foreach (var item in (List<AWS_AssociationToolCore.Entities.EventUserInfo>)ViewBag.lstEventUserInfo)
+                    {
+                <tr>
+                    <td style="text-align: center">@item.RId</td>
+                    <td>@item.FirstName</td>
+
+                    <td>@item.LastName</td>
+
+                   
+                        <td>
+                            <div class="menu-hover">
+                                @{ var isChecked = item.IsApproved ? "checked" : ""; }
+                                @{var titleValue = item.IsApproved ? "IsApproved" : "Is notApproved";}
+                                <div>
+                                    <label class="switch" title="@titleValue">
+                                        <input type="checkbox" onclick="EventUserInfoStatus(@item.EventUserInfoId)" @isChecked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+                    
+                <td>
+                    
+                    @item.InsertedTime.ToString("MM/dd/yyyy")
+                </td>
+                    <td>
+                       $@item.AmountPaid
+                    </td>
+                    <td>
+                        @(string.IsNullOrEmpty(item.TransactionId) ? "N/A" : item.TransactionId)
+</td>
+                    <td>
+                        @(string.IsNullOrEmpty(item.PaymentMethod) ? "N/A" : item.PaymentMethod)
+
+                    </td>
+                    <td>
+                        @*@(item.PaymentStatus != null && item.PaymentStatus != "" ? item.PaymentStatus : "Pending")*@
+                      
+                        @(string.IsNullOrEmpty(item.PaymentStatus) ? "N/A" : item.PaymentStatus)
+                    </td>
+                    @if (ViewBag.IsEdit == true)
+                    {
+                       
+                    }
+
+
+
+                        <td style="text-align: center">
+                            <div class="table-actions d-flex align-items-center gap-3 fs-6">
+                               
+
+
+                                @if (ViewBag.IsEdit == true )
+                                {
+
+                                    <a class="text-warning cursor-pointer" href="@Url.Action("EditEventUser", "EventRegistrations", new { EventUserInfoId = item.EventUserInfoId,mid = ViewBag.Mid })" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                }
+
+
+                                @if (ViewBag.IsDelete == true)
+                                {
+
+                                    <a class="text-danger cursor-pointer" onclick="javascript:Delete(@item.EventUserInfoId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                }
+
+                            </div>
+                        </td>
+
+
+
+                    </tr>
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="11" class="font-14 text-center">No  Records found</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                <div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="EventRegistrationBind();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,233 @@
+﻿@{
+    ViewBag.Title = "Index - " + (Context.Session.GetString("SiteName") ?? "");
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    Int64 Mid = ViewBag.mid;
+    Int64 ChapterId = ViewBag.ChapterId;
+    ViewBag.Pageheading = "Committees";
+
+    // ✅ ASP.NET Core Session fixes
+    var baseurl = Context.Session.GetString("BaseUrl") ?? "";
+    string userRole = Context.Session.GetString("userrole") ?? "";
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit") ?? "false");
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView") ?? "false");
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete") ?? "false");
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport") ?? "false");
+    bool IsAdd = Convert.ToBoolean(Context.Session.GetString("IsAdd") ?? "false");
+}
+
+<script>
+    $(document).ready(function () {
+        LoadEventsList();
+    });
+
+    function LoadEventsList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("CommitteeCategoryMasterList", "CommitteeCategoryMaster")',
+            data: {
+                IsEdit: '@IsEdit',
+                IsView: '@IsView',
+                IsDelete: '@IsDelete',
+                IsExport: '@IsExport',
+                IsAdd: '@IsAdd',
+                Mid: @Mid, // ✅ no quotes if number
+                YearId: @DateTime.Now.Year, // ✅ fixed
+                ChapterId: @(ChapterId == 0 ? 1 : ChapterId)
+            },
+            success: function (data) {
+                $("#divCommitteeCategoryMasterList").html(data);
+            },
+            error: function () {
+                $("#divCommitteeCategoryMasterList")
+                    .html('<p class="text-danger">Failed to load events.</p>');
+            }
+        });
+    }
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        //$('#wCommitteeCategoryMaster').addClass('active');
+        $('#wWebPages, #wCommitteeCategoryMaster').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+    });
+
+
+    function CommitteeCategoryMasterBind() {
+        
+        var YearId = $('#YearId').val();
+        $.ajax({
+            type: "GET",
+            cache: false,
+            url: '@Url.Action("CommitteeCategoryMasterList", "CommitteeCategoryMaster")',
+            data: { YearId: YearId, Mid: @Mid , ChapterId:@ChapterId}, // optional data
+            success: function (result) {
+                $('#divCommitteeCategoryMasterList').html(result);
+            }
+        });
+    }
+
+
+    function EditMenuPages(MenuPagesId) {
+        $.ajax({
+            url: '@Url.Action("EditMenuPages", "MenuPages")',
+            type: 'POST',
+            data: { MenuPagesId: MenuPagesId },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objMenuPages = result.data;
+                    $('#AMenuPageId').val(objMenuPages.MenuPageId);
+                    $('#AMenuItemId').val(objMenuPages.MenuItemId);
+                    $('#APageDetailId').val(objMenuPages.PageDetailId);
+                    $('#lbltitle').html('Change Page to Item');
+                    $('#hdnPageDetails').html('Change Page to Item');
+
+                    $("#AddMenuPages").modal("show");
+                }
+                else {
+                    alert(result.data);
+                }
+            }
+        });
+    }
+
+    function AddPageToItem(itemid, ChapterId) {
+        $('#AMenuItemId').val(itemid);
+        $('#AChapterId').val(ChapterId);
+        $('#APageDetailId').val('');
+        $("#AddMenuPages").modal("show");
+        $('#hdnPageDetails').html('Add Page to Item');
+    }
+    function Validate() {
+
+        if ($('#APageDetailId').val() == '') { $('#spanAPageDetailId').html('Required.'); $('#APageDetailId').focus(); return false; } else { $('#spanAPageDetailId').html(''); $('#APageDetailId').focus(); }
+
+        return true;
+    }
+
+    function addcommittee() {
+        var year = $('#YearId').val();
+        window.location.href = '@baseurl' + "Admin/CommitteeCategoryMaster/CreateCommitteeCategoryMaster?mid=" + '@ViewBag.mid' + "&YearId=" + year + "&ChapterId=" + '@ViewBag.ChapterId' ;
+    }
+</script>
+@*<script>
+    mobiscroll.setOptions({
+        locale: mobiscroll.localeEn,
+        theme: 'ios',
+        themeVariant: 'light'
+    });
+
+    var deletePopup = mobiscroll.popup('#delete-confirm-popup', {
+        display: 'center',
+        buttons: [
+            {
+                text: 'Cancel',
+                handler: 'cancel'
+            },
+            {
+                text: 'Delete',
+                cssClass: 'mbsc-button-danger',
+                handler: function () {
+                    if (currentDeleteId) {
+                        CommitteeCategoryMasterDelete(currentDeleteId);
+                    }
+                    deletePopup.close();
+                }
+            }
+        ]
+    });
+
+    var currentDeleteId = null;
+
+    function openDeletePopupq(CommitteeCategoryId) {
+        alert(CommitteeCategoryId);
+        currentDeleteId = CommitteeCategoryId;
+        alert(currentDeleteId);
+        deletePopup.open();
+    }
+
+
+</script>*@
+
+@*<div class="content">
+    <div class="box">
+        <div class="clearfix box-body">
+            <div class="clearfix row">
+                <div class="col-xs-12 col-lg-3 col-sm-6">
+                    <label> Years </label>
+                    <select class="form-control" name="YearId" id="YearId" onchange="CommitteeCategoryMasterBind();">
+                        <option value="">--Select--</option>
+                        @for (int i = DateTime.Now.Year; i <= DateTime.Now.Year + 8; i++)
+                        {
+                            <option @(i == DateTime.Now.Year ? "selected=selected" : "") value="@i">@i</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-xs-12 col-lg-9 col-sm-6">
+                    <button class="btn btn-primary" type="submit" style="display:none" onclick="CommitteeCategoryMasterBind(1);">Search</button>
+                    <a data-toggle="modal" href="@Url.Action("CreateCommitteeCategoryMaster", "CommitteeCategoryMaster", new { mid = ViewBag.mid })" class="btn btn-danger pull-right">Add Committee</a>
+                </div>
+            </div>
+        </div>
+        <div id="" class="box-body">
+            @{Html.RenderAction("CommitteeCategoryMasterList", "CommitteeCategoryMaster", new { Mid = Mid });}
+            <div class="clearfix text-right">
+                <a onclick="ScrollUp();" style="display:inline-block;  padding-top:10px;">Back to top <i class="fa fa-arrow-up"></i></a>
+            </div>
+        </div>
+    </div>
+</div>*@
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row gx-2">
+            <div class="col-lg-4 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label"> Years :<span class="text-danger"></span></label>
+                    <select class="single-select" name="YearId" id="YearId" onchange="CommitteeCategoryMasterBind();">
+                        <option value="">--Select--</option>
+                        @for (int i = DateTime.Now.Year-20; i <= DateTime.Now.Year + 8; i++)
+                        {
+                            <option @(i == DateTime.Now.Year ? "selected=selected" : "") value="@i">@i</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-8 col-2" id="clearhide">
+                <div>
+                    <label>&nbsp;</label>
+                </div>
+                <button class="btn btn-primary" type="submit" style="display:none" onclick="CommitteeCategoryMasterBind(1);">Search</button>
+                <a data-toggle="modal" onclick="addcommittee();" class="btn btn-primary pull-right">Add Committee</a>
+            </div>
+        </div>
+        <div class="col-lg-2 col-md-6 col-8">
+            
+        </div>
+    </div>
+    <div id="divCommitteeCategoryMasterList" class="box-body">
+        
+    </div>
+
+</div>
+
+<script type="text/javascript">
+    function ScrollUp() {
+        $('html, body').animate({
+            scrollTop: "0px"
+        }, 800);
+    }
+
+</script>
+<div style="display: none;">
+    <div id="delete-confirm-popup">
+        <div class="mbsc-align-center mbsc-padding">
+            <h4>Are you sure?</h4>
+            <p>Do you really want to delete this Committee? This action cannot be undone.</p>
+        </div>
+    </div>
+</div>

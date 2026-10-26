@@ -1,0 +1,144 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+
+    var lstCommittees = (List<AWS_AssociationToolCore.Entities.Members>)ViewBag.lstCommittees;
+
+    var Type = ViewBag.Type;
+
+    string cname = ViewBag.cname;
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status1);
+
+    var imglocNormal =  objAppInfo.BaseUrl+ "Content/MemberProfileImages/";
+
+    Int64 status = 0;
+
+    AWS_AssociationToolCore.Entities.PageDetails objPageDetails = new AWS_AssociationToolCore.Entities.PageDetails();
+
+    AWS_AssociationToolCore.BLL.PageDetails _PageDetails = new AWS_AssociationToolCore.BLL.PageDetails();
+    string IDPath = "";
+    objPageDetails = _PageDetails.GetPageDetailsListById(1, 28, ref IDPath, "", "nats-helpline.html", ref status);
+
+    AWS_AssociationToolCore.Entities.PageDetails MenuPageDetails = ViewBag.objMenuPageDetails;
+
+    Int64 ActiveId = 0;
+
+    if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+    {
+        ActiveId = MenuPageDetails.PageParentId;
+    }
+    else
+    {
+        ActiveId = MenuPageDetails.MenuItemId;
+    }
+
+    ViewBag.Title = "Help Line | " + objAppInfo.SiteName + " – Leadership & Community Initiatives";
+    ViewBag.MetaDescription = "Discover the committees of our " + objAppInfo.SiteName + ".Learn about leadership teams, cultural programs, event planning, and community service initiatives";
+
+    ViewBag.PageHeading = "Help Line";
+}
+
+<script type="text/javascript">
+    $(document).ready(function () { 
+        $('#M-@ActiveId').addClass('active'); 
+    });
+</script>
+
+<article class="clearfix lates-gray-bg t-b-p7 mobile-t-b-p10 mobilev-b-p0 mobilev-t-p96">
+    <ul class="bread-crum-list list-f list-pn m0 tabhorizontal-t-p30 font14 mobile-font12 mobile-v-t-p5 mobile-hide">
+        <li>
+            <a class="t-t-u" href="@cname/index">Home</a>
+        </li>
+        @if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+        {
+            <li>
+                <a class="t-t-u" href="@MenuPageDetails.ParentUrl">@MenuPageDetails.ParentName</a>
+            </li>
+        }
+        <li>
+            <a class="t-t-u">@MenuPageDetails.DisplayName</a>
+        </li>
+    </ul>
+</article>
+
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5"> NATS Helpline </h3>
+        </article>
+        <h2 class="font24 m0 l-h32 b-p5 Raleway-Bold red-t">
+            NATS Emergency Management
+        </h2>
+        <p>
+            In case of emergency and for immediate assistance please contact the following NATS action team members. You may also contact us by calling at <strong>+1-888-4-TELUGU (+1-888-483-5848)</strong>&nbsp;or/ sending an email to <a href="mailto:helpline@AWS_AssociationToolCore.org">helpline@AWS_AssociationToolCore.org</a>.
+        </p>
+        @if (lstCommittees != null && lstCommittees.Count != 0)
+        {
+            <ul class="clearfix list-pn list-f m0 committee-list committee-item1 gray-border t-p20 tabhorizontal-t-p10 mobile-b-p0">
+                @foreach (var item in lstCommittees)
+                {
+                    <li class="border-bot border-extop r-p7 mobile-r-p0 tabhorizontal-r-p0">
+                        <div class="clearfix com-bor-bot b-p1">
+                            <article class="clearfix p15 tablet-p10 committee-item ltgrey-bg2 tabhorizontal-p5 mobile-p5">
+                                <article class="clearfix block-row mobile-l-p0" style="min-height:101px;">
+                                    <article class="clearfix left-block21">
+                                        <article class="clearfix ">
+                                            <article class="clearfix tablet-minheight0"> <img src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal + item.ProfileImage), imglocNormal + "no-image.jpeg")" alt="@item.Name" title="@item.Name" class="profilepic-roundcircle shadow" width="158" height="172" border="0" /> </article>
+                                        </article>
+                                    </article>
+                                    <article class="right-block21">
+                                        <article class="clearfix t-p10">
+                                            <h5 class="Muli-SemiBold black-tt t-b-m0 t-t-c l-h20 mobilev-font14 mobilev-l-h18 font15 letespace1">
+                                                @item.Name
+                                                @if (item.Designation == "Member")
+                                                {
+
+                                                }
+                                                else
+                                                {
+                                                    <span class="Poppins-Regulardis-b redd-tt font12 dis-b">@item.Designation</span>
+                                                }
+
+                                            </h5>
+                                            @if (item.Designation == "Member")
+                                            {
+                                            }
+                                            else
+                                            {
+                                                <span class="dis-b black-tt Oswald-Regular font14 l-h10 t-p10 t-b-m0 w-w-break letespace1">@item.MobilePhone</span>
+                                            }
+                                                <span class="dis-b">
+                                                    @if (item.Designation == "Chairman")
+                                                    {
+                                                        <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:chairman@AWS_AssociationToolCore.org"> chairman@AWS_AssociationToolCore.org </a>
+                                                    }
+                                                    else if (item.Designation == "President")
+                                                    {
+                                                        <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:President@AWS_AssociationToolCore.org"> President@AWS_AssociationToolCore.org </a>
+                                                    }
+                                                    else
+                                                    {
+                                                        if (item.Designation == "Member")
+                                                        {
+                                                        }
+                                                        else
+                                                        {
+                                                        <a class="Muli font14 t-b-m0 black-tt letespace1 mobile-font12" href="mailto:@item.Email"> @item.Email</a>
+                                                        }
+                                                    }
+                                                </span>
+                                            </article>
+                                    </article>
+                                </article>
+                            </article>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+
+        @Html.Raw(objPageDetails.Description)
+    </article>
+</article>

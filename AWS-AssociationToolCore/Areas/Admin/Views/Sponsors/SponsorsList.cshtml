@@ -1,0 +1,338 @@
+﻿@using System.Configuration;
+@{ Layout = null;}
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+
+    //var imglocNormal = Session["BaseUrl"] + "Content/Sponsors/";
+
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status1);
+
+    //var imglocNormal = "~/Content/Sponsors/";
+
+    var imglocNormal1 = objAppInfo.BaseUrl + "Content/Sponsors/";
+
+
+    var imglocNormal = "~/Content/Sponsors/";
+
+    List<AWS_AssociationToolCore.Entities.Sponsors> lstSponsorsList = ViewBag.lstSponsorsList;
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+       // $('#MWebsite').addClass('active');
+    });
+
+    function SponsorStatus(SponsorId) {
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("SponsorStatus", "Sponsors")', // the URL of the controller action method
+            data: { SponsorId: SponsorId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+                if (result.ok) {
+                    Onload(1);
+                   // $('#divmessage').html(result.data);
+                    //$('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+                else {
+                   // $('#divmessage').html(result.data);
+                   // $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+    function DeleteSponsor(Id, BannerUrl) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteSponsor", "Sponsors")',  // the URL of the controller action method
+                data: { SponsorId: Id, BannerUrl: BannerUrl }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    if (result.ok) {
+                       // $("#divmessage").html(result.data);
+                        Onload(1);
+                       // $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    }
+                    else {
+                       // $("#divmessage").val(result.data);
+                       // $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    }
+                },
+            });
+        }
+    }
+
+    function SponsorDisplayOrder(i, SponsorId) {
+        var DisplayOrder = parseInt($('#DisplayOrder' + i).val());
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("SponsorDisplayOrder", "Sponsors")',
+            data: { DisplayOrder: DisplayOrder, SponsorId: SponsorId },
+            success: function (result) {
+                var div = '';
+                if (result.ok) {
+                    showLobiboxNotification(result.messageType, result.message);
+                   // $("#divmessage").html(result.data);
+                    Onload(1);
+                   // $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+                else {
+                    //$("#divmessage").html(result.data);
+                    //$('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+</script>
+<link rel="stylesheet" type="text/css" href="Content/Admin/lib/lightview/css/lightview/lightview.css" />
+<script type="text/javascript" src="Content/Admin/lib/lightview/js/spinners/spinners.js"></script>
+<script type="text/javascript" src="Content/Admin/lib/lightview/js/lightview/lightview.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+
+<div class="card-body">
+    <div class="table-responsive">
+
+        @if (Total == -1)
+        {
+            <div class="norecords">Sorry failed processing your request.</div>
+        }
+        else
+        {
+            <table class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+
+                        <th width="40" class="text-center">S.No</th>
+                        <th width="100">Heading</th>
+                        <th width="100">Sponsor Category</th>
+                        <th width="130">Posted Date</th>
+                        <th width="80">Order No</th>
+
+                        <th width="80">Status</th>
+
+                        <th width="80">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (lstSponsorsList.Count != 0)
+                    {
+                        int i = 0;
+                        foreach (var item in lstSponsorsList)
+                        {
+                            <tr>
+                                <td align="center">@item.RId</td>
+
+
+
+
+
+                                <td style="text-align: left">
+
+                                    <main class="main">
+                                        <div class="container__main">
+                                            <div class="card mb-0">
+                                                <div class="card-image">
+                                                    <a class='lightview' href="@(imglocNormal1 + item.LogoUrl)" data-fancybox="gallery" data-caption="Caption Images 1" title="@item.LogoUrl">
+                                                        <img width="100px" title="@item.CategoryName" alt="@item.CategoryName" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocNormal1 + item.LogoUrl), imglocNormal1 + "no-imagefinal.jpg")" class="borwhite5 border-radius shadow" />
+
+
+                                                    </a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </main>
+
+                                </td>
+
+
+
+                                <td>@item.CategoryName</td>
+                                <td>@(item.InsertedTime != null && item.InsertedTime != DateTime.MinValue ? item.InsertedTime.ToString("MM/dd/yyyy") : "N/A")</td>
+
+
+
+                                <td>
+                                    <input type="text" maxlength="3" style="width:50px;" id="DisplayOrder@(i)" value="@item.DisplayOrder" onkeypress="return Common.isNumberKey(event)" />
+                                    <a onclick="SponsorDisplayOrder(@i,@item.SponsorId);" title="Update"><i class="fa fa-fw fa-refresh"></i></a>
+
+                                </td>
+
+
+
+                                <td>
+                                    <div class="menu-hover">
+                                        @{ var isChecked = item.IsActive ? "checked" : ""; }
+                                        @{var titleValue = item.IsActive ? "Active" : "Disabled";}
+                                        <div>
+                                            <label class="switch" title="@titleValue">
+                                                <input type="checkbox" onclick="SponsorStatus(@item.SponsorId)" @isChecked>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="table-actions d-flex align-items-center gap-3 fs-6">
+
+                                        @if (ViewBag.IsEdit == true )
+                                        {
+                                            <a class="text-warning cursor-pointer" onclick="EditSponsor(@item.SponsorId);" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                        }
+                                        @if (ViewBag.IsDelete == true )
+                                        {
+
+                                            <a class="text-danger cursor-pointer" onclick="DeleteSponsor(@item.SponsorId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                        }
+                                    </div>
+
+
+
+                                    @*<div class="d-flex align-items-center gap-2 fs-6 cus-btn-group ">
+                                            <a class="text-warning cursor-pointer" onclick="EmployeeTypesEdit(@item.WebsiteBannerId);" title="" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                            <a class="text-danger" onclick="DeleteEmployeeType(@item.WebsiteBannerId, '@item.Name');" title="" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                        </div>*@
+                                </td>
+
+
+
+
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+
+
+    </div>
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                <div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="ThemeBannerBind();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+
+    *, *::before, *::after {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        list-style: none;
+        list-style-type: none;
+        text-decoration: none;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    .main .container__main {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 1rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .main .card {
+        color: #252a32;
+        border-radius: 2px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.24);
+    }
+
+    .main .card-image {
+        position: relative;
+        display: block;
+        width: 100%;
+        padding-top: 70%;
+        background: #fff;
+    }
+
+        .main .card-image img {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    @@media only screen and (max-width: 600px) {
+        .main .container__main {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-gap: 1rem;
+        }
+    }
+</style>

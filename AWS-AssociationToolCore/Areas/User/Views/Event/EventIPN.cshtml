@@ -1,0 +1,28 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    string cname = ViewBag.cname;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Event PIN | Secure Access – " + objAppInfo.SiteName;
+    ViewBag.MetaDescription = "Enter your Event PIN to access exclusive " + objAppInfo.SiteName + " event details";
+    ViewBag.MetaKeywords = "Event PIN access, Telugu event PIN, secure event login, " + objAppInfo.SiteName + " event code";
+
+    ViewBag.PageHeading = "Event PIN";
+}
+<div class="row">
+    <div class="col-12 text_align">
+        <img src="Content/User/images/check-mark-verified.gif" alt="" class="w_30">
+        <div class=" cus-sub-head  head_responsive my-1 my-md-3 text-success">
+
+           
+            <br class="d-none d-md-block">
+
+        </div>
+
+        <button class="cmn-form-btn" onclick="window.location.href='index'">Back to Home</button>
+    </div>
+</div>

@@ -1,0 +1,90 @@
+﻿@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objappinfo = _AppInfo.GetAppInfoDetails(ref status);
+    Int64 ChapterId = (Int64)ViewBag.ChapterId;
+    var ChapterName = ViewBag.cname;
+    var Type = ViewBag.Type;
+    var MemberId = ViewBag.MemberId;
+    string str = "";
+
+    string TypeText = (Type != null && Type.ToString().ToLower() == "past")
+        ? "Past Events"
+        : "Current/Upcoming Events";
+    ViewBag.PageHeading = TypeText;
+
+    Int64 ActiveId = 0;
+}
+<script>
+    $(document).ready(function () { 
+        $('#M-@ActiveId').addClass('active');
+        PagerClickBind(); 
+    });
+
+    function PagerClickBind() {
+        $("ul.pagination li a").bind("click", function () {
+            EventBind($(this).text());
+        });
+    }
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        EventBind(1);
+    }
+
+    function EventBind(Pageno) {
+        var pageno = Common.Pageno(Pageno);
+        var search = $('#keyword').val();
+        var sortcolumn = $('#hdnsortcolumn').val();
+        var sortorder = $('#hdnsortorder').val();
+        var items = $('#txtitems').val(); 
+
+        $.ajax({
+            url: '@Url.Action("EventsList", "Event")',
+            type: 'GET',
+            cache: false,
+            data: { ChapterId: @ChapterId, search: search, PageNo: pageno, SortColumn: sortcolumn, SortOrder: sortorder, Items: items, Type: '@Type', cname: '@ChapterName' },
+            success: function (result) {
+                $('#divEventsList').html(result);
+                PagerClickBind();
+            }
+        });
+    }
+</script>
+  <script>
+        $(document).ready(function () {
+            LoadLatestNewsList();
+        });
+
+        function LoadLatestNewsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("EventsList", "Event")',
+             data: {
+    Type    : '@Type',
+            cname    : '@ChapterName',
+            MemberId  : '@MemberId'
+         
+        },
+
+            success: function (data) {
+                    $("#divEventsList").html(data);
+                },
+                error: function () {
+                    $("#divEventsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+    </script>
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortorder" name="hdnsortorder" value="DESC" type="hidden" />
+<input id="hdnsortcolumn" name="hdnsortcolumn" value="StartDate" type="hidden" />
+
+            <div id="divEventsList">
+@*                 @{Html.RenderAction("EventsList", "Event", new { Type = Type, cname = ChapterName, MemberId= MemberId });}
+ *@
+            </div>
+            

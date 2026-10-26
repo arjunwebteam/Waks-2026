@@ -1,0 +1,153 @@
+﻿@{Layout = null;
+    List<AWS_AssociationToolCore.Entities.EventRegistrationTypes> lstEventRegistrationTypes = ViewBag.lstEventRegistrationTypes;
+
+    
+}
+
+
+<div class="card-body">
+    <div class="table-responsive">
+
+        @if (lstEventRegistrationTypes != null && lstEventRegistrationTypes.Count != 0)
+        {
+            int i = 0;
+            <table width="100%" class="table table-bordered table-hover">
+                <tbody>
+                    <tr>
+                        <th width="13%">Title</th>
+                        <th width="12%">Member Amount</th>
+                        <th width="12%">Non-Member Amount</th>
+                       @*  <th width="13%">EarlyBird Amount</th> *@
+                        <th width="10%">Status</th>
+                        <th width="8%">Reg.Count</th>
+                        <th width="6%">Mem.Count</th>
+                        <th width="8%">Order No</th>
+                        <th width="8%">Action</th>
+                    </tr>
+                    @foreach (var item in lstEventRegistrationTypes)
+                    {
+                <tr id="view-@item.EventRegistrationTypeId">
+                    <td width="13%">
+                        <label>@item.RegistrationTitle</label>
+                    </td>   
+                    <td width="12%">
+                        <label>@item.MemberAmount</label>
+                    </td>
+                    <td width="12%">
+                        <label>@item.NonMemberAmount</label>
+                    </td>
+                @*     <td width="13%">
+                        <label>@item.EarlyBirdMemberAmount</label>
+                    </td> *@
+                    @*<td width="10%">
+
+                        @{
+                            var isactive = "";
+                            var active = "";
+                            var disable = "";
+                            if (item.IsActive == true)
+                            {
+                                isactive = "Active";
+                                disable = "style=\"cursor: pointer;\" onclick=\"javascript:EventBeneifitsRegistrationTypesStatus(" + item.EventRegistrationTypeId + ");\"";
+                            }
+                            else
+                            {
+                                isactive = "Disabled";
+                                active = "style=\"cursor: pointer;\" onclick=\"javascript:EventBeneifitsRegistrationTypesStatus(" + item.EventRegistrationTypeId + ");\"";
+                            }
+                            <div class="admin-active">
+                                @isactive
+                                <ul>
+                                    <li><a @Html.Raw(active)>Active</a></li>
+                                    <li><a @Html.Raw(disable)>Disabled</a></li>
+                                </ul>
+                            </div>
+                        }
+
+
+                    </td>*@
+
+                    <td style="text-align:center;">
+                        <div class="menu-hover">
+                            @{ var isChecked = item.IsActive ? "checked" : ""; }
+                            <div>
+                                <label class="switch">
+                                    <input type="checkbox" onclick="EventBeneifitsRegistrationTypesStatus(@item.EventRegistrationTypeId)" @isChecked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </td>
+
+
+
+
+                    <td width="5%">@item.RegCount</td>
+                    <td width="9%">@item.MemberCount</td>
+                    <td width="8%">
+                        <input type="text" style="width:30px;margin-bottom:0px;" maxlength="3" id="OrderNo@(i)" value="@item.OrderNo" onkeypress="return Common.isNumberKey(event)" />
+                        @*<a onclick="UpdateDisplayOrder(@i,@item.EventRegistrationTypeId);" title="Update"><i class="fa fa-fw fa-refresh"></i></a>*@
+
+                    </td>
+                    @*<td width="8%">
+            <a onclick="UpdateDisplayOrder(@i,@item.EventRegistrationTypeId);" title="Update"><i class="fa fa-fw fa-refresh"></i></a>
+        </td>*@
+
+
+                <td width="8%" style="text-align: left" class="t-t-c">
+                    <div class="table-actions  gap-3 fs-6">
+                        <a onclick="EventRegistrationTypesEdit(@item.EventRegistrationTypeId);" title="Edit"><i class="bi bi-pencil-fill"></i></a>
+                        <a title="Delete" onclick="DeleteEventRegistrationType(@item.EventRegistrationTypeId)" class="pagedelete"><i class="bi bi-trash-fill"></i></a>
+               
+                     </div>
+                </td>
+                </tr>
+
+                        <tr id="edit-@item.EventRegistrationTypeId" style="display:none;">
+                            <td width="20%">
+                                <input type="text" class="form-control" id="RegistrationTitle-@item.EventRegistrationTypeId" name="RegistrationTitle-@item.EventRegistrationTypeId" value="@item.RegistrationTitle" />
+                            </td>
+                            <td width="15%">
+                                <input type="text" class="form-control" id="MemberAmount-@item.EventRegistrationTypeId" name="MemberAmount-@item.EventRegistrationTypeId" value="@item.MemberAmount" />
+                            </td>
+                            <td width="15%">
+                                <input type="text" class="form-control" id="NonMemberAmount-@item.EventRegistrationTypeId" name="NonMemberAmount-@item.EventRegistrationTypeId" value="@item.NonMemberAmount" />
+                            </td>
+                       @*      <td width="15%">
+                                <input type="text" class="form-control" id="EarlyBirdMemberAmount-@item.EventRegistrationTypeId" name="EarlyBirdMemberAmount-@item.EventRegistrationTypeId" value="@item.EarlyBirdMemberAmount" />
+                            </td> *@
+                            <td width="15%">
+                            </td>
+                            <td width="10%">
+
+                                <input type="text" class="form-control" id="RegCount-@item.EventRegistrationTypeId" name="RegCount-@item.EventRegistrationTypeId" value="@item.RegCount" />
+                            </td>
+
+                            <td width="6%">
+
+                                <input type="text" class="form-control" id="MemberCount-@item.EventRegistrationTypeId" name="MemberCount-@item.EventRegistrationTypeId" value="@item.MemberCount" />
+                            </td>
+                            <td width="8%">
+                                @*<input type="text" style="width:30px;margin-bottom:0px;" maxlength="3" id="OrderNo@(i)" value="@item.OrderNo" onkeypress ="return Common.isNumberKey(event)"/>
+                                <a onclick="UpdateDisplayOrder(@i,@item.EventRegistrationTypeId);" title="Update"><i class="fa fa-fw fa-refresh"></i></a>*@
+
+                            </td>
+                            <td width="13%">
+                                <a class="cursor-pointer btn btn-success px-3 me-2" onclick="TypesUpdate(@item.EventRegistrationTypeId);" title="Update">Update</a>
+                            </td>
+                        </tr>
+
+                        i++;
+                    }
+
+
+                </tbody>
+            </table>
+        }
+
+
+
+
+    </div>
+   
+</div>

@@ -1,0 +1,368 @@
+﻿@{ Layout = null;}
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment env
+@{
+    string sortcolumn = (string)ViewBag.sortcolumn;
+    string sortorder = (string)ViewBag.sortorder;
+    Int64 Total = (Int64)ViewBag.total;
+    var PageNo = (Int64)ViewBag.pageno;
+    var Items = (Int64)ViewBag.items;
+    int status1 = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status1);
+    List<AWS_AssociationToolCore.Entities.Photos> lstPhotos = ViewBag.lstPhotosLst;
+    // var location = System.Configuration.ConfigurationManager.AppSettings["baseurl"] + "Content/photogallery/thumbphoto/";
+    //var imglocNormal = System.Configuration.ConfigurationManager.AppSettings["baseurl"] + "Content/photogallery/normalphoto/";
+
+    bool  IsEdit          = ViewBag.IsEdit   ?? false;
+    bool  IsView          = ViewBag.IsView   ?? false;
+    bool  IsDelete        = ViewBag.IsDelete ?? false;
+    bool  IsExport        = ViewBag.IsExport ?? false;
+    bool  IsAdd           = ViewBag.IsAdd    ?? false;
+    Int64 ChapterId       = ViewBag.ChapterId       ?? 0;
+    Int64 PhotoCategoryId = ViewBag.PhotoCategoryId ?? 0;
+    Int64 Mid             = ViewBag.mid             ?? 0;  // ✅ lowercase .mid
+
+    var imglocNormal1 = objAppInfo.BaseUrl + "Content/photogallery/normalphoto/";
+
+    // var imglocNormal = "~/wwwroot/Content/photogallery/normalphoto/";
+
+    var imglocNormal = objAppInfo.BaseUrl + "Content/photogallery/normalphoto/";
+    var location = objAppInfo.BaseUrl + "Content/photogallery/thumbphoto/";
+
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+}
+<link rel="stylesheet" type="text/css" href="Content/lib/lightview/css/lightview/lightview.css" />
+<script type="text/javascript" src="Content/lib/lightview/js/spinners/spinners.js"></script>
+<script type="text/javascript" src="Content/lib/lightview/js/lightview/lightview.js"></script>
+
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js"></script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+       // $('#MWebsite').addClass('active');
+        $('#LPhotoGallery, #Gallery').addClass('active');
+        $('.closable').append('<span class="closelink" title="Close"></span>');
+        $('.closelink').click(function () {
+            $(this).parent().fadeOut('600', function () { $(this).remove(); });
+        });
+
+    });
+    function DeleteAll() {
+        Id = Common.GetCheckBoxValue('checkbox')
+        if (validate(Id)) {
+            var val1 = confirm("Do you want to delete for selected items?");
+            if (val1) {
+                $.ajax({
+                    type: "POST",
+                    url: '@Url.Action("PhotoDeleteAll", "PhotoGallery")', // the URL of the controller action method
+                    data: { PhotoIds: Id }, // optional data
+                    success: function (result) {
+                        showLobiboxNotification(result.messageType, result.message);
+                        PhotosBind($('#hdnPageNo').val());
+                    },
+                    error: function (req, status, error) {
+                        $("#divmessage").html(result.data);
+                        $('#divmessage').show();
+                    }
+                });
+            }
+        }
+    }
+
+    function validate(Id) {
+        if (Id == "") {
+            alert("Please select atleast one Item.");
+            return false;
+        }
+        return true;
+    }
+
+     function PhotosDisplayOrder(i, PhotoId) {
+        var DisplayOrder = parseInt($('#DisplayOrder' + i).val());
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("PhotosDisplayOrder", "PhotoGallery")',
+            data: { DisplayOrder: DisplayOrder, PhotoId: PhotoId },
+            success: function (result) {
+                var div = '';
+                if (result.ok) {
+                    showLobiboxNotification(result.messageType, result.message);
+                    PhotosBind(1);
+                }
+                else {
+                    $("#divmessage").html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+
+
+
+
+
+</script>
+<style>
+    .links_set {
+        border: 1px solid #ddd;
+        padding: 7px;
+        margin-bottom: 20px;
+    }
+
+        .links_set p {
+            text-align: end;
+        }
+
+    .svsn_addphoto_set {
+        display: grid;
+        grid-template-columns: repeat( auto-fit, minmax(200px, 1fr) );
+        gap: 20px;
+    }
+
+        .svsn_addphoto_set .svsn {
+            display: flex;
+            justify-content: flex-start;
+            gap: 10px;
+            align-items: center;
+        }
+</style>
+
+
+<div class="card-body">
+    <div class="table-responsive">
+
+        @if (Total == -1)
+        {
+            <div class="norecords">Sorry failed processing your request.</div>
+        }
+        else
+        {
+            <table class="table table-striped align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="text-align:center" width="8%">S.no</th>
+                        <th>
+                            <a style="color: black;" onclick="javascript:sortresult('ImageDescription');" class="white-t-u aws-h-a">
+                                Title @if (sortcolumn == "ImageDescription")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+                        </th>
+                        <th width="15%">Picture</th>
+                        <th width="13%">
+                            <a style="color: black;" onclick="javascript:sortresult('UpdatedTime');" class="white-t-u aws-h-a">
+                                Posted Date @if (sortcolumn == "UpdatedTime")
+                                {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                            </a>
+
+                        </th>
+                        <th style="text-align:center" width="13%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (lstPhotos.Count != 0)
+                    {
+                        int i = 1;
+                        foreach (var item in lstPhotos)
+                        {
+                            <tr>
+                                <td style="text-align:center">@i</td>
+
+
+                                @if (item.ImageDescription == "" || item.ImageDescription == null)
+                                {
+                                    <td>N/A</td>
+                                }
+                                else
+                                {
+                                    <td>@item.ImageDescription</td>
+                                }
+
+
+                                <td style="text-align: left">
+
+                                    <main class="main">
+                                        <div class="container__main">
+                                            <div class="card mb-0">
+                                                <div class="card-image">
+                                                    <a class='lightview' href="@(imglocNormal1 + item.ImageUrl)" data-fancybox="gallery" data-caption="Caption Images 1" title="@item.ImageDescription">
+                                                         @{
+            // ✅ URL encode the filename to handle spaces
+            string encodedImageUrl = Uri.EscapeDataString(item.ImageUrl ?? "");
+            string imgSrc = string.IsNullOrEmpty(item.ImageUrl)
+                ? imglocNormal + "no-image.jpeg"
+                : imglocNormal + encodedImageUrl;
+        }
+        <img width="100px"
+             title="@item.CategoryName"
+             alt="@item.CategoryName"
+             src="@imgSrc"
+             onerror="this.src='@(imglocNormal)no-image.jpeg'"
+             class="borwhite5 border-radius shadow" />                                                    </a>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </main>
+
+                                </td>
+
+
+
+
+                                <td style="text-align:left">@(item.UpdatedTime != null && item.UpdatedTime != DateTime.MinValue ? item.UpdatedTime.ToString("dd/MM/yyyy") : "N/A")</td>
+
+
+                                <td class="text-center">
+                                    <div class="table-actions  align-items-center gap-4 fs-6">
+
+                                        @if (ViewBag.IsEdit == true )
+                                        {
+                                            <a class="text-warning cursor-pointer" href="@Url.Action("PhotoEdit", "PhotoGallery", new { 
+    PhotoId         = item.PhotoId, 
+    mid             = Mid,               // ← use local variable
+    ChapterId       = ChapterId,         // ← use local variable  
+    PhotoCategoryId = PhotoCategoryId    // ← use local variable
+})" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                        }
+                                        @if (ViewBag.IsDelete == true )
+                                        {
+
+                                            <a class="text-danger cursor-pointer" onclick="javascript:Delete(@item.PhotoId, '@item.ImageUrl');" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                        }
+
+                                        @*@if (ViewBag.IsEdit == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+                                            {
+                                                <a title="Edit" href="@Url.Action("PhotoEdit", "PhotoGallery", new { PhotoId = item.PhotoId, mid = ViewBag.Mid })"><i class="fa fa-pencil-square-o"></i></a>
+                                            }
+                                            @if (ViewBag.IsDelete == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+                                            {
+                                                <a id="12" class="picturedelete" onclick="javascript:Delete(@item.PhotoId,'@item.ImageUrl');"><i class="fa fa-trash-o"></i></a>
+                                            }*@
+                                    </div>
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    }
+                    else
+                    {
+                        <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+
+
+    </div>
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                <div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="Onload();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="dataTables_paginate paging_simple_numbers" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+
+    *, *::before, *::after {
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        list-style: none;
+        list-style-type: none;
+        text-decoration: none;
+        -moz-osx-font-smoothing: grayscale;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+    }
+
+    .main .container__main {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-gap: 1rem;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .main .card {
+        color: #252a32;
+        border-radius: 2px;
+        background: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.24);
+    }
+
+    .main .card-image {
+        position: relative;
+        display: block;
+        width: 100%;
+        padding-top: 70%;
+        background: #fff;
+    }
+
+        .main .card-image img {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    @@media only screen and (max-width: 600px) {
+        .main .container__main {
+            display: grid;
+            grid-template-columns: 1fr;
+            grid-gap: 1rem;
+        }
+    }
+</style>

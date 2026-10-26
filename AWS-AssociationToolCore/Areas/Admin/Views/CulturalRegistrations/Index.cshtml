@@ -1,0 +1,450 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Pageheading = "Cultural Registrations";
+
+
+
+    Int64 ChapterId = ViewBag.ChapterId;
+
+    long EventId = ViewBag.EventId ?? 0;
+
+
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+    bool IsAdd = Convert.ToBoolean(Context.Session.GetString("IsAdd"));
+    Int64 Mid = ViewBag.mid;
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+
+    var lstEvents = ViewBag.lstEvents as List<AWS_AssociationToolCore.Entities.Events>;
+
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+}
+<script>
+    $(document).ready(function () {
+        LoadEventsList();
+    });
+
+    function LoadEventsList() {
+        $.ajax({
+            type: "GET",
+            url: '@Url.Action("CulturalRegistrationsList", "CulturalRegistrations")',
+            data: {
+                IsEdit    : '@IsEdit',
+                IsView    : '@IsView',
+                IsDelete  : '@IsDelete',
+                IsExport  : '@IsExport',
+                IsAdd     : '@IsAdd',
+                EventId:    '@EventId',
+
+                Mid       : '@Mid',           // ✅ uses Mid variable not ViewBag.mid
+                ChapterId : '@(ChapterId == 0 ? 1 : ChapterId)'
+            },
+            success: function (data) {
+                $("#divDetails").html(data);
+            },
+            error: function () {
+                $("#divDetails").html('<p class="text-danger">Failed to load events.</p>');
+            }
+        });
+    }
+</script>
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedDate" />
+<input id="hdnsortorder" type="hidden" value="Desc" />
+<input id="hdnuserid" type="hidden" value="0" />
+<!---  Breadcrumb Section Start ------>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<div class="card">
+    <div class="card-header py-3 mb-3">
+        <div class="row gx-2">
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label"> Events :<span class="text-danger"></span></label>
+                    <select class="single-select" name="EventId" id="EventId">
+                        <option value=""> -- Select -- </option>
+                        @if (lstEvents != null)
+                        {
+                            foreach (var item in lstEvents)
+                            {
+                                <option @(EventId == item.EventId ? "selected = selected" : "") value="@item.EventId">@item.EventName </option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 col-8">
+                <div class="input-box">
+                    <label class="form-label">Search  <span class="text-danger"></span></label>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Name">
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-2" id="clearhide">
+                <div>
+                    <label>&nbsp;</label>
+                </div>
+                <button type="button" class="btn btn-primary px-3" onclick="Onload(1);">Search</button>
+                <button type="button" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+            </div>
+            <div class="col-lg-5 col-2 text-end">
+
+                @if (IsExport == true)
+                {
+                    <div class="btn-align">
+                        @*<a class="btn btn-primary" onclick="ExporttoExcel();" style="white-space: nowrap;">Export Details to Excel</a>*@
+                        <a class="cursor-pointer do" data-bs-toggle="tooltip" style="border: 0;background: transparent;border: 1px solid #e8e6e7;padding: 10px;border-radius: 50%;/*! width: 100px; */background-color: #e8e6e7;" onclick="ExporttoExcel();" aria-label="Export Data ">
+                            <i class="lni lni-download" style="font-size: 20px; color: black;"></i>
+                        </a>
+                    </div>
+                }
+                </div>
+        </div>
+    </div>
+    <div id="divDetails" class="box-body table-responsive">
+
+      
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+	  PagerClickBind();
+        $('#wABCMembership, #wABCMembers').addClass('active');
+       // $("#StartDate").inputmask("mm/dd/yyyy", { "placeholder": "mm/dd/yyyy" });
+        //$("#EndDate").inputmask("mm/dd/yyyy", { "placeholder": "mm/dd/yyyy" });
+
+        //$("#StartDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+        //$("#EndDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+
+        $("[data-mask]").inputmask();
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+
+    });
+
+function Onload(Pageno) {
+    var pageno     = Common.Pageno(Pageno);
+    var sortcolumn = $('#hdnsortcolumn').val();
+    var sortorder  = $('#hdnsortorder').val();
+    var items      = $('#txtitems').val();
+    var Search     = $('#txtsearch').val();
+    var State      = $('#State').val();
+    var EventId    = $('#EventId').val();  // ✅ read from dropdown
+
+    $.ajax({
+        url: '@Url.Action("CulturalRegistrationsList", "CulturalRegistrations")',
+        type: 'GET',
+        cache: false,
+        data: {
+            Search:    Search,
+            PageNo:    pageno,
+            SortColumn: sortcolumn,
+            SortOrder: sortorder,
+            Items:     items,
+            State:     State,
+            EventId:   EventId,            // ✅ use variable not '@EventId'
+            IsEdit:    '@IsEdit',
+            IsView:    '@IsView',
+            IsDelete:  '@IsDelete',
+            IsExport:  '@IsExport',
+            IsAdd:     '@IsAdd',
+            ChapterId: @ChapterId,
+            mid:       @Mid
+        },
+        success: function (result) {
+            $('#divDetails').html(result);
+            PagerClickBind();
+        }
+    });
+}
+
+
+    var chapterId = '@ViewBag.ChapterId';
+
+    function ExporttoExcel() {
+        window.location.href = "Admin/CulturalRegistrations/CulturalRegistrationsExportToExcel?Search="
+            + $('#txtsearch').val()
+            + "&ChapterId="
+            + chapterId;
+    }
+
+    function Add() {
+        clearUser();
+        $("#Add-User").modal('show');
+        $('#lbltitle').html('Add Admin');
+    }
+
+    function clearUser() {
+
+        $('#UserName').val('');
+        $('#Email').val('');
+        $('#Password').val('');
+        $('#MobilePhone').val('');
+
+        $('#UserName').removeClass("validate");
+        $('#Email').removeClass("validate");
+        $("#AddUser").dialog("close");
+        $("#EditUser").dialog("close");
+    }
+    function clearEditUser() {
+        $("#EditUser").dialog("close");
+    }
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1, 'on');
+    }
+
+    //function ClearSearch() {
+    //    $('#txtsearch').val('');
+    //    $('#IsApproved').val('');
+
+
+
+    //    Onload(1, 'on');
+    //}
+
+    function UserClear() {
+        $('#txtsearch').val('');
+        $('#State').val('');
+
+
+
+        Onload(1, 'on');
+    }
+    function CheckEmailAvailability(email) {
+
+        var returnval = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("CheckEmailAvailability", "ABCMembers")', // the URL of the controller action method
+            data: { Email: email }, // optional data
+            datatype: "JSON",
+            async: false,
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+
+                if (result.ok) {
+                    returnval = result.data;
+                }
+            }
+        });
+        return returnval;
+    }
+
+    function CheckUserNameAvailability(UserName) {
+
+        var returnval = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("CheckUserNameAvailability", "ABCMembers")', // the URL of the controller action method
+            data: { UserName: UserName }, // optional data
+            datatype: "JSON",
+            async: false,
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+
+                if (result.ok) {
+                    returnval = result.data;
+                }
+            }
+        });
+        return returnval;
+    }
+
+    function ValidateProfile() {
+
+        var return_val = true;
+
+        //Account Information
+        if ($.trim($('#UserName').val()) == '') { $('#UserName').addClass("validate"); return_val = false; } else { $('#UserName').removeClass("validate"); }
+        if ($.trim($('#LastName').val()) == '') { $('#LastName').addClass("validate"); return_val = false; } else { $('#LastName').removeClass("validate"); }
+        //if (!CheckUserNameAvailability($.trim($('#UserName').val()))) { document.getElementsByName('UserName')[0].placeholder = 'User Name already exist'; $('#UserName').addClass("validate"); return_val = false; } else { $('#UserName').removeClass("validate"); }
+        if ($.trim($('#Email').val()) == '') { $('#Email').val(''); $('#Email').addClass("validate"); return_val = false; }
+        else {
+            $('#Email').removeClass("validate");
+            if (!Common.CheckEmail($.trim($('#Email').val()))) { $('#Email').val(''); document.getElementsByName('Email')[0].placeholder = 'Please enter valid email.'; $('#Email').addClass("validate"); return_val = false; }
+            else {
+                $('#Email').removeClass("validate");
+                if (!CheckEmailAvailability($.trim($('#Email').val()))) { $('#Email').val(''); document.getElementsByName('Email')[0].placeholder = 'Email address already exist.'; $('#Email').addClass("validate"); return_val = false; } else { $('#Email').removeClass("validate"); }
+            }
+        }
+
+        //if ($('#NewPassword').val() == '') { $('#spanNewPassword').html('Required.'); $('#NewPassword').addClass("red-border"); return_val = false; } else { $('#spanNewPassword').html(''); }
+        //if (!Common.ValidatePassword($('#NewPassword').val())) { $('#spanPassword').html('Please enter minimum 8 charecters (atleast one special charecter & one numeric charecter).'); $('#NewPassword').addClass("red-border"); return_val = false; } else { $('#spanPassword').html(''); }
+
+        return return_val;
+    }
+    function ResetValidateClass() {
+        $('#UserName').removeClass("validate");
+        $('#LastName').removeClass("validate");
+        $('#Email').removeClass("validate");
+    }
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1);
+    }
+    function validate(Id) {
+        if (Id == "") {
+            alert("Please select atleast one Item.");
+            return false;
+        }
+        return true;
+    }
+
+    function ClearSearch() {
+
+        $('#txtsearch').val('');
+        $('#EventId').val('').trigger('change');;
+        Onload(1);
+    }
+
+
+
+    //function ExporttoExcel() {
+    //    var sortcolumn = $('#hdnsortcolumn').val();
+    //    var sortorder = $('#hdnsortorder').val();
+    //    var Search = $('#txtsearch').val();
+    //    var ABCMembershipTypeId = $('#ABCMembershipTypeId').val();
+    //    var ExpiryDate = $('#ExpiryDate').val();
+    //    var EndDate = $('#EndDate').val();
+    //    var StartDate = $('#StartDate').val();
+    //    var PaymentStatusId = $('#PaymentStatusId').val();
+
+    //    window.location.href = "ABCMembers/ABCMembersExporttoExcel?Search=" + Search + "&StartDate=" + StartDate + "&EndDate=" + EndDate + "&PaymentStatusId=" + PaymentStatusId + "&ExpiryDate=" + ExpiryDate + "&SortColumn=" + sortcolumn + "&SortOrder=" + sortorder + "&ABCMembershipTypeId=" + ABCMembershipTypeId;
+
+    //    }
+
+
+
+
+
+
+
+    function Delete(CulturalRegistrationId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteCulturalRegistrations", "CulturalRegistrations")',  // the URL of the controller action method
+                data: { CulturalRegistrationId: CulturalRegistrationId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+
+                    //$("#divmessage").html(result.data);
+                    Onload($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function DeleteCulturalRegistrations(CulturalRegistrationId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteCulturalRegistrations", "CulturalRegistrations")',  // the URL of the controller action method
+                data: { CulturalRegistrationId: CulturalRegistrationId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+
+                    //$("#divmessage").html(result.data);
+                    Onload($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Onload($(this).text());
+        });
+    }
+
+        function BulkValidate() {
+            if ($('#Document').val() == "") { $('#spanDocument').show().html('Required. <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#Document').focus(); return false; } else { $('#spanDocument').hide().html(' '); }
+            if (!Common.isDocument($('#Document').val())) { $('#spanDocument').html('Sorry image is invalid. Only allowed extensions are:<b>xls, xlsx</b>.'); $('#Document').focus(); return false; } else { $('#spanDocument').html(''); }
+
+            return true;
+        }
+
+
+
+
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1);
+    }
+
+</script>
+<script>
+    $(document).ready(function () {
+
+        //Date Picker
+
+        $(function () {
+            $("#StartDate,#EndDate").datepicker({
+
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: 'dd/mm/yy'
+            });
+        });
+
+
+
+    });
+</script>
+
+
+

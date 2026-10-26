@@ -1,0 +1,576 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewBag.Title = "AddDetails";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Pageheading = "Add Service Donation";
+
+    var baseUrl = HttpContextAccessor.HttpContext?.Session.GetString("UserSiteUrl") ?? "";
+    var cssloc = baseUrl + "Content/Admin/front-end-style.css";
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+    Int64 ServiceId = ViewBag.ServiceId;
+
+    Int64 ChapterId = ViewBag.ChapterId;
+
+
+
+    var objServices = (AWS_AssociationToolCore.Entities.Services)ViewBag.objServices;
+
+    List<AWS_AssociationToolCore.Entities.Services> lstServices = ViewBag.lstServices;
+
+    Int64 TotalServices = lstServices.Count();
+
+    Int64 servie = 0;
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+}
+
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+
+<input type="hidden" id="GID" value="0" />
+
+<script>
+    $(document).ready(function () {
+        $('#wDonate-Sponsors, #wServiceDonors').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $("#OrderDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-10:+10", altFormat: 'mm/dd/yy' });
+        if ('@objServices.ServiceTitle' == 'General Donation') {
+            addCauseRow();
+            $('#GID').val(1);
+        }
+    });
+
+    function addCauseRow() {
+
+        var table = document.getElementById("contributionfo");
+
+        var rowCount = table.rows.length;
+        var row = table.insertRow(rowCount);
+        row.id = rowCount;
+
+        var cell1 = row.insertCell(0);
+        var element1 = document.createElement("article");
+        element1.className = "clearfix";
+        element1.innerHTML = " <select class=\"form-control\" id=\"ServiceId-" + (rowCount - 1) + "\" name=\"[" + (rowCount - 1) + "].ServiceId\" style=\"min-height:40px; background-color:#fff;\" onchange=\"contributionupdate();\" ></select>";
+        element1.style = "min-height:40px; background-color:#fff;"
+        cell1.appendChild(element1);
+
+        var cell2 = row.insertCell(1);
+        var element2 = document.createElement("input");
+        element2.type = "text";
+        element2.name = "[" + (rowCount - 1) + "].Percentage";
+        element2.id = "Percentage-" + (rowCount - 1);
+        element2.className = "form-control dis-in per_class";
+        element2.style = "min-height:40px; background-color:#fff";
+        cell2.appendChild(element2);
+
+
+        var cell3 = row.insertCell(2);
+        cell3.align = 'center';
+        cell3.innerHTML = '<span id="del-' + (rowCount - 1)+'"><a onclick="javascript:deleteRow(' + rowCount + ')" class="darkgray-text"><img alt="Delete" title="Delete" src="Content/User/images/delete.gif" class="margin-top-5" /></a></span>';
+        $('#hdnRowCount').val(rowCount);
+
+        $("#Percentage-" + (rowCount - 1)).attr('onchange', 'sumpercentage()').attr('onkeypress', 'return Common.isNumberKey(event)');
+
+        ServicesList(rowCount - 1);
+        $('#del-' + (rowCount - 2)).html('');
+        if ((rowCount) == @TotalServices) {
+            $('#spp2').hide();
+        }
+    }
+
+    function deleteRow(i) {
+        try {
+            var row = document.getElementById(i);
+            row.parentNode.removeChild(row);
+            contributionupdate();
+            $('#del-' + (i - 2)).html('<a onclick="javascript:deleteRow(' + (i-1) + ')" class="darkgray-text"><img alt="Delete" title="Delete" src="Content/User/images/delete.gif" class="margin-top-5" /></a>');
+            var table = document.getElementById("contributionfo");
+            var rowCount = table.rows.length;
+            if ((rowCount - 2) < 4) {
+                $('#spp2').show();
+            }
+
+        } catch (e) {
+            
+        }
+    }
+
+    function contributionupdate() {
+        var table = document.getElementById("contributionfo");
+        var rowCount = table.rows.length;
+        var rows = rowCount - 1;
+        var per = (100 / rows).toFixed(2);
+        $('.per_class').val(per);
+        sumpercentage();
+        //for (var i = 0; i <= rows; i++) {
+
+        //    $("#Percentage-" + i).val(per);
+        //}
+    }
+
+    function sumpercentage() {
+        var sum = 0;
+        $(".per_class").each(function () {
+            sum += +$(this).val();
+        });
+        $("#TotalPercent").val(sum);
+        if ($('#GID').val() == 1) {
+            $('#GID').val(0);
+        }
+        else {
+            Validate();
+        }
+    }
+
+    function ServicesList(rowid) {
+        $.ajax({
+            url: '@Url.Action("ServicesGetListByChapterId", "ServiceDonations")',
+            type: 'POST',
+            cache: false,
+            success: function (result) {
+                if (result.ok) {
+                    var lstServices = result.data;
+                    var sb1 = "";
+                    if (lstServices != null) {
+                        var table = document.getElementById("contributionfo");
+                        var rowCount = table.rows.length;
+                        var rows = rowCount - 1;
+
+                        for (var k = 0; k < lstServices.length; k++) {
+                            var x = 0;
+                            for (var i = 0; i <= rows; i++) {
+                                if (lstServices[k].ServiceId == $('#ServiceId-' + i).val()) {
+                                    x = 1;
+                                }
+                            }
+                            if (x == 0) {
+                                sb1 = sb1 + "<option value=\"" + lstServices[k].ServiceId + "\">" + lstServices[k].ServiceTitle + "</option>";
+                            }
+                        }
+                    }
+                    $('#ServiceId-' + rowid).append(sb1);
+                    //if (rowid == 0) {
+                    //    $('#ServiceId-' + rowid).val(10);
+                    //    contributionupdate();
+                    //}
+                    contributionupdate();
+                }
+            }
+        });
+    }
+
+   
+    function Validate() {
+
+        if ($.trim($('#DonationCause').val()) == '') { document.getElementsByName('DonationCause')[0].placeholder = 'Required'; $('#DonationCause').focus().addClass("validate"); return false; } else { $('#DonationCause').focus().removeClass("validate"); }
+        if ($.trim($('#Amount').val()) == '') { document.getElementsByName('Amount')[0].placeholder = 'Required'; $('#Amount').focus().addClass("validate"); return false; } else { $('#Amount').focus().removeClass("validate"); }
+        if ($.trim($('#TransactionId').val()) == '') { document.getElementsByName('TransactionId')[0].placeholder = 'Required'; $('#TransactionId').focus().addClass("validate"); return false; } else { $('#TransactionId').focus().removeClass("validate"); }
+        if ($.trim($('#PaymentMethodId').val()) == '') { document.getElementsByName('PaymentMethodId')[0].placeholder = 'Required'; $('#PaymentMethodId').focus().addClass("validate"); return false; } else { $('#PaymentMethodId').focus().removeClass("validate"); }
+        if ($.trim($('#PaymentStatusId').val()) == '') { document.getElementsByName('PaymentStatusId')[0].placeholder = 'Required'; $('#PaymentStatusId').focus().addClass("validate"); return false; } else { $('#PaymentStatusId').focus().removeClass("validate"); }
+
+        return true;
+    }
+    function ResetValidateClass() {
+        $('#DonationCause').removeClass("validate");
+        $('#Amount').removeClass("validate");
+        $('#TransactionId').removeClass("validate");
+        $('#PaymentMethodId').removeClass("validate");
+        $('#PaymentStatusId').removeClass("validate");
+
+    }
+
+    function RECAMTBIND() {
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            $('#Field1').val($('#round_no').val());
+        }
+    }
+    function RecurrDivFunction() {
+        if ($('#RecurrCheckbox').prop("checked") == true) {
+            $('#Field1').val($('#round_no').val());
+            $('#RecurrDiv').show('slow');
+        }
+        else {
+            $('#RecurringAmount').val('');
+            $('#RecurringType').val('');
+            $('#RecurringStartTime').val('');
+            $('#RECDate').val('');
+            $('#RType').val('');
+            $('#ReccurId').val('');
+            $('#RecurrDiv').hide('slow');
+        }
+    }
+
+    function ServiceIDBind() {
+        var id = $('#Service').val();
+        $.ajax({
+            url: '@Url.Action("GetServiceId", "ServiceDonations")',
+            type: 'POST',
+            data: { id: id },
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    var objServices = result.data;
+                    $('#DonationCause').val(objServices.ServiceTitle);
+                    $('#ServiceId').val(objServices.ServiceId);
+                    CauseBind();
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+                else {
+                    $('#divmessage').val(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+    function CauseBind() {
+        if ($('#DonationCause').val() == 'General Donation') {
+            $('#donationcause').show();
+            
+            addCauseRow();
+            $('#GID').val(1);
+        }
+        else {
+            deleteRow(1);
+            $('#donationcause').hide();
+            
+            
+        }
+
+    }
+
+    $(document).ready(function () {
+        PaymentMethodBind();
+        $.validator.addMethod("phoneFormat", function (value, element) {
+            if (value === "") {
+                return true;
+            }
+            var phoneNumber = value.replace(/\D/g, '');
+            var phoneNumberLength = phoneNumber.length;
+            if (phoneNumberLength >= 3 && phoneNumberLength <= 6) {
+                phoneNumber = phoneNumber.replace(/^(\d{3})(\d+)/, '$1-$2');
+            } else if (phoneNumberLength > 6) {
+                phoneNumber = phoneNumber.replace(/^(\d{3})(\d{3})(\d+)/, '$1-$2-$3');
+            }
+            $(element).val(phoneNumber);
+            var pattern = /^\d{3}-\d{3}-\d{4}$/;
+            return pattern.test(phoneNumber);
+        }, "Please enter format xxx-xxx-xxxx.");
+        $("#ServiceDonation").validate({
+            rules: {
+                FirstName: "required",
+                LastName: "required",
+                Email: {
+                    required: true,
+                    email: {
+                        depends: function (element) {
+                            // Only validate if SpouseEmail is not null
+                            return $(element).val() !== null;
+                        },
+                        messages: "Please Enter Valid Email Address"
+                    }
+                },
+
+                PhoneNo: {
+                    required: true,
+                    phoneFormat: true
+                },
+                ServiceId: "required",
+            },
+            messages: {
+                FirstName: "First Name Is required",
+                LastName: "Last Name Is required",
+                Email: {
+                    required: "Please Enter Your Email Address",
+                    validate_email: "Please Enter Valid Email Address",
+
+                },
+                PhoneNo: {
+                    required: "Please Enter Phone Number",
+                    phoneFormat: "Please Enter Valid Phone Number",
+                },
+                ServiceId: "Please Select Donation Cause",
+
+            },
+            submitHandler: function (form) {
+                var response = grecaptcha.getResponse();
+                if ('Yes' == 'Yes') {
+                    if (response.length === 0) {
+                        alert('Please confirm that you are not a robot.');
+                    }
+                    else {
+                        form.submit();
+                    }
+                }
+                else {
+                    form.submit();
+                }
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+            },
+
+
+        });
+
+
+
+    });
+    function Mobilephonenochange(event) {
+        if (event.keyCode == 8 || event.keyCode == 46) {
+        }
+        else {
+            var ph = $('#PhoneNo').val();
+            if (ph.length == 3) { $('#PhoneNo').val(ph + '-'); }
+            if (ph.length == 7) { $('#PhoneNo').val(ph + '-'); }
+        }
+    }
+    function PaymentMethodBind() {
+
+        var PaymentMethod = $('#PaymentMethodId').val();
+        if (PaymentMethod == 3) {
+            $('#ChequeHolderNamehide').show()
+            $('#ZellePartnerNamehide').hide()
+        }
+        else if (PaymentMethod == 6) {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').show()
+        }
+        else {
+            $('#ChequeHolderNamehide').hide()
+            $('#ZellePartnerNamehide').hide()
+        }
+    }
+</script>
+
+<!-- breadcumb -->
+
+<!--end breadcumb -->
+<div class="content">
+
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("AddServiceDonation", "ServiceDonations", FormMethod.Post, new { enctype = "multipart/form-data", @id = "ServiceDonation", @name = "ServiceDonation" }))
+    {
+
+        <input type="hidden" value="" id="MemberId" name="MemberId" />
+        <input type="hidden" name="ServiceDonationId" id="ServiceDonationId" value="" />
+        <input type="hidden" name="OrderDate" id="OrderDate" value="@DateTime.UtcNow" />
+        <input type="hidden" id="mid" name="mid" value="@ViewBag.mid" />
+
+
+        if (objAppInfo.chapterStatus == "No")
+        {
+
+            <input type="hidden" id="ChapterId" name="ChapterId" value="1" />
+        }
+        else
+        {
+            
+            <input type="hidden" id="ChapterId" name="ChapterId" value="@ChapterId" />
+
+        }
+
+
+        <div class="card">
+            <div class="card-body">
+                <input class="form-control" type="hidden" id="PageDetailId" name="PageDetailId" value="" />
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in">Personal Details </h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">First Name :  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="FirstName" id="FirstName" value="" onkeypress="return Common.isChar(event)">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Last Name :  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="LastName" id="LastName" value="" onkeypress="return Common.isChar(event)">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Email :  <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="Email" id="Email" value="">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Mobile Number : <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="PhoneNo" id="PhoneNo" maxlength="12" onkeypress="PhoneNochange(event); return Common.isNumberKey(event);">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Country : </label>
+                            <select class="form-control" id="Country" name="Country">
+                                <option value="">Select </option>
+
+                                <option value="Australia">Australia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Address : </label>
+                            <input type="text" class="form-control" name="Address" id="Address" value="">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Zip Code : </label>
+                            <input type="text" class="form-control" name="ZipCode" id="ZipCode" value="" onkeypress="return Common.isNumberKey(event)" maxlength="6">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Donation Cause : <span class="text-danger">*</span></label>
+                            <select class="form-control" name="ServiceId" id="ServiceId">
+                                @if (lstServices != null)
+                                {
+                                    <option value="">Select</option>
+                                    foreach (var item in lstServices)
+                                    {
+                                        <option @(item.ServiceId == ServiceId ? "selected=selected" : "") value="@item.ServiceId">@item.ServiceTitle</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-body">
+                <div class="row  g-3">
+                    <div class="box-header">
+                        <h3 class="box-title dis-in">Payment Details </h3>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Amount ($) : </label>
+                            <input type="text" maxlength="6" class="form-control" name="Amount" id="Amount" onkeypress="return Common.isNumberKey(event)" value="">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Payment Method : </label>
+                            <select class="form-control" name="PaymentMethodId" id="PaymentMethodId" onchange="PaymentMethodBind();">
+                                @if (lstPaymentMethod != null)
+                                {
+                                    <option value="">Select</option>
+                                    foreach (var item in lstPaymentMethod)
+                                    {
+                                        <option value="@item.PaymentMethodId">@item.PaymentMethod</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6" id="ChequeHolderNamehide">
+                        <div class="input-box">
+                            <label class="form-label">Handed the cash/cheque to - Name of the :</label>
+                            <input type="text" class="form-control" id="ChequeHolderName" name="ChequeHolderName">
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6" id="ZellePartnerNamehide">
+                        <div class="input-box">
+                            <label class="form-label">Zelle Person Name </label>
+                            <input type="text" class="form-control" id="ZellePartnerName" name="ZellePartnerName">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">TransactionId : </label>
+                            <input type="text" class="form-control" name="TransactionId" id="TransactionId" value="">
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label class="form-label">Payment Status : </label>
+                            <select class="form-control" name="PaymentStatusId" id="PaymentStatusId">
+                                @if (lstPaymentStatus != null)
+                                {
+                                    <option value="">Select</option>
+                                    foreach (var item in lstPaymentStatus)
+                                    {
+                                        <option value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <div class="input-box">
+                            <label> Is Ananymous : </label>
+                            <select class="form-control" name="Field3" id="Field3">
+                                <option value="">Select</option>
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                            </select>
+                        </div>
+                    </div>
+
+
+
+
+
+                    <div class="row">
+                        <div class="col-lg-3 col-3 text-end ms-auto">
+                            <button type="submit" class="btn btn-success px-3 " onclick="return Validate();" value="submit">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                            <a class="btn btn-primary px-3" href="@Url.Action("Index", "ServiceDonations", new { mid = ViewBag.mid })">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+</div>
+
+
+

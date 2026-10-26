@@ -1,0 +1,246 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@{
+    Layout = null;
+
+    string sortcolumn = ViewBag.sortcolumn as string;
+    string sortorder = ViewBag.sortorder as string;
+
+    long Total = ViewBag.total ?? 0;
+    long PageNo = ViewBag.pageno ?? 0;
+    long Items = ViewBag.items ?? 0;
+
+    long ChapterId = ViewBag.ChapterId ?? 0;
+    long mid = ViewBag.Mid ?? 0;
+
+    var lstServiceDonations = ViewBag.lstServiceDonations as List<AWS_AssociationToolCore.Entities.ServiceDonations>;
+
+    // ✅ Get cookie (Core way)
+    var authCookie = HttpContextAccessor.HttpContext?.Request.Cookies["UserCookie"];
+
+    string userRole = "";
+
+    // ✅ Get role from Claims instead of FormsAuthentication
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+    }
+
+    decimal amount = 0;
+}
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+    });
+
+    function payableAmount() {
+
+        var tamount = 0;
+        var paypaldudamount = 0;
+        var noofdonation = '@ViewBag.noofdonors';
+
+        var specialcharges = parseFloat(0.30) * parseFloat(noofdonation);
+
+        tamount = parseFloat('@ViewBag.SumofDonation');
+
+        paypaldudamount = 0.022 * parseInt('@ViewBag.SumofDonation');
+
+        var actamount = parseFloat('@ViewBag.SumofDonation' - paypaldudamount).toFixed(2);
+        var amount = parseFloat(actamount) + parseFloat(specialcharges);
+
+        $('#TotalAmount').html(Math.round(tamount));
+        $('#paypaldudamount').html(Math.round(paypaldudamount));
+        $('#FinalAmount').html(Math.round(amount));
+        $('#specialcharges').html(specialcharges);
+    }
+
+    function ServiceDonationsStatus(ServiceDonationId) {
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("ServiceDonationsStatus", "ServiceDonations")', // the URL of the controller action method
+            data: { ServiceDonationId: ServiceDonationId }, // optional data
+            datatype: "JSON",
+            success: function (result) {
+                if (result.ok) {
+                    $('#divmessage').html(result.data);
+                    $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                    ServiceDonationBind($('#hdnPageNo').val());
+                }
+                else {
+                    $('#divmessage').html(result.data);
+                    $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+                }
+            }
+        });
+    }
+
+</script>
+
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>
+
+<div class="card-body">
+    <div class="table-responsive">
+        <table class="table table-striped align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="5%" style="text-align: center">S.No.</th>
+
+                    <th style="text-align: left;">
+                        <a onclick="javascript:sortresult('FirstName');" class="aws-h-a" style="color:black">
+                            Name @if (sortcolumn == "FirstName")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th style="text-align: center" width="10%">Phone No</th>
+                    <th width="14%" style="text-align: center">
+                        <a onclick="javascript:sortresult('DonationCause');" class="aws-h-a" style="color:black">
+                            Donation Cause @if (sortcolumn == "DonationCause")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th style="text-align: center" width="1%">
+                        <a onclick="javascript:sortresult('TransactionId');" class="aws-h-a" style="color:black">
+                            Transaction.Id @if (sortcolumn == "TransactionId")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+                    <th width="7%" style="text-align: center">
+                        <a onclick="javascript:sortresult('Amount');" class="aws-h-a" style="color:black">
+                            Amount @if (sortcolumn == "Amount")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                    <th style="text-align: center" width="10%">
+                        <a onclick="javascript:sortresult('PaymentMethod');" class="aws-h-a" style="color:black">
+                            P.Method @if (sortcolumn == "PaymentMethod")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                    <th style="text-align: center" width="6%">
+                        <a onclick="javascript:sortresult('PaymentStatus');" class="aws-h-a" style="color:black">
+                            P.Status @if (sortcolumn == "PaymentStatus")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+
+                    <th style="text-align: center" width="12%">
+                        <a onclick="javascript:sortresult('OrderDate');" class="aws-h-a" style="color:black">
+                            Payment Date @if (sortcolumn == "OrderDate")
+                            {<img alt="@(sortorder)" title="@(sortorder)" src="Content/Admin/images/sort_@(sortorder).gif" />}
+                        </a>
+                    </th>
+
+                    <th width="6%" style="text-align: center">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (lstServiceDonations.Count != 0)
+                {
+                    int i = 0;
+                    var location = HttpContextAccessor.HttpContext?.Session.GetString("UserSiteUrl") ?? "";
+                    foreach (var item in lstServiceDonations)
+                    {
+                        <tr>
+                            <td style="text-align: center">@item.RId</td>
+
+
+                            <td style="text-align: left" class="t-t-c">@item.FirstName @item.LastName</td>
+                            <td style="text-align: center" class="t-t-c">@item.PhoneNo</td>
+                            <td style="text-align: center" class="t-t-c">@item.DonationCause</td>
+                         
+                               @if (@item.TransactionId  != ""  &&   @item.TransactionId != null)
+                                    {
+                                 <td style="text-align: center; color: #990033;" class="t-t-c">@(item.TransactionId != null && item.TransactionId != "" ? item.TransactionId : "--")</td>
+                                    }
+                                    else
+                                    {
+                                       <td style="text-align: center; color: #990033;" class="t-t-c">@item.Zelle</td>
+                                    }
+                            <td style="text-align: center; color: #990033; font-weight:bold; " class="t-t-c"> $@Math.Round(item.Amount, 2) </td>
+                            <td style="text-align: center" class="t-t-c">@(item.PaymentMethod != null && item.PaymentMethod != "" ? item.PaymentMethod : "--")</td>
+                            <td style="text-align: center" class="t-t-c">@(item.PaymentStatus != null && item.PaymentStatus != "" ? item.PaymentStatus : "--")</td>
+                            <td style="text-align: center" class="t-t-c">@(item.OrderDate == DateTime.MinValue ? item.UpdatedDate.ToString("MM-dd-yyyy") : item.OrderDate.ToString("MM-dd-yyyy"))</td>
+
+                            <td style="text-align: center" class="t-t-c">
+                                <div class="table-actions  gap-3 fs-6">
+                                   
+                                        <a title="Send mail to Donor" onclick="SendMailtoDonor(@item.ServiceDonationId,@mid);"><i class="fa fa-envelope"></i></a>
+                                    
+                                   
+                                    @if (ViewBag.IsEdit == true )
+                                    {
+                                        <a class="text-warning cursor-pointer" href="@Url.Action("EdiServiceDonation", "ServiceDonations", new { ServiceDonationId = item.ServiceDonationId ,ServiceId=item.ServiceId, mid = ViewBag.Mid, ChapterId = @ChapterId })" title=" Edit" aria-label="Edit"><i class="bi bi-pencil-fill"></i></a>
+                                    }
+                                    @if (ViewBag.IsDelete == true )
+                                    {
+                                        <a class="text-danger cursor-pointer" onclick="javascript:Delete(@item.ServiceDonationId);" title="Delete" aria-label="Delete"><i class="bi bi-trash-fill"></i></a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+
+    <div class="row pt-3">
+        <div class="col-sm-4 col-md-5">
+            <div class="dataTables_info" id="example_info" role="status" aria-live="polite">
+                Showing @((PageNo * Items) - (Items - 1)) - @((PageNo * Items) > Total ? Total : (PageNo * Items)) of @Total entries
+            </div>
+        </div>
+        <div class="col-sm-3 col-md-7 " @(Total > 0 ? "" : "disable")>
+            <div class="d-flex flex-wrap gap-4 justify-content-end">
+                @*<div class="dataTables_length" id="example_length">
+                    <div class="d-flex align-items-center gap-2 pt-1">
+                        <span>Show Items</span>
+                        <select id="txtitems" name="txtitems" aria-controls="example" onchange="ServiceDonationBind();" class="form-select form-select-sm w-auto">
+                            <option @(Items == 25 ? "selected=selected" : "") value="25">25</option>
+                            <option @(Items == 50 ? "selected=selected" : "") value="50">50</option>
+                            <option @(Items == 75 ? "selected=selected" : "") value="75">75</option>
+                            <option @(Items == 100 ? "selected=selected" : "") value="100">100</option>
+                        </select>
+                    </div>
+                        </div>*@
+                <div class="dataTables_paginate paging_simple_numbers cursor-pointer" id="example_paginate">
+                    @Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging((Int64)ViewBag.items, ref Total, (Int64)ViewBag.pageno, "pagination pb-0"))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

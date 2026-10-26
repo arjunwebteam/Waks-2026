@@ -1,0 +1,47 @@
+﻿@{
+    var lstPhotos = (List<AWS_AssociationToolCore.Entities.Photos>)ViewBag.lstPhotos;
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+    var gnimgloc = objAppInfo.AdminImageUrl + "photogallery/normalphoto/";
+    var gtimgloc = objAppInfo.AdminImageUrl + "photogallery/thumb/";
+
+
+    long chapterId = ViewBag.ChapterId != null ? Convert.ToInt64(ViewBag.ChapterId) : 0;
+    string chapterName = ViewBag.cname?.ToString();
+    int pcurrentYear = DateTime.Now.Year;
+}
+
+<h2 class="sec-title text-center">@objAppInfo.PresidentPhone Photo Gallery</h2>
+@if (lstPhotos != null && lstPhotos.Count != 0)
+{
+    <div class="gal-grid gallery-owl owl-carousel owl-btns-show">
+
+
+        @foreach (var item in lstPhotos)
+        {
+            <a href="@Url.Action("Photos", "Gallery", new { Year = pcurrentYear })" target="_blank">
+                <div class="g-box position-relative">
+                    @if (item.ImageUrl != null && item.ImageUrl != "")
+                    {
+                        <img class="gallery__icon w-100" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((gnimgloc + item.ImageUrl), gnimgloc + "no-imagefinal.jpg")">
+                    }
+                    else
+                    {
+                        <img class="gallery__icon w-100" src="@(gnimgloc + "no-imagefinal.jpg")">
+
+                    }
+
+                    <div class="overlay">
+                        <div class="text"><i class="bi bi-images"></i></div>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+}

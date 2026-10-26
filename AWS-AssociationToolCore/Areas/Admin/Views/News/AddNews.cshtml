@@ -1,0 +1,539 @@
+﻿@{
+    ViewBag.Title = "AddMailTemplate";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    ViewBag.Pageheading = "Add News";
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.PhotosImageSettings _PhotosImageSettings = new AWS_AssociationToolCore.BLL.PhotosImageSettings();
+    AWS_AssociationToolCore.Entities.PhotosImageSettings objPhotosImageSettings = new AWS_AssociationToolCore.Entities.PhotosImageSettings();
+    objPhotosImageSettings = _PhotosImageSettings.GetPhotosImageSettingsDetails(ref status);
+
+
+    var Test = objPhotosImageSettings.Newssize; // Assuming objPhotosImageSettings.Eventsize is a string
+    var parts = Test.Split('*');
+    int value1 = 0;
+    int value2 = 0;
+
+
+    if (parts.Length == 2)
+    {
+        value1 = int.Parse(parts[0]);
+        value2 = int.Parse(parts[1]);
+
+        // Now you can use value1 and value2 as integers
+    }
+    else
+    {
+        // Handle the case where the split didn't produce two parts
+        // This could happen if the input string doesn't contain '*'
+        // or if there are more than one '*' characters in the string
+    }
+
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+    var cssloc = objAppInfo.BaseUrl+ "Content/Admin/front-end-style.css";
+
+}
+
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#wNews, #wOthers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+
+
+        $('#CropImage').dialog({
+            autoOpen: false,
+            width: 600,
+            modal: true
+        });
+
+    });
+
+    function ChapterNameBind() {
+
+        var ChapterNamecheckboxs = Common.GetCheckBoxValue('ChapterNamecheckbox');
+
+        $('#ChapterIds').val(ChapterNamecheckboxs);
+        if (ChapterNamecheckboxs == "") {
+            alert("Please select atleast one Chapter.");
+            return false;
+        }
+
+    }
+
+    function ResetValidateClass() {
+
+        $('#UpdatedBy').removeClass("validate");
+        $('#Title').removeClass("validate");
+        $('#PostDate').removeClass("validate");
+        $('#ExpiryDate').removeClass("validate");
+
+        $('#Editor').removeClass("validate");
+        $('#OrderNo').removeClass("validate");
+    }
+
+    $(document).ready(function () {
+        $('#wNews').addClass('active');
+        $('#Others').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+    });
+
+
+    function readURL(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#blah')
+                    .attr('src', e.target.result)
+                    .width(@value1)
+                    .height(@value2);
+                $('#image').attr('src', e.target.result);
+                $('#divimage').show();
+                $('#noimagetext').hide();
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+
+
+
+</script>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+<!-- breadcumb -->
+<!--<section id="CropImage" style="display: none; overflow: visible; padding: 0; border: none!important;">
+    <article class="clearfix dialog-title">
+        <article class="clearfix white-bg" style="border: 0!important;">
+            <span class="pull-right r-p10 t-p10">
+                <a class="cursor-p dk1-t" onclick=" $('#CropImage').dialog('close')">
+                    <img class="red-t" src="Content/User/images/popup-close.png" width="12" height="12" alt="" />
+                </a>
+            </span>
+            <article class="clearfix l-r-p50 mobile-l-r-p20 t-b-p15">
+                <article class="clearfix dialog-title t-c white-bg t-p25">
+                    <h2 class="clearfix t-b-m0 vi-t  Montserrat-Regular font24 mobile-font22 t-t-u">Crop Thumb Image </h2>
+                </article>
+                <article class="clearfix dialog-content  t-b-m10">-->
+<!-- This section will use only for Image Dimentions to crop [Start]-->
+<!--<article class="result"></article>
+<article class="options">
+    <input type="hidden" class="img-w" value="@value1" />
+    <input type="hidden" class="img-h" value="@value2" />
+</article>
+<article class="clearfix t-c t-b-m15 l-r-m-auto" style="text-align:center;">-->
+<!-- Here 'save' class should use for button -->
+<!--<a class="white-t border0 shadowcropper t-b-p15 l-r-p20 t-t-u Poppins-SemiBold font18 border-radius25 save" style="background-color: #e35558;">Save Thumb</a>
+</article>-->
+<!-- This section will use only for Image Dimentions to crop [End]-->
+<!--</article>
+            </article>
+        </article>
+    </article>
+</section>-->
+<!--<section id="CropImage" style="display: none; overflow: visible; padding: 0; border: none!important;">
+    <article class="clearfix dialog-title">
+        <article class="clearfix white-bg" style="border: 0!important;">
+            <span class="pull-right r-p10 t-p10">
+                <a class="cursor-p dk1-t" onclick=" $('#CropImage').dialog('close')">
+                    <img class="red-t" src="Content/User/images/popup-close.png" width="12" height="12" alt="" />
+                </a>
+            </span>
+            <article class="clearfix l-r-p50 mobile-l-r-p20 t-b-p15">
+                <article class="clearfix dialog-title t-c white-bg t-p25">
+                    <h2 class="clearfix t-b-m0 vi-t  Montserrat-Regular font24 mobile-font22 t-t-u">Crop Thumb Image </h2>
+                </article>
+                <article class="clearfix dialog-content  t-b-m10">-->
+<!-- This section will use only for Image Dimentions to crop [Start]-->
+<!--<article class="result"></article>
+<article class="options">
+    <input type="hidden" class="img-w" value="@value1" />
+    <input type="hidden" class="img-h" value="@value2" />
+</article>
+<article class="clearfix t-c t-b-m15 l-r-m-auto" style="text-align:center;">-->
+<!-- Here 'save' class should use for button -->
+<!--<a class="white-t border0 shadowcropper t-b-p15 l-r-p20 t-t-u Poppins-SemiBold font18 border-radius25 save" style="background-color: #e35558;">Save Thumb</a>
+</article>-->
+<!-- This section will use only for Image Dimentions to crop [End]-->
+<!--</article>
+            </article>
+        </article>
+    </article>
+</section>-->
+<!--end breadcumb -->
+
+
+
+@using (Html.BeginForm("Save", "News", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VolunteerForm", @name = "VolunteerForm" }))
+{
+
+
+
+    if (objAppInfo.chapterStatus == "No")
+    {
+        <input type="hidden" value="1" name="ChapterIds" id="ChapterIds" />
+    }
+    else
+    {
+        <input type="hidden" value="" name="ChapterIds" id="ChapterIds" />
+
+    }
+
+
+
+
+    <input type="hidden" value="@ViewBag.mid" name="mid" id="mid" />
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="row  g-3">
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Type </label>
+                        <select class="single-select" id="UpdatedBy" name="UpdatedBy">
+                            <option value="">Select Target</option>
+                            <option value="News">News</option>
+                            <option value="Blog">Blog</option>
+                            <option value="Default">Default</option>
+
+
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Title<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="Title" id="Title" placeholder="Title">
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Post Date<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="PostDate" id="PostDate" placeholder="Post Date">
+                    </div>
+                </div>
+
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Expiry Date <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="ExpiryDate" id="ExpiryDate" placeholder="Expiry Date">
+                    </div>
+                </div>
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">Order No<span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="OrderNo" id="OrderNo" onkeypress="return Common.isNumberKey(event);" placeholder="Order No">
+                    </div>
+                </div>
+
+
+
+                <div class="col-lg-3 col-md-6">
+                    <div class="input-box">
+                        <label class="form-label">
+                            Image
+                            <button type="button" data-bs-toggle="tooltip" title="Image size should be maintained width * height (@objPhotosImageSettings.Newssize)" class="" style="border: 0;background: transparent;padding: 0px;"><i class="bi bi-info-circle"></i></button>
+
+                        </label>
+                        <div class="position-relative">
+                            <input type="file" id="file" class="item-img file center-block browse form-control" name="file">
+                        </div>
+                        <!--<label style="color: #f00;" id="lblfile"></label>-->
+                        @*<label><b style="color: #f00;font-size:15px">Note :</b> Document should accept only 'PDF' file Format. </label>*@
+
+                        <!--<div style="font-size:13px; line-height:26px;">
+                            <span style="color:#ff0000; text-decoration:underline; font-weight:600">Note :</span> <b style="color: #f00; font-size: 15px"></b> Image size should be maintained width * height (@objPhotosImageSettings.Newssize)<br>
+
+                            <span><b>1)</b>&nbsp;To resize Banners width &amp; height, please use <a href="https://picresize.com/" target="_blank">picresize.com</a>. </span><br>
+                            <span><b>2)</b>&nbsp;To Optimize Banners width &amp; height, please use <a href="https://imagecompressor.com/" target="_blank">imagecompressor.com</a>. </span>
+                        </div>-->
+
+                        <div class="confirm-identity">
+                            <div class="ci-user d-flex align-items-center justify-content-center">
+                                <div class="ci-user-picture" style="display: none;">
+                                    <input type="hidden" id="Thumbimage" name="Thumbimage">
+                                    <img src="" id="item-img-output" class="imgpreviewPrf img-fluid" alt="">
+                                </div>
+                            </div>
+
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+    if (objAppInfo.chapterStatus == "Yes")
+    {
+        <div class="card">
+            <div class="card-body">
+
+                <div class="box validation">
+                    <!-- /.box-header -->
+                    <div class="box-header">
+                        <h3 class="box-title dis-in mb-2">Chapters </h3>
+                    </div>
+                    <div class="box-body">
+
+                        @if (lstChapters != null && lstChapters.Count != 0)
+                        {
+                            int i = 1;
+                            <div class="row">
+                                @foreach (var item in lstChapters)
+                                {
+                                    if (item.ChapterName != "NATS Global")
+                                    {
+
+                                        <div class="col-md-3 col-xs-6 col-xxl-2">
+                                            <span class="radiostyle part-4 mb-2 d-block">
+                                                <input type="checkbox" @*@(i == item.ChapterId ? "checked=checked" : "")*@ name="ChapterNamecheckbox" id="ChapterNamecheckbox-@i" class="flat-red" value="@item.ChapterId"> @item.ChapterName
+                                           
+                                            
+                                            </span>
+                                        </div>
+                                    }
+                                    i++;
+                                }
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+    }
+
+
+
+    <div class="card">
+        <div class="card-body">
+
+            <div class="box validation">
+                <div class="box-header">
+                    <h3 class="box-title dis-in"> Description</h3>
+                </div>
+                <div class="box-body">
+                    <div class="row  g-3">
+                        <div class="col-lg-12">
+                            <div class="input-box">
+                                @*<label>Description </label>*@
+                                <textarea rows="10" placeholder="Description *" name="NewsText" id="NewsText" cols="80" style="visibility: hidden; display: none;"></textarea><br />
+                                <span class="field-validation-error" id="spanDescription"></span>
+                                <script type="text/javascript">
+                                    // var editor = CKEDITOR.replace('NewsText', { contentsCss: '../css/editor.css' });
+                                    // CKFinder.setupCKEditor(editor, '@(objAppInfo.BaseUrl)ckfinder/');
+
+
+
+
+                                                                        var editor = CKEDITOR.replace('NewsText', {
+                                        contentsCss: '../css/editor.css',
+                                        filebrowserBrowseUrl: '/filemanager/browse.html',
+                                        filebrowserImageBrowseUrl: '/filemanager/browse.html',
+                                        filebrowserUploadUrl: '/api/filemanager/upload',
+                                        filebrowserImageUploadUrl: '/api/filemanager/upload'
+                                    });
+
+
+
+
+
+                                </script>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+
+    if (objAppInfo.chapterStatus == "Yes")
+    {
+        <div class="row">
+            <div class="col-lg-2 col-3 text-end ms-auto">
+                <button type="submit" onclick="return ChapterNameBind();" class="btn btn-success px-3">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Index", "News", new { mid = ViewBag.mid })">Cancel</a>
+
+            </div>
+        </div>
+    }
+
+
+
+    else
+    {
+        <div class="row">
+            <div class="col-lg-2 col-3 text-end ms-auto">
+                <button type="submit" class="btn btn-success px-3">@*<i class="bi bi-plus-circle m-0"></i>*@ Submit</button>
+                <a class="btn btn-primary px-3" href="@Url.Action("Index", "News", new { mid = ViewBag.mid })">Cancel</a>
+
+            </div>
+        </div>
+
+
+    }
+}
+
+@*<script>
+        var _URL = window.URL || window.webkitURL;
+        $("#file").change(function (e) {
+            var file, img;
+            if ((file = this.files[0])) {
+                img = new Image();
+                img.onload = function () {
+                    if (this.width == 670 && this.height == 542) {
+                        $('#hdnimgvalidate').val('1');
+                    }
+                    else {
+                        $('#hdnimgvalidate').val('0');
+                    }
+                };
+                img.src = _URL.createObjectURL(file);
+            }
+        });
+
+    </script>
+    <script src="Scripts/Admin/cropper-js-min.js" type="text/javascript"></script>*@
+
+
+<script>
+    $(document).ready(function () {
+        $("#VolunteerForm").validate({
+            rules: {
+                UpdatedBy: "required",
+                Title: "required",
+                PostDate: "required",
+                ExpiryDate: "required",
+                OrderNo: "required",
+                Description: "required",
+            },
+            messages: {
+                UpdatedBy: "Please Select One Type Required",
+                pdatedBy: "Please Select One Type Required",
+                Title: "Please Enter Title Is Required",
+                PostDate: "Please Select PostDate Is Required",
+                ExpiryDate: "Please Select ExpiryDate Is Required",
+                OrderNo: "Please Enter Order No required",
+                Description: "Please Enter Description Is Required",
+
+            },
+
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                // Add the `invalid-feedback` class to the error element
+                error.addClass("invalid-feedback");
+
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+
+                // Move the error element after the fieldset element
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                // Highlight the input, textarea, or select element with the `is-invalid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+
+
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                // Unhighlight the input, textarea, or select element by adding the `is-valid` class
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+
+            },
+
+
+        });
+    });
+
+
+
+
+</script>
+
+
+
+
+
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+
+        //Date Picker
+
+        $(function () {
+            $("#ExpiryDate,#PostDate").datepicker({
+
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: 'mm/dd/yy'
+            });
+        });
+
+
+
+    });
+
+</script>
+

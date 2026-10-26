@@ -1,0 +1,75 @@
+﻿@{
+    Layout = null;
+
+    Int64 Total = (Int64)ViewBag.total;
+    Int64 PageNo = (Int64)ViewBag.pageno;
+
+    Int64 Items = ViewBag.items;
+
+    Int64 TotalPages = Total / Items;
+
+    if (Total > (Items * TotalPages))
+    {
+        TotalPages = TotalPages + 1;
+    }
+
+    var lstMembers = (List<AWS_AssociationToolCore.Entities.Members>)ViewBag.lstMembers;
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+
+    ViewBag.Title = "Members - " + objAppInfo.SiteName;
+}
+
+   
+
+<div class="cus-about-sec member_list">
+    <div class="row g-3">
+       
+        <div class="col-12 ">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover table-stripped  member_table">
+                    <thead>
+                        <tr>
+                            <th align="center">S.No</th>
+                            <th>Member Id</th>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Membership Type</th>
+
+                        </tr>
+                    </thead>
+                   
+                    <tbody>
+                        @if (lstMembers != null && lstMembers.Count != 0)
+                        {
+                            Int64 i = 1;
+                            foreach (var item in lstMembers)
+                            {
+                        <tr>
+                            <td align="center">@item.RId</td>
+                            <td>@item.MemberSkils</td>
+                            <td>@item.FirstName</td>
+                            <td>@item.LastName</td>
+                            <td>@item.MembershipType</td>
+
+                        </tr>
+                                i++;
+                            }
+                        }
+                        else
+                        {
+                            <tr class="odd"><td valign="top" colspan="10" class="font-14 text-center">No  Records found</td></tr>
+                        }
+                    </tbody>
+                        </table>
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Raw(AWS_AssociationToolCore.BLL.Common.SetPaging1((Int64)ViewBag.items, ref Total, (Int64)ViewBag.PageNo, "pagination pagination-right border-b b-p10"))
+
+

@@ -1,0 +1,93 @@
+﻿
+@{
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Title = "Matrimonial-Index";
+
+    var MemberId = ViewBag.MemberId;
+    var ChapterName = ViewBag.cname;
+
+
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        PagerClickBind();
+    });
+
+    function Volunteerbind(Pageno) {
+
+        var MemberId = @MemberId;
+
+        $.ajax({
+            url: '@Url.Action("FEVolunteersMemberIdList", "Members")',
+            type: 'GET',
+            cache: false,
+            data: {  MemberId: MemberId},
+            success: function (result) {
+                $('#divDetails').html(result);
+                PagerClickBind();
+            }
+        });
+
+    }
+
+
+    function ClearSearch() {
+        $('#txtsearch').val('');
+        Volunteerbind(1);
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Volunteerbind($(this).text());
+        });
+    }
+
+</script>
+
+<input id="TotalPages" type="hidden" value="1" />
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="UpdatedDate" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+<input id="hdnuserid" type="hidden" value="0" />
+<script>
+        $(document).ready(function () {
+            LoadLatestNewsList();
+        });
+
+        function LoadLatestNewsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("FEVolunteersMemberIdList", "Members")',
+            
+
+            success: function (data) {
+                    $("#divDetails").html(data);
+                },
+                error: function () {
+                    $("#divDetails").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+</script>
+<article class="clearfix left-block10">
+    <article class="clearfix white-bg inerpashd p40 inerminhei tabhorizontal-p20 mobile-p10">
+        <span class="pull-right">
+            <a href="@Url.Action("Profile","Members", new { cname = ChapterName})" class="blue-t">
+                <img src="Content\User\images\back-button-circular.png" alt="" title="" class="t-b-m0" width="24" height="24">
+                Back to Profile
+            </a>
+        </span>
+        <article class="clearfix inerdoubor b-m20 tabhorizontal-b-m10">
+            <h3 class="clearfix m0 l-h22 HandelGothic-Regular font30 cheircol-t t-t-u b-m25 tabhorizontal-b-m10 mobile-font24 mobile-b-m5">Volunteer Registrations</h3>
+        </article>
+        <!------------------------------------------------------------------------------------------------------------------->
+        <article class="clearfix t-p20" id="divDetails">
+          @*   @{Html.RenderAction("FEVolunteersMemberIdList", "Members");} *@
+        </article>
+
+        <!------------------------------------------------------------------------------------------------------------------->
+       
+    </article>
+</article>

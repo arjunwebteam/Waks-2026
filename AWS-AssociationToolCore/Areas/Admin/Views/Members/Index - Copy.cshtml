@@ -1,0 +1,750 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    ViewBag.Pageheading = "Members";
+
+    var objMembers = (AWS_AssociationToolCore.Entities.Members)ViewBag.objMembers;
+    var lstMembershipType = (List<AWS_AssociationToolCore.Entities.MembershipTypes>)objMembers.lstMembershipType;
+    var lstPaymentMethod = (List<AWS_AssociationToolCore.Entities.PaymentMethods>)objMembers.lstPaymentMethod;
+    var lstPaymentStatus = (List<AWS_AssociationToolCore.Entities.PaymentStatus>)objMembers.lstPaymentStatus;
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+    long MembershipTypeId = ViewBag.MembershipTypeId ?? 0;
+
+    string userRole = Context.Session.GetString("userrole") ?? string.Empty;
+    Int64 ChapterId = ViewBag.ChapterId;
+
+    bool IsEdit = Convert.ToBoolean(Context.Session.GetString("IsEdit"));
+    bool IsView = Convert.ToBoolean(Context.Session.GetString("IsView"));
+    bool IsDelete = Convert.ToBoolean(Context.Session.GetString("IsDelete"));
+    bool IsExport = Convert.ToBoolean(Context.Session.GetString("IsExport"));
+    bool IsAdd = Convert.ToBoolean(Context.Session.GetString("IsAdd"));
+    Int64 Mid = ViewBag.mid;
+
+    string type = ViewBag.type;
+
+   
+
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+}
+<style>
+    .aws-h-a {
+        text-decoration: none;
+        position: relative;
+    }
+
+        .aws-h-a::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -2px;
+            border-bottom: 2px solid #0756ca;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .aws-h-a:hover::after {
+            transform: scaleX(1);
+        }
+</style>
+<input id="hdnPageNo" type="hidden" value="1" />
+<input id="hdnsortcolumn" type="hidden" value="InsertedTime" />
+<input id="hdnsortorder" type="hidden" value="DESC" />
+<input id="hdnuserid" type="hidden" value="0" />
+<!---  Breadcrumb Section Start ------>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<div class="card">
+
+    <div class="card-header py-3 mb-3">
+        <div class="d-flex flex-wrap cmn-btn-group-hover  cmn-btn-group tabs-btn" style="gap:10px">
+            <a class="cmn-btn bdr-btn1 @(type=="allactive"?"active":"") " href="@Url.Action("Index", "Members",new { Type = "allactive", ChapterId =ChapterId, mid = Mid })">All Members</a>
+
+            <a class="cmn-btn bdr-btn1 @(type=="active"?"active":"")" href="@Url.Action("Index", "Members", new { Type = "active", ChapterId =ChapterId, mid = Mid })">Active Members</a>
+            <a class="cmn-btn bdr-btn1 @(type=="inactive"?"active":"")" href="@Url.Action("Index", "Members", new { Type = "inactive", ChapterId =ChapterId, mid = Mid })">Inactive Members</a>
+            <a class="cmn-btn bdr-btn1 @(type=="pending"?"active":"")" href="@Url.Action("Index", "Members", new { Type = "pending", ChapterId =ChapterId, mid = Mid })">Pending Members</a>
+            <div class="text-end ms-auto">
+                @if (IsAdd == true )
+                {
+                    <a class="btn  btn-primary" href="@Url.Action("AddMember", "Members", new { mid = Mid, type = type,ChapterId=ChapterId })">Add New Member</a>
+                }
+                @*@if (IsExport == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+                    {
+                        <a class="btn btn-primary  r-m10" onclick="ExporttoExcel();">Export to Excel</a>
+                    }*@
+               @*  <a class="btn btn-primary" onclick="Add();">Bulk Upload</a> *@
+                @if (IsExport == true )
+                {
+                    <a class="cursor-pointer do new-download " data-bs-toggle="tooltip" style="border: 0; background: transparent; border: 1px solid #e8e6e7; padding: 10px; border-radius: 50%; /*! width: 100px; */ background-color: #e8e6e7;" onclick="ExporttoExcel();" title="Export to Data ">
+                        <i class="lni lni-download" style="font-size: 20px; color: black;"></i>
+                    </a>
+                }
+            </div>
+
+        </div>
+
+
+
+        <div class="row gx-2" style="align-items: center;">
+            <!-- Membership Type Column -->
+
+
+            @if (objAppInfo.chapterStatus == "Yes")
+            {
+
+                <div class="col-lg-2 col-md-3 col-3">
+                    <div class="input-box">
+                        <label class="form-label"> <span class="text-danger"></span>Search by Chapter</label>
+                        <div class="input-group">
+                            @*<select class="form-control" id="ChapterId" name="ChapterId">*@
+                            <select class="form-control" id="ChapterId" name="ChapterId" style="@(ChapterId != 1 ? "pointer-events:none;" : "")">
+
+
+
+                                @if (lstChapters != null && lstChapters.Count != 0)
+                                {
+                                    foreach (var item in lstChapters)
+                                    {
+                                        <option value="@item.ChapterId" @(item.ChapterId == ChapterId ? "selected=selected" : "")>@item.ChapterName</option>
+                                    }
+                                }
+
+
+                            </select>
+                            @*<span class="input-group-text pointer" style="cursor:pointer" onclick="MenuItemsBind(1);" id="basic-addon1"><i class="bi bi-search"></i></span>*@
+                        </div>
+                    </div>
+                </div>
+
+            }
+
+
+            <div class="col-lg-2 col-md-3 col-3">
+                <div class="input-box">
+                    <label class="form-label">Membership Type<span class="text-danger"></span></label>
+                    <select class="single-select" name="MembershipTypeId" id="MembershipTypeId">
+                        <option value=""> -- Select -- </option>
+                        @if (lstMembershipType != null)
+                        {
+                            foreach (var item in lstMembershipType)
+                            {
+                                <option @(MembershipTypeId == item.MembershipTypeId ? "selected = selected" : "") value="@item.MembershipTypeId">@item.MembershipType </option>
+
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Date of Registration Column -->
+            <div class="col-lg-3 col-md-5 col-5">
+                <label>Date of Registration</label>
+                <div class="clearfix row">
+                    <div class="col-6">
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon1"><i class="fa fa-calendar"></i></span>
+                            <input type="text" data-mask="" data-inputmask="'alias': 'mm/dd/yyyy'" class="form-control" placeholder="From" name="StartDate" id="StartDate" aria-describedby="basic-addon1">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <span class="input-group-text" id="basic-addon2"><i class="fa fa-calendar"></i></span>
+                            <input type="text" data-mask="" data-inputmask="'alias': 'mm/dd/yyyy'" class="form-control" placeholder="To" name="EndDate" id="EndDate" aria-describedby="basic-addon2">
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Status Column -->
+            <div class="col-lg-2 col-md-3 col-3">
+                <div class="input-box">
+                    <label class="form-label">Payment Status<span class="text-danger"></span></label>
+                    <select class="single-select" name="PaymentStatusId" id="PaymentStatusId">
+                        <option value=""> -- Select -- </option>
+                        @if (lstPaymentStatus != null)
+                        {
+                            foreach (var item in lstPaymentStatus)
+                            {
+                                <option value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+       
+            <div class="col-lg-2 col-md-3 col-3">
+                <div class="input-box">
+                    <label class="form-label">Payment Status<span class="text-danger"></span></label>
+                    <select class="single-select" name="PaymentStatusId" id="PaymentStatusId">
+                        <option value=""> -- Select -- </option>
+                        @if (lstPaymentStatus != null)
+                        {
+                            foreach (var item in lstPaymentStatus)
+                            {
+                                <option value="@item.PaymentStatusId">@item.PaymentStatus1</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Search Column -->
+            <div class="col-lg-2 col-md-3 col-3">
+                <div class="input-box">
+                    <label class="form-label">Search <span class="text-danger"></span></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="txtsearch" id="txtsearch" placeholder="Search by MemberId / Name / Email /">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buttons Column -->
+            <div class="col-lg-2 col-md-2 col-12">
+                <div class="text-end" style="margin-top: 19px;">
+                    @*<button type="submit" class="btn btn-danger px-3 mt-2" onclick="Onload(1);">Search</button>*@
+                    <button type="button" class="btn btn-primary px-3" onclick="Onload(1);">Search</button>
+                    <button type="submit" class="btn btn-danger px-3" onclick="ClearSearch();">Clear</button>
+                </div>
+            </div>
+        </div>
+        <div class="d-flex flex-wrap cmn-btn-group-hover  cmn-btn-group tabs-btn" style="gap:10px">
+            <a class="cmn-btn bdr-btn1 @(type == "allactive" ? "active" : "") " href="@Url.Action("Index", "Members", new { Type = "allactive", ChapterId = ChapterId, mid = Mid })">All Members</a>
+
+            <a class="cmn-btn bdr-btn1 @(type == "active" ? "active" : "")" href="@Url.Action("Index", "Members", new { Type = "active", ChapterId = ChapterId, mid = Mid })">Active Members</a>
+            <a class="cmn-btn bdr-btn1 @(type == "inactive" ? "active" : "")" href="@Url.Action("Index", "Members", new { Type = "inactive", ChapterId = ChapterId, mid = Mid })">Inactive Members</a>
+            <a class="cmn-btn bdr-btn1 @(type == "pending" ? "active" : "")" href="@Url.Action("Index", "Members", new { Type = "pending", ChapterId = ChapterId, mid = Mid })">Pending Members</a>
+            <div class="text-end ms-auto">
+                @if (IsAdd == true)
+                {
+                    <a class="btn  btn-primary" href="@Url.Action("AddMember", "Members", new { mid = Mid, type = type, ChapterId = ChapterId })">Add New Member</a>
+                }
+                @*@if (IsExport == true || userRole.Contains("SuperAdmin") || userRole.Contains("DeveloperAdmin"))
+                    {
+                        <a class="btn btn-primary  r-m10" onclick="ExporttoExcel();">Export to Excel</a>
+                    }*@
+                @*  <a class="btn btn-primary" onclick="Add();">Bulk Upload</a> *@
+                @if (IsExport == true)
+                {
+                    <a class="cursor-pointer do new-download " data-bs-toggle="tooltip" style="border: 0; background: transparent; border: 1px solid #e8e6e7; padding: 10px; border-radius: 50%; /*! width: 100px; */ background-color: #e8e6e7;" onclick="ExporttoExcel();" title="Export to Data ">
+                        <i class="lni lni-download" style="font-size: 20px; color: black;"></i>
+                    </a>
+                }
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div id="divDetails" class="clearfix">
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $.ajax({
+                type : "GET",
+                url  : '@Url.Action("MembersList", "Members")',
+                data : {
+                    IsEdit    : '@IsEdit',
+                    MembershipTypeId    : '@MembershipTypeId',
+                    IsView    : '@IsView',
+                    IsDelete  : '@IsDelete',
+                    IsExport  : '@IsExport',
+                    IsAdd     : '@IsAdd',
+                    type: '@type',
+                    Mid       : '@Mid',
+                    ChapterId : '@(ChapterId == 0 ? 1 : ChapterId)'
+                },
+                success: function (data) {
+                    $("#divDetails").html(data);
+                },
+                error: function () {
+                    $("#divDetails").html('<p class="text-danger">Failed to load.</p>');
+                }
+            });
+        });
+    </script>
+
+    <div class="modal fade" id="AddMembershipType" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            @using (Html.BeginForm("MembersBulkUpload", "Members", FormMethod.Post, new { enctype = "multipart/form-data", @id = "VolunteerForm", @name = "VolunteerForm" }))
+            {
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><span id="lbltitle"></span></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+
+                            <div class="col-lg-12 col-md-6 mb-3">
+                                <label class="form-label">Document<span class="text-danger">*</span> </label>
+
+                                <input type="file" name="Document" id="Document" class="" />
+
+                                <label class="field-validation-error" id="spanDocument"></label>
+                                <article class="clearfix position-r t-p10">
+                                    <label class="b-m0">Sample Doc : </label>
+                                    <a href="Content/XlS/members-sample-sheet.xls" target="_blank">Click here</a> for Sample file.<br />
+                                </article>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+
+                    <div class="modal-footer">
+
+                        <input type="submit" class="btn btn-primary" value="Submit" />
+
+                        <a onclick=" $('#AddMembershipType').dialog('close')" class="btn btn-secondary" data-bs-dismiss="modal">Close</a>
+
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<script>
+    $(document).ready(function () {
+
+        // ✅ Custom extension validator — checks by extension only (works with WPS, LibreOffice, Excel)
+        $.validator.addMethod("validXlsExtension", function (value, element) {
+            if (element.files && element.files.length > 0) {
+                var allowedExtensions = ["xls", "xlsx"];
+                var fileName = element.files[0].name;
+                var extension = fileName.split('.').pop().toLowerCase().trim();
+                return $.inArray(extension, allowedExtensions) !== -1;
+            }
+            return true; // no file selected = passes (required rule handles that)
+        }, "Only XLS or XLSX files are allowed.");
+
+        $("#VolunteerForm").validate({
+            rules: {
+                Document: {
+                    required: true,
+                    validXlsExtension: true
+                }
+            },
+            messages: {
+                Document: {
+                    required: "Please select a document.",
+                    validXlsExtension: "Invalid file type. Only XLS or XLSX files are allowed."
+                }
+            },
+            errorElement: "div",
+            errorPlacement: function (error, element) {
+                error.addClass("invalid-feedback");
+                if (element.prop("type") === "checkbox") {
+                    error.insertAfter(element.parent("label"));
+                } else {
+                    error.insertAfter(element);
+                }
+                if (element.closest(".input-box").length) {
+                    element.closest(".input-box").after(error);
+                }
+            },
+            highlight: function (element, errorClass, validClass) {
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-invalid").removeClass("is-valid");
+                }
+            },
+            unhighlight: function (element, errorClass, validClass) {
+                var $element = $(element);
+                if ($element.is('input, textarea, select')) {
+                    $element.addClass("is-valid").removeClass("is-invalid");
+                }
+            },
+            submitHandler: function (form) {
+                form.submit();
+            }
+        });
+
+        // ✅ Live re-validate on file change so error clears immediately when correct file chosen
+        $('#Document').on('change', function () {
+            $("#VolunteerForm").validate().element("#Document");
+        });
+
+    });
+
+
+
+</script>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+       // $("#AddMembershipType").modal('hide');
+
+        PagerClickBind();
+        $('#wMembership, #wMembers').addClass('active');
+       // $("#StartDate").inputmask("mm/dd/yyyy", { "placeholder": "mm/dd/yyyy" });
+        //$("#EndDate").inputmask("mm/dd/yyyy", { "placeholder": "mm/dd/yyyy" });
+
+        //$("#StartDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+        //$("#EndDate").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altField: '.Odate', altFormat: 'mm/dd/yy' });
+
+        $("[data-mask]").inputmask();
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+
+    });
+
+    //function Add() {
+    //    clearUser();
+    //    $("#Add-User").modal('show');
+    //    $('#lbltitle').html('Add Admin');
+    //}
+
+
+    function clearEditUser() {
+        $("#EditUser").dialog("close");
+    }
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1, 'on');
+    }
+
+
+
+    function UserClear() {
+        $('#txtUserName').val('');
+        $('#txtemail').val('');
+        $('#Country').val('');
+        $('#State').val('');
+        $('#MembershipTypeId').val('');
+        $('#PaymentStatusId').val('');
+            $('#ChapterId').val('');
+        $('#ExpiryDate').val('');
+        $('#EndDate').val('');
+        $('#StartDate').val('');
+        $('#hdnsortcolumn').val('');
+        $('#hdnsortorder').val('ASC');
+
+
+        Onload(1, 'on');
+    }
+    function CheckEmailAvailability(email) {
+
+        var returnval = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("CheckEmailAvailability", "Members")', // the URL of the controller action method
+            data: { Email: email }, // optional data
+            datatype: "JSON",
+            async: false,
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+
+                if (result.ok) {
+                    returnval = result.data;
+                }
+            }
+        });
+        return returnval;
+    }
+
+    function CheckUserNameAvailability(UserName) {
+
+        var returnval = null;
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("CheckUserNameAvailability", "Members")', // the URL of the controller action method
+            data: { UserName: UserName }, // optional data
+            datatype: "JSON",
+            async: false,
+            success: function (result) {
+                showLobiboxNotification(result.messageType, result.message);
+
+                if (result.ok) {
+                    returnval = result.data;
+                }
+            }
+        });
+        return returnval;
+    }
+
+
+
+    function Add(){
+
+        $("#AddMembershipType").modal('show');
+        $('#lbltitle').html('Add Bulk Upload');
+    }
+
+
+
+    function ValidateProfile() {
+
+        var return_val = true;
+
+        //Account Information
+        if ($.trim($('#UserName').val()) == '') { $('#UserName').addClass("validate"); return_val = false; } else { $('#UserName').removeClass("validate"); }
+        if ($.trim($('#LastName').val()) == '') { $('#LastName').addClass("validate"); return_val = false; } else { $('#LastName').removeClass("validate"); }
+        //if (!CheckUserNameAvailability($.trim($('#UserName').val()))) { document.getElementsByName('UserName')[0].placeholder = 'User Name already exist'; $('#UserName').addClass("validate"); return_val = false; } else { $('#UserName').removeClass("validate"); }
+        if ($.trim($('#Email').val()) == '') { $('#Email').val(''); $('#Email').addClass("validate"); return_val = false; }
+        else {
+            $('#Email').removeClass("validate");
+            if (!Common.CheckEmail($.trim($('#Email').val()))) { $('#Email').val(''); document.getElementsByName('Email')[0].placeholder = 'Please enter valid email.'; $('#Email').addClass("validate"); return_val = false; }
+            else {
+                $('#Email').removeClass("validate");
+                if (!CheckEmailAvailability($.trim($('#Email').val()))) { $('#Email').val(''); document.getElementsByName('Email')[0].placeholder = 'Email address already exist.'; $('#Email').addClass("validate"); return_val = false; } else { $('#Email').removeClass("validate"); }
+            }
+        }
+
+        //if ($('#NewPassword').val() == '') { $('#spanNewPassword').html('Required.'); $('#NewPassword').addClass("red-border"); return_val = false; } else { $('#spanNewPassword').html(''); }
+        //if (!Common.ValidatePassword($('#NewPassword').val())) { $('#spanPassword').html('Please enter minimum 8 charecters (atleast one special charecter & one numeric charecter).'); $('#NewPassword').addClass("red-border"); return_val = false; } else { $('#spanPassword').html(''); }
+
+        return return_val;
+    }
+    function ResetValidateClass() {
+        $('#UserName').removeClass("validate");
+        $('#LastName').removeClass("validate");
+        $('#Email').removeClass("validate");
+    }
+
+
+    function validate(Id) {
+        if (Id == "") {
+            alert("Please select atleast one Item.");
+            return false;
+        }
+        return true;
+    }
+function ClearSearch() {
+    $('#txtsearch').val('');
+    $('#MembershipTypeId').val('').trigger('change');
+    
+    // ✅ Reset to 1, not empty
+    $('#ChapterId').val('1').trigger('change');
+
+    $('#ExpiryDate').val('');
+    $('#EndDate').val('');
+    $('#StartDate').val('');
+    $('#PaymentStatusId').val('').trigger('change');
+    $('#IsVolunteer').val('');
+    $('#spanStartDate').html('');
+
+    Onload(1);
+}
+
+    function Onload(Pageno) {
+    var role = $('#Role').val();
+    var pageno = Common.Pageno(Pageno);
+    var sortcolumn = $('#hdnsortcolumn').val();
+    var sortorder = $('#hdnsortorder').val();
+    var items = $('#txtitems').val();
+    var Search = $('#txtsearch').val().trim();
+    var MembershipTypeId = $('#MembershipTypeId').val();
+    var ExpiryDate = $('#ExpiryDate').val();
+    var EndDate = $('#EndDate').val();
+    var StartDate = $('#StartDate').val();
+    var PaymentStatusId = $('#PaymentStatusId').val();
+    var IsVolunteer = $('#IsVolunteer').val();
+    
+    // ✅ Get ChapterId and default to 1 if 0 or empty
+    var ChapterId = $('#ChapterId').val();
+    ChapterId = (ChapterId == 0 || ChapterId == "0" || ChapterId == "") ? 1 : ChapterId;
+
+    var type = '@type';
+    
+    if ($('#StartDate').val() != "" && $('#EndDate').val() != "") {
+        var startdate = new Date($('#StartDate').val());
+        var enddate = new Date($('#EndDate').val());
+        if (startdate > enddate) {
+            $('#spanStartDate').html('From date should be less than to date.');
+            return false;
+        } else {
+            $('#spanStartDate').html('');
+        }
+    }
+    
+    if (role != '') {
+        $.ajax({
+            url: '@Url.Action("MembersList", "Members")',
+            type: 'GET',
+            cache: false,
+            data: {
+                Search: Search,
+                PageNo: pageno,
+                StartDate: StartDate,
+                EndDate: EndDate,
+                PaymentStatusId: PaymentStatusId,
+                ExpiryDate: ExpiryDate,
+                IsVolunteer: IsVolunteer,
+                SortColumn: sortcolumn,
+                SortOrder: sortorder,
+                Items: items,
+                MembershipTypeId: MembershipTypeId,
+                ChapterId: ChapterId,  // ✅ Will always be 1 if 0 or empty
+                IsEdit: '@IsEdit',
+                IsView: '@IsView',
+                IsDelete: '@IsDelete',
+                IsExport: '@IsExport',
+                IsAdd: '@IsAdd',
+                Mid: '@Mid',
+                type: type
+            },
+            success: function (result) {
+                $('#divDetails').html(result);
+                PagerClickBind();
+            }
+        });
+    } else {
+        $('#divDetails').html('<div class="norecords">Please Search for the list.</div>');
+    }
+    
+    $('#Role').val('@userRole');
+}
+
+    //function ExporttoExcel() {
+    //    var sortcolumn = $('#hdnsortcolumn').val();
+    //    var sortorder = $('#hdnsortorder').val();
+    //    var Search = $('#txtsearch').val();
+    //    var MembershipTypeId = $('#MembershipTypeId').val();
+    //    var ExpiryDate = $('#ExpiryDate').val();
+    //    var EndDate = $('#EndDate').val();
+    //    var StartDate = $('#StartDate').val();
+    //    var PaymentStatusId = $('#PaymentStatusId').val();
+
+    //    window.location.href = "Members/MembersExporttoExcel?Search=" + Search + "&StartDate=" + StartDate + "&EndDate=" + EndDate + "&PaymentStatusId=" + PaymentStatusId + "&ExpiryDate=" + ExpiryDate + "&SortColumn=" + sortcolumn + "&SortOrder=" + sortorder + "&MembershipTypeId=" + MembershipTypeId;
+
+    //    }
+
+
+        function ExporttoExcel() {
+            var sortcolumn = $('#hdnsortcolumn').val();
+            var sortorder = $('#hdnsortorder').val();
+            var Search = $('#txtsearch').val();
+            var MembershipTypeId = $('#MembershipTypeId').val();
+            //var ExpiryDate = $('#ExpiryDate').val();
+            var EndDate = $('#EndDate').val();
+            var StartDate = $('#StartDate').val();
+            var PaymentStatusId = $('#PaymentStatusId').val();
+            var IsVolunteer = $('#IsVolunteer').val();
+           // var ChapterId = $('#ddlChapterId').val();
+
+            var chapterId = '@ViewBag.ChapterId';
+
+            window.location.href = "Admin/Members/MembersExporttoExcel?Search=" + Search + "&StartDate=" + StartDate + "&EndDate=" + EndDate + "&PaymentStatusId=" + PaymentStatusId + "&SortColumn=" + sortcolumn + "&SortOrder=" + sortorder + "&MembershipTypeId=" + MembershipTypeId + "&ChapterId=" + chapterId;
+
+        }
+
+
+
+
+    function Delete(MemberId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteMember", "Members")',  // the URL of the controller action method
+                data: { MemberId: MemberId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+
+                    //$("#divmessage").html(result.data);
+                    Onload($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function DeleteChildInfo(ChildInfoId) {
+        var val2 = confirm("Do you want to delete this record?");
+        if (val2) {
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("DeleteChildInfo", "Members")',  // the URL of the controller action method
+                data: { ChildInfoId: ChildInfoId }, // optional data
+                success: function (result) {
+                    showLobiboxNotification(result.messageType, result.message);
+
+                    //$("#divmessage").html(result.data);
+                    Onload($('#hdnPageNo').val());
+                },
+                error: function (req, status, error) {
+                    $("#divmessage").html(result.data);
+                }
+            });
+        }
+    }
+
+    function PagerClickBind() {
+        $(".pagination a").bind("click", function () {
+            Onload($(this).text());
+        });
+    }
+
+        function BulkValidate() {
+            if ($('#Document').val() == "") { $('#spanDocument').show().html('Required. <span>&nbsp;</span><i>&nbsp;</i><abbr onclick="closeValidation(this);">&nbsp;</abbr>'); $('#Document').focus(); return false; } else { $('#spanDocument').hide().html(' '); }
+            if (!Common.isDocument($('#Document').val())) { $('#spanDocument').html('Sorry image is invalid. Only allowed extensions are:<b>xls, xlsx</b>.'); $('#Document').focus(); return false; } else { $('#spanDocument').html(''); }
+
+            return true;
+        }
+
+
+
+
+
+    function sortresult(sortcolumn) {
+
+        $('#hdnsortorder').val(($('#hdnsortorder').val() == 'ASC' ? 'DESC' : 'ASC'));
+        $('#hdnsortcolumn').val(sortcolumn);
+        Onload(1);
+    }
+
+</script>
+<script>
+    $(document).ready(function () {
+
+        //Date Picker
+
+        $(function () {
+            $("#StartDate,#EndDate").datepicker({
+
+                changeMonth: true,
+                changeYear: true,
+                showButtonPanel: true,
+                dateFormat: 'dd/mm/yy'
+            });
+        });
+
+
+
+    });
+
+</script>
+
+
+
+    
+
+
+

@@ -1,0 +1,279 @@
+﻿@{
+    ViewBag.Title = "ViewEvent";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+    AWS_AssociationToolCore.Entities.Events objEvent = ViewBag.objEvent;
+    List<AWS_AssociationToolCore.Entities.EventRegistrationTypes> lstEventRegistrationTypes = ViewBag.lstEventRegistrationTypes;
+
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#wEvents').addClass('active');
+    });
+</script>
+
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>Edit Event</h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li><a href="@Url.Action("Index", "Events", new { EventType = "upcoming", mid = ViewBag.mid })">Events</a></li>
+        <li class="active">View Event</li>
+    </ol>
+</div>
+<!--end breadcumb -->
+
+<input type="hidden" id="hdnimgvalidate" value="0" />
+<div class="content">
+    <!-- Main content -->
+    <div class="clearfix sepH_b"></div>
+    <div id="divmessage">
+        @if (TempData["message"] != null)
+        {@Html.Raw(TempData["message"].ToString())}
+
+        @if (ViewBag.message != null)
+        {@Html.Raw(ViewBag.message.ToString())}
+    </div>
+    <div class="box validation">
+        <div class="box-header">
+            <h3 class="box-title dis-in"><span class="red-t t-t-c">@objEvent.EventName </span>- View Details</h3>
+        </div>
+    </div>
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("AddEvent", "Events", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <input id="EventId" name="EventId" type="hidden" value="@(objEvent.EventId)" />
+        <input id="mid" name="mid" type="hidden" value="@ViewBag.mid" />
+
+        <div class="box validation">
+            <div class="box-header">
+                <h3 class="box-title dis-in">Event Details </h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Event Name :</label>
+                        @objEvent.EventName
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Category :</label>
+                        @objEvent.EventCategory
+                    </div>
+                    @*<div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Start Date :</label>
+                        @(objEvent.StartDate == DateTime.MinValue ? "N/A" : objEvent.StartDate.ToString("MM/dd/yyyy"))
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>End Date :</label>
+                        @(objEvent.EndDate == DateTime.MinValue ? "N/A" : objEvent.EndDate.ToString("MM/dd/yyyy"))
+                    </div>*@
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Contact Email :</label>
+                        @(objEvent.ContactEmail == null ? "N/A" : objEvent.ContactEmail)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>City :</label>
+                        @(objEvent.City == null ? "N/A" : objEvent.City)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>State Name :</label>
+                        @(objEvent.StateName == null ? "N/A" : objEvent.StateName)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Zip Code :</label>
+                        @(objEvent.ZipCode == null ? "N/A" : objEvent.ZipCode)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Location :</label>
+                        @(objEvent.Location == null ? "N/A" : objEvent.Location)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6" style="display:none;">
+                        <label>Is Volunteer :</label>
+                        @(objEvent.TopLine == null ? "N/A" : objEvent.TopLine)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6" style="display:none;">
+                        <label>Is allow only Members? :</label>
+                        @(objEvent.PageTitle == null ? "N/A" : objEvent.PageTitle)
+                    </div>
+
+
+                    <div class="col-xs-12 col-lg-3 col-sm-6" style="display:none">
+                        <label>Chapter Name :</label>
+                        @(objEvent.ChapterName == null ? "N/A" : objEvent.ChapterName)
+                    </div>
+                    @*<div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Register Now Url :</label>
+                        @(objEvent.MetaKeywords == null ? "N/A" : objEvent.MetaKeywords)
+                    </div>*@
+                </div>
+
+            </div>
+        </div>
+        <div class="box validation l-r-m-auto" style="max-width: 700px; margin-left: auto; margin-right: auto; padding: 15px;">
+            <div class="box-header">
+                <h3 class="box-title dis-in">Event Dates </h3>
+            </div>
+            <table width="100%" class="table table-bordered table-hover" id="tableDates">
+                <tbody>
+                    <tr>
+                        <th width="25%">Start Date<span class="red-t">*</span></th>
+                        <th width="25%">End Date<span class="red-t">*</span></th>
+                    </tr>
+                    <tr>
+                        <td>
+                            @(objEvent.StartDate)
+
+                        </td>
+                        <td>
+                            @(objEvent.EndDate)
+
+                        </td>
+                        
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+<div class="box validation">
+    <div class="box-header">
+        <h3 class="box-title dis-in">Registration Details</h3>
+    </div>
+    <div class="box-body">
+
+        <div class="row" id="showform">
+            <div id="InternalReg" class="col-xs-12 col-lg-2 col-sm-6">
+                <label> Registration Required? :</label>
+                @Html.CheckBox("IsRegistration")
+            </div>
+            <div id="ExpernalReg" class="col-xs-12 col-lg-4 col-sm-6">
+                <label>Reg. Now Url :</label>
+                @(objEvent.MetaKeywords == null ? "N/A" : objEvent.MetaKeywords)
+
+            </div>
+            <div id="RegStart" class="col-xs-12 col-lg-3 col-sm-6">
+                <label>Reg. Start Date :</label>
+                @objEvent.RegistrationStartDate
+            </div>
+            <div id="RegEnd" class="col-xs-12 col-lg-3 col-sm-6">
+                <label>Reg. End Date :</label>
+                @objEvent.RegistrationEndDate
+            </div>
+
+        </div>
+
+
+    </div>
+
+    <div class="box-header">
+        <h3 class="box-title dis-in" style="text-align: center; font-weight: bold; text-decoration: underline; margin-top: 20px;">Registration Types </h3>
+    </div>
+    <table width="100%" class="table table-bordered table-hover" id="tableRegistrationType">
+        <tbody>
+            <tr>
+                <th width="35%">Title</th>
+                <th width="15%">Member Amount</th>
+                <th width="15%">Non-Member Amount</th>
+                <th width="15%">Early Bird Member Amount</th>
+                @*<th width="15%">Early Bird Non-Member Amount</th>*@
+                <th width="10%">Reg. Count</th>
+                <th width="10%">mem. Count</th>
+                @*<th width="10%">mem. Count</th>*@
+                <th width="10%">OrderNo</th>
+            </tr>
+            <tr>
+                @foreach (var item in lstEventRegistrationTypes)
+                {
+                    <td>
+                        @(item.RegistrationTitle == null ? "N/A" : item.RegistrationTitle)
+
+                    </td>
+                    <td>
+                        @(item.MemberAmount )
+
+                    </td>
+
+                    <td>
+                        @(item.NonMemberAmount)
+
+                    </td>
+                    <td>
+                        @(item.EarlyBirdMemberAmount)
+
+                    </td>
+                    <td>
+                        @(item.RegCount)
+
+                    </td>
+
+                    <td>
+                        @(item.MemberCount )
+
+                    </td>
+                    <td>
+                        @(item.OrderNo )
+
+                    </td>
+
+                }
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="box validation" >
+    @*<div class="box-header">
+        <h3 class="box-title dis-in" style="text-decoration:underline; font-weight:bold;">Disclaimer </h3>
+    </div>
+    <div class="box-body">
+        <div class="row">
+            <div class="col-xs-12 col-lg-12 col-sm-6">
+                <div class="filedsetInner clearfix">
+                    @Html.Raw(objEvent.MetaDescription == null ? "N/A" : objEvent.MetaDescription)
+                </div>
+            </div>
+        </div>
+    </div>*@
+
+    <div class="box-header">
+        <h3 class="box-title dis-in" style="text-decoration: underline; font-weight: bold;">Event Description </h3>
+    </div>
+    <div class="box-body">
+        <div class="row">
+            <div class="col-xs-12 col-lg-12 col-sm-6">
+                <div class="filedsetInner clearfix">
+                    @Html.Raw(objEvent.EventDetails == null ? "N/A" : objEvent.EventDetails)
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        <div class="box validation" style="display:none;">
+            <div class="box-header">
+                <h3 class="box-title dis-in">SEO Details </h3>
+            </div>
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Page Title :</label>
+                        @(objEvent.PageTitle == null ? "N/A" : objEvent.PageTitle)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Meta Keywords :</label>
+                        @(objEvent.MetaKeywords == null ? "N/A" : objEvent.MetaKeywords)
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Meta Description :</label>
+                        @(objEvent.MetaDescription == null ? "N/A" : objEvent.MetaDescription)
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="box">
+            <div class="box-body text-right">
+                <a class="btn btn-info" href="@Url.Action("Index", "Events", new { EventType = "current", mid = ViewBag.mid })">Cancel</a>
+            </div>
+        </div>
+    }
+</div>
+

@@ -1,0 +1,103 @@
+﻿@{
+    ViewBag.Title = "AddMailTemplate";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _appinfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = _appinfo.GetAppInfoDetails(ref status);
+
+    var imgloc = objAppInfo.AdminImageUrl + "news/ ";
+    AWS_AssociationToolCore.Entities.News objNews = ViewBag.objNews;
+}
+
+<script type="text/javascript">
+   
+    $(document).ready(function () {
+        $('#wNews, #wOthers').addClass('active');
+        $('.alert-danger').append('<i class="fa fa-ban"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $('.alert-success').append('<i class="fa fa-check"></i><button class="close" aria-hidden="true" data-dismiss="alert" type="button">×</button>');
+        $(".date").datepicker({ changeMonth: true, changeYear: true, yearRange: "-90:+0", altFormat: 'mm/dd/yy' });
+
+
+    });
+</script>
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+<!-- breadcumb -->
+<div class="content-header">
+    <h1>View News</h1>
+    <ol class="breadcrumb">
+        <li><a href="@Url.Action("Index", "Home")"><i class="fa fa-dashboard"></i>Home</a></li>
+        <li><a href="@Url.Action("Index", "News", new { mid = ViewBag.mid })"><i class="fa fa-print"></i>News</a></li>
+        <li class="active">View News</li>
+    </ol>
+</div>
+<!--end breadcumb -->
+
+<div class="content">
+    <!-- Main content -->
+    <div id="divmessage">
+        @if (TempData["message"] != null)
+        { @Html.Raw(TempData["message"].ToString())}
+
+        @if (ViewBag.message != null)
+        { @Html.Raw(ViewBag.message.ToString())}
+    </div>
+    <div class="box validation">
+        <!-- /.box-header -->
+        <div class="box-header">
+            
+        </div>
+        @using (Html.BeginForm("AddNews", "News", FormMethod.Post, new { enctype = "multipart/form-data" }))
+        {
+            <input type="hidden"  name="NewsId" id="NewsId" value="@objNews.NewsId"/>
+            <input type="hidden" name="mid" id="mid" value="@ViewBag.mid" />
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Title :</label>
+                        @objNews.Title
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Post Date :</label>
+                        @objNews.PostDate.ToString("MM-dd-yyyy")
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Post Date :</label>
+                        @objNews.ExpiryDate.ToString("MM-dd-yyyy")
+                    </div>
+                    <div class="col-xs-12 col-lg-3 col-sm-6">
+                        <label>Order No :</label>
+                        @objNews.OrderNo
+                    </div>
+
+                </div>
+            </div>
+            if (objNews.ImageUrl != null && objNews.ImageUrl != "")
+            {
+            <div class="box-body">
+                <div class="row">
+                    <div class="col-xs-12 col-lg-4 col-sm-6">
+                        <label>Image </label><br />
+                        <label><img width="100%" class="borwhite5 border-radius shadow" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imgloc + objNews.ImageUrl), imgloc + "no-image.jpg")" /> </label>
+                    </div> 
+                </div>
+            </div> 
+            }
+
+            <div class='box-body'>
+                <label>Description </label><br />
+               @Html.Raw(objNews.NewsText)
+            </div>
+            <div class="box">
+                <!-- /.box-header -->
+                <div class="box-body text-right">
+                    <a class="btn btn-info" href="@Url.Action("Index", "News", new { mid = ViewBag.mid})">Cancel</a>
+                </div>
+                <!-- /.box-body -->
+            </div>
+        }
+        <!-- /.box-body -->
+    </div>
+    <!-- /.content -->
+</div>
+

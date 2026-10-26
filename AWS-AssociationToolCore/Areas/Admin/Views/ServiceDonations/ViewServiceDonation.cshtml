@@ -1,0 +1,146 @@
+﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    ViewBag.Title = "AddDetails";
+    ViewBag.Pageheading = "View details";
+    Layout = "~/Areas/Admin/Views/Shared/_MainLayout.cshtml";
+
+
+    var baseUrl = HttpContextAccessor.HttpContext?.Session.GetString("UserSiteUrl") ?? "";
+    var cssloc = baseUrl + "Content/Admin/front-end-style.css";
+
+
+    AWS_AssociationToolCore.Entities.ServiceDonations objServiceDonations = ViewBag.objServiceDonations;
+
+}
+
+<script type="text/javascript" src="ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="ckfinder/ckfinder.js"></script>
+
+
+
+
+<div class="content">
+   
+    <div class="clearfix sepH_b"></div>
+    @using (Html.BeginForm("AddServiceDonation", "ServiceDonations", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="tab-pane active">
+                    <input type="hidden" id="mid" name="mid" value="@ViewBag.mid" />
+                    <div class="box validation">
+
+                        <div class="box-body">
+
+                            <div class="row">
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>MemberId : </label>
+                                    @objServiceDonations.MemberId
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>First Name : </label>
+                                    @objServiceDonations.FirstName
+                                </div>
+
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Last Name : </label>
+                                    @objServiceDonations.LastName
+                                </div>
+
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label class="t-p5">Email :</label>
+                                    @objServiceDonations.Email
+
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label class="t-p5">Mobile Number :</label>
+                                    @objServiceDonations.PhoneNo
+
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label class="t-p5">Country :</label>
+                                    @objServiceDonations.Country
+
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label class="t-p5">Zip Code :</label>
+                                    @objServiceDonations.ZipCode
+
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label class="t-p5">Address :</label>
+                                    @objServiceDonations.Address
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Donation Cause : </label>
+                                    @objServiceDonations.DonationCause
+                                </div>
+
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Amount ($) : </label>
+                                    @Math.Round(objServiceDonations.Amount, 2)
+                                </div>
+
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>TransactionId : </label>
+                                    @objServiceDonations.TransactionId
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label class="t-p5">Payment Method :</label>
+                                    @objServiceDonations.PaymentMethod
+
+                                </div>
+                            </div>
+                            <div class="row">
+
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Payment Status :</label>
+                                    @objServiceDonations.PaymentStatus
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Reg.Date : </label>
+                                    @(objServiceDonations.OrderDate == DateTime.MinValue ? "N/A" : objServiceDonations.OrderDate.ToString("MM-dd-yyyy"))
+                                </div>
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Is Ananymous :</label>
+                                    @objServiceDonations.Field3
+                                </div>
+
+                                @*<div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>CardNumber : </label>
+                                    @objServiceDonations.CardNumber
+                                </div>
+
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>CSVExpiry : </label>
+                                    @objServiceDonations.CSVExpiry
+                                </div>*@
+                                <div class="col-xs-12 col-lg-3 col-sm-6">
+                                    <label>Ip.Address :</label>
+                                    @objServiceDonations.Field2
+                                </div>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+
+
+                    <div class="box">
+                        <!-- /.box-header -->
+                        <div class="box-body" style="text-align: end;">
+                            <a class="btn btn-info" href="@Url.Action("Index", "ServiceDonations", new { mid = ViewBag.mid })">Cancel</a>
+                        </div>
+                        <!-- /.box-body -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+
+

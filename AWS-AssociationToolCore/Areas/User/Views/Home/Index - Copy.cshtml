@@ -1,0 +1,936 @@
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{ Layout = null;
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    var baseurl = objAppInfo.BaseUrl;
+    var adminurl = objAppInfo.BaseUrl;
+
+
+    var HomeUrl = System.Configuration.ConfigurationManager.AppSettings["HomeUrl"];
+
+    List<AWS_AssociationToolCore.Entities.Chapters> lstChapters = ViewBag.lstChapters;
+
+
+    AWS_AssociationToolCore.Entities.Chapters objChapters = lstChapters.FirstOrDefault(x => x.ChapterId == (ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId));
+    // AWS_AssociationToolCore.Entities.Chapters objChapters = lstChapters.FirstOrDefault(x => x.ChapterId == (ViewBag.ChapterId == 0 ? 1 : ViewBag.ChapterId));
+
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems = ViewBag.lstMenuItems;
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems2 = ViewBag.lstMenuItems2;
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems3 = ViewBag.lstMenuItems3;
+    List<AWS_AssociationToolCore.Entities.MenuItems> lstMenuItems4 = ViewBag.lstMenuItems4;
+    List<AWS_AssociationToolCore.Entities.MenuItems> FooterMenuItems = ViewBag.FooterMenuItems;
+    List<AWS_AssociationToolCore.Entities.MenuItems> QuickLinkItems = ViewBag.QuickLinkItems;
+
+    List<AWS_AssociationToolCore.Entities.WebsiteBanners> lstWebsiteBanners = ViewBag.lstWebsiteBanners;
+    AWS_AssociationToolCore.Entities.PageDetails objPInnerPages = ViewBag.objPInnerPages;
+    AWS_AssociationToolCore.Entities.PageDetails objWInnerPages = ViewBag.objWInnerPages;
+    AWS_AssociationToolCore.Entities.PageDetails objvInnerPages = ViewBag.objvInnerPages;
+
+    List<AWS_AssociationToolCore.Entities.Events> lstUpcommingEvents = ViewBag.lstUpcommingEvents;
+    List<AWS_AssociationToolCore.Entities.News> lstNews = ViewBag.lstNews;
+    List<AWS_AssociationToolCore.Entities.Sponsors> lstSponsors = ViewBag.lstSponsors;
+    List<AWS_AssociationToolCore.Entities.SponsorCategories> lstSponsorCategories = ViewBag.lstSponsorCategories;
+    List<AWS_AssociationToolCore.Entities.CommitteeCategories> lstCommitteeCategories = ViewBag.lstCommitteeCategories;
+    List<AWS_AssociationToolCore.Entities.Photos> lstPhotos = ViewBag.lstPhotos;
+    List<AWS_AssociationToolCore.Entities.Videos> lstVideos = ViewBag.lstVideos;
+    AWS_AssociationToolCore.Entities.Chapters objcChapters = new AWS_AssociationToolCore.Entities.Chapters();
+    AWS_AssociationToolCore.BLL.Chapters _Chapters = new AWS_AssociationToolCore.BLL.Chapters();
+
+
+    var imglocNormal = objAppInfo.AdminImageUrl + "WebsiteBanners/NormalImages/";
+    var imglocsponsor = objAppInfo.BaseUrl + "Content/Sponsors/";
+
+    // var imglocsponsor = "~/Content/Sponsors/";
+    var imglocEvent = objAppInfo.AdminImageUrl + "events/banners/";
+    var gnimgloc = objAppInfo.AdminImageUrl + "photogallery/normalphoto/";
+    var gtimgloc = objAppInfo.AdminImageUrl + "photogallery/thumbphoto/";
+    var fevicon = objAppInfo.BaseUrl + "Content/faviconlogo/normalimages/";
+
+    Int64 ChapterId = 0;
+    var cname = "";
+    string ChapterName = "";
+
+    cname = ViewBag.cname;
+
+    int qstatus = 0;
+    if (cname != null && cname != "")
+    {
+        objcChapters = _Chapters.GetChaptersListByName(cname, ref qstatus);
+
+        ChapterName = cname;
+    }
+
+    ChapterId = objcChapters.ChapterId;
+
+    if (ChapterId == 0)
+    {
+        ChapterId = 1;
+
+        ChapterName = "global";
+    }
+
+
+    var Type = ViewBag.Type;
+    ViewBag.heading = "Home";
+
+    string str = "";
+    if (ViewBag.str != null && ViewBag.str != "")
+    {
+        str = ViewBag.str;
+    }
+
+    string str1 = "";
+    if (TempData["forgot"] != null)
+    {
+        str1 = TempData["forgot"].ToString();
+    }
+
+    string accyear = "";
+    int year = 0;
+    int mnt = DateTime.Now.Month;
+    year = (mnt >= 4 ? DateTime.Now.Year : DateTime.Now.Year - 1);
+    accyear = year + "-" + (year + 1);
+
+    ViewBag.ACStart = objAppInfo.SecretaryPhone;
+    ViewBag.ACEnd = objAppInfo.CustomerCareNumber;
+
+
+    // ✅ In .cshtml files use Context.Session (NOT HttpContext.Session)
+    Context.Session.SetString("ChapterId", ChapterId.ToString());
+    Context.Session.SetString("ChapterName", cname ?? "");
+
+    var userAgent = Context.Request.Headers["User-Agent"].ToString().ToLower();
+    var IsMobile = userAgent.Contains("mobile") ||
+                   userAgent.Contains("android") ||
+                   userAgent.Contains("iphone") ||
+                   userAgent.Contains("ipad");
+
+    var launch = ViewBag.w;
+    int pcurrentYear = DateTime.Now.Year;
+    var lstfChapters = lstChapters.FindAll(ch => !ch.ChapterName.Contains(objChapters.ChapterName));
+
+
+    // var lstfChapters = lstChapters.FindAll(ch => !ch.ChapterName.Contains(objChapters.ChapterName)); 
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Basic Meta Tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- SEO Meta Tags -->
+
+    <meta name="description" content="@((string)ViewBag.MetaDescription != "" && (string)ViewBag.MetaDescription != null ? (string)ViewBag.MetaDescription : (objAppInfo.MetaDescription != null && objAppInfo.MetaDescription != "" ? objAppInfo.MetaDescription : "Join AWS Telugu Association, a non-profit dedicated to promoting Andhra Pradesh�s rich culture, heritage, and traditions in the USA. Become a member, volunteer, or participate in our vibrant events and celebrations."))" />
+    <meta name="keywords" content="@((string)ViewBag.MetaKeywords != "" && (string)ViewBag.MetaKeywords != null ? (string)ViewBag.MetaKeywords : (objAppInfo.MetaKeywords != null && objAppInfo.MetaKeywords != "" ? objAppInfo.MetaKeywords : "AWS Telugu Association, data mapping software, relationship management, link records, workflow optimization, entity association, data linking, automation tool"))" />
+    <title>@((string)ViewBag.Title != "" && (string)ViewBag.Title != null ? (string)ViewBag.Title : (objAppInfo.PageTitle != null && objAppInfo.PageTitle != "" ? objAppInfo.PageTitle : "AWS Telugu Association | Preserving Andhra Culture & Heritage in the USA"))</title>
+
+    <meta charset="utf-8">
+    <base href="@(baseurl)" />
+
+    <meta name="author" content="Your Name or Company">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph Meta Tags for social media sharing (Facebook, LinkedIn) -->
+    <meta property="og:title" content="@(objAppInfo.SiteName)">
+    <meta property="og:description" content="A brief description of your website.">
+    <meta property="og:image" content="@(baseurl)image.jpg">
+    <meta property="og:url" content="@(baseurl)">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="@(objAppInfo.SiteName)">
+    <!-- Open Graph Meta Tags for social media sharing (Facebook, LinkedIn) end-->
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="@fevicon/@objAppInfo.faviconlogo" type="image/png" />
+    <link rel="icon" href="@fevicon/@objAppInfo.faviconlogo" type="image/x-icon">
+
+    <!-- styles links -->
+    <link rel="stylesheet" href="Content/User/css/bootstrap.min.css?ver=@objAppInfo.DesktopVersion.ToString()">
+    <link rel="stylesheet" href="Content/User/css/style.css?ver=@objAppInfo.DesktopVersion.ToString()">
+    <link rel="stylesheet" href="content/user/css/home-style.css?ver=@objAppInfo.DesktopVersion.ToString()">
+    <link rel="stylesheet" href="Content/User/css/external.css?ver=@objAppInfo.DesktopVersion.ToString()">
+    <link rel="stylesheet" href="Content/User/css/responsive.css?ver=@objAppInfo.DesktopVersion.ToString()">
+    <link rel="stylesheet" href="Content/User/css/owl.carousel.min.css?ver=@objAppInfo.DesktopVersion.ToString()">
+    <link rel="stylesheet" href="Content/User/css/owl.theme.default.min.css?ver=@objAppInfo.DesktopVersion.ToString()">
+
+    <!-- For Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="Content/User/css/magnific-popup.min.css?ver=@objAppInfo.DesktopVersion.ToString()" rel="stylesheet" />
+
+    <!-- Jquery Liberary -->
+    <script src="Scripts/User/jquery.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+    <script src="Scripts/User/bootstrap.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="scripts/user/bootstrap.bundle.min.js?ver=@objAppInfo.DesktopVersion.ToString()"></script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+
+    <script>
+        $(document).ready(function () {
+            LoadBannersList();
+            LoadLatestNewsList();
+            LoadUpcomingEventsList();
+        });
+
+        function LoadBannersList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("Banners", "Home")',
+                success: function (data) {
+                    $("#divBannersList").html(data);
+                },
+                error: function () {
+                    $("#divBannersList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+
+        function LoadLatestNewsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("LatestNews", "Home")',
+                success: function (data) {
+                    $("#divLatestNewsList").html(data);
+                },
+                error: function () {
+                    $("#divLatestNewsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+
+        function LoadUpcomingEventsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("UpcomingEvents", "Home")',
+                success: function (data) {
+                    $("#divUpcomingEventsList").html(data);
+                },
+                error: function () {
+                    $("#divUpcomingEventsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+    </script>
+
+
+    <script type="text/javascript">
+        function NewletterShow() {
+            $('#NLSubscription').modal('show');
+        }
+    </script>
+    <script>
+        $(document).ready(function () {
+            LoadBannersList();
+            LoadLatestNewsList();
+            LoadUpcomingEventsList();
+        });
+
+        function LoadBannersList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("Banners", "Home")',
+                success: function (data) {
+                    $("#divBannersList").html(data);
+                },
+                error: function () {
+                    $("#divBannersList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+
+        function LoadLatestNewsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("LatestNews", "Home")',
+                success: function (data) {
+                    $("#divLatestNewsList").html(data);
+                },
+                error: function () {
+                    $("#divLatestNewsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+
+        function LoadUpcomingEventsList() {
+            $.ajax({
+                type: "GET",
+                url: '@Url.Action("UpcomingEvents", "Home")',
+                success: function (data) {
+                    $("#divUpcomingEventsList").html(data);
+                },
+                error: function () {
+                    $("#divUpcomingEventsList").html('<p class="text-danger">Failed to load events.</p>');
+                }
+            });
+        }
+    </script>
+    <script>
+        function Chapter(ChapterName) {
+        let chapterButton = document.getElementById('chapterButton');
+
+        if (chapterButton) {
+            chapterButton.innerHTML = '<i class="bi bi-list-ul"></i> ' + ChapterName;
+        } else {
+            console.error("Element with ID 'chapterButton' not found.");
+        }
+
+        // Redirect only if not already redirected
+        //if (!sessionStorage.getItem("redirected")) {
+        //    sessionStorage.setItem("redirected", "true");
+            window.location.href = '@baseurl' + ChapterName + '/index';
+        /*}*/
+        }
+        //Chapter(ChapterName);
+    </script>
+
+    <style>
+        .form_15iP5 {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .view-btn {
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: #de423b;
+            border: 1px solid #ec6220;
+            padding: 8px 23px;
+        }
+    </style>
+    <script>
+        //        $(document).ready(function () {
+        //     if ($(window).width() > 768) {
+        //         $('.menu-item-has-children').on('mouseenter', function () {
+        //             $(this).find('> .sub-menu').stop(true, true).slideDown(200);
+        //         }).on('mouseleave', function () {
+        //             $(this).find('> .sub-menu').stop(true, true).slideUp(200);
+        //         });
+        //     }
+        // });
+          $(document).ready(function () {
+
+            $('.menu-item-has-children > a').click(function (e) {
+
+                if ($(window).width() <= 991) {
+
+                    e.preventDefault();
+
+                    var submenu = $(this).next('.sub-menu');
+
+                    // Open ayithe close avuthundi, close ayithe open avuthundi
+
+                    submenu.slideToggle(300);
+
+                    // Optional: arrow rotate
+
+                    $(this).find('.dropdown-indicator').toggleClass('rotate');
+
+                }
+
+            });
+
+        });
+
+    </script>
+</head>
+<body>
+
+    <!-- HEADER MENU SECTION -->
+    <div class="main_header">
+        <img src="content/user/images/thoranam-left.png" alt="" class="thoranam-left">
+        <img src="content/user/images/thoranam-right.png" alt="" class="thoranam-right">
+
+        <header class="header header_area  wow fadeInUp" id="header">
+            <div class="top_div">
+                <div class="">@objAppInfo.CompanyAddress</div>
+                <div class=""><a href="mailto:@objAppInfo.CompanyEmail" class="text-white">@objAppInfo.CompanyEmail</a></div>
+                <div class="social-icons">
+                    @if (objAppInfo.FacebookUrl != null && objAppInfo.FacebookUrl != "")
+                    {
+                        <a href="@objAppInfo.FacebookUrl" target="_blank" title="Facebook">
+                            <i class="bi bi-facebook" style="font-size: 20px;"></i>
+                        </a>
+                    }
+                    @if (objAppInfo.TwitterUrl != null && objAppInfo.TwitterUrl != "")
+                    {
+                        <a href="@objAppInfo.TwitterUrl" target="_blank" title="Twitter">
+                            <i class="bi bi-twitter-x"></i>
+                        </a>
+                    }
+                    @if (objAppInfo.YoutubeUrl != null && objAppInfo.YoutubeUrl != "")
+                    {
+                        <a href="@objAppInfo.YoutubeUrl" target="_blank" title="Linkedin">
+                            <i class="bi bi-youtube"></i>
+                        </a>
+                    }
+                    @if (objAppInfo.InstagramUrl != null && objAppInfo.InstagramUrl != "")
+                    {
+                        <a href="@objAppInfo.InstagramUrl" target="_blank" title="Instagram">
+                            <i class="bi bi-instagram"></i>
+                        </a>
+                    }
+                </div>
+
+            </div>
+            <div class="container">
+                <div class="header-nav">
+                    <div class="text-end">
+                        <i class="mobile-nav-toggle mobile-nav-show bi bi-list"></i>
+                        <i class="mobile-nav-toggle mobile-nav-hide d-none bi bi-x"></i>
+                    </div>
+                    <nav id="navbar" class="navbar">
+                        @if (lstMenuItems != null && lstMenuItems.Count != 0)
+                        {
+                            <ul class="">
+                                <li class="menu-active">
+                                    <a href="@Context.Session.GetString("ChapterName")/index">Home</a>
+                                </li>
+                                @foreach (var item in lstMenuItems)
+                                {
+                                    Int64 menu2Count = lstMenuItems2.Count(x => x.PageParentId == item.MenuItemId);
+
+                                    // ✅ CHANGE 1: only add menu-item-has-children if it has children
+                                    <li class="@(menu2Count > 0 ? "menu-item-has-children" : "")">
+                                        <a href="@(item.DocumentUrl != null && item.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item.DocumentUrl : (item.OtherUrl != null && item.OtherUrl != "" ? item.OtherUrl : (item.PageUrl != null && item.PageUrl != "" ? "p/" + item.PageUrl + "?mrid=" + item.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item.Target">
+                                            @item.DisplayName
+                                            @if (menu2Count > 0) // ✅ CHANGE 2: only show arrow if has children
+                                            {
+                                                <i class="bi dropdown-indicator bi-chevron-down"></i>
+                                            }
+                                        </a>
+                                        @if (lstMenuItems2 != null && lstMenuItems2.Count != 0)
+                                        {
+                                            if (item.SubMenuItemCount != 0)
+                                            {
+                                                // ✅ CHANGE 3: add style="display:none"
+                                                <ul class="sub-menu">
+                                                    @foreach (var item2 in lstMenuItems2)
+                                                    {
+                                                        if (item.MenuItemId == item2.PageParentId)
+                                                        {
+                                                            Int64 menu3Count = lstMenuItems3.Count(x => x.PageParentId == item2.MenuItemId);
+                                                            @if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null)
+                                                            {
+                                                                if (item2.DisplayName != "Member Registration")
+                                                                {
+                                                                    <li><a href="@(item2.DocumentUrl != null && item2.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item2.DocumentUrl : (item2.OtherUrl != null && item2.OtherUrl != "" ? item2.OtherUrl : (item2.PageUrl != null && item2.PageUrl != "" ? "p/" + item2.PageUrl + "?mrid=" + item2.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item2.Target">@item2.DisplayName</a></li>
+                                                                }
+                                                            }
+                                                            else
+                                                            {
+                                                                <li>
+                                                                    <a href="@(item2.DocumentUrl != null && item2.DocumentUrl != "" ? adminurl + "Content/PageDocuments/" + item2.DocumentUrl : (item2.OtherUrl != null && item2.OtherUrl != "" ? item2.OtherUrl : (item2.PageUrl != null && item2.PageUrl != "" ? "p/" + item2.PageUrl + "?mrid=" + item2.MenuItemId : Context.Session.GetString("ChapterName") + "/update-soon")))" target="@item2.Target">@item2.DisplayName</a>
+                                                                </li>
+                                                            }
+                                                        }
+                                                    }
+                                                </ul>
+                                            }
+                                        }
+                                    </li>
+                                }
+
+                                <li class="btn_outline ms-1"><a href="volunteer-registration">Volunteer</a></li>
+                                @* <li class="btn_outline two ms-1"><a href="donate-now">Sponsorship</a></li> *@
+                                @if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null)
+                                {
+                                    <li class="btn_outline two ms-1"><a href="@Url.Action("Profile", "Members", new { cname = Context.Session.GetString("ChapterName") })"><img class="lock-icon pe-1" src="Content/User/images/login.png" alt="AWS Association tool Profile">Profile </a></li>
+                                }
+                                else
+                                {
+                                    <li class="btn_outline two ms-1"><a href="@Url.Action("LogOn", "Members", new { cname = Context.Session.GetString("ChapterName") })"><img class="lock-icon pe-1" src="Content/User/images/login.png" alt="AWS Association Tool Login">Login</a></li>
+                                }
+                            </ul>
+                        }
+                    </nav>
+                </div>
+            </div>
+
+
+           
+           
+        </header>
+        <div class="logo_header">
+            <img src="content/user/images/header_top_line.png" alt="" class="header_top_line">
+            <a href="@Url.Action("index", "Home")">
+                <img src="content/user/images/text-logo.png" alt="">
+            </a>
+        </div>
+
+        <div class="mobile_top_section">
+            <img src="content/user/images/waks-mobile-logo.gif" class="w-100" alt="">
+        </div>
+        <img src="content/user/images/header_bottom_line.png" alt="" class="header_bottom_line">
+    </div>
+
+    <div class="main_bg">
+        <!-- banner_sec -->
+        <div class="banner_sec">
+            <div class="container-fluid">
+                <div id="carouselExample" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="3000">
+                    <div id="divBannersList">
+                        <!-- Load Document Url LoadBannersList-->
+
+                    </div>
+                    
+
+                </div>
+            </div>
+        </div>
+        <!-- banner_sec_close -->
+        <!-- wel_sec -->
+        <div class="wel_sec">
+            <div class="container">
+                <h3 class="wel_sub_title">Welcome to the</h3>
+                @Html.Raw(objWInnerPages.Description)
+               @*  <h2 class="wel_title">Western Australia Kannada Sangha</h2>
+                <p>
+                    Western Australia Kannada Sangha (WAKS) started on Saturday, 22 Aug 2009, is the only registered
+                    Kannada association
+                    in Western Australia (WA). Our mission is to strengthen the Kannada community of WA by providing a
+                    forum to pursue
+                    literary, cultural, educational and community development activities. It is a voluntary organization
+                    primarily run
+                    by donations and memberships from interested members of the general public. WAKS has a long way in
+                    achieving its
+                    objectives and in expanding its activities to new horizons. To bring a sense of festivity into
+                    otherwise routine
+                    lifestyle, WAKS organises several events throughout the year.
+                </p> *@
+            </div>
+        </div>
+        <!-- wel_sec_close -->
+        <img src="content/user/images/wel_bg.png" alt="" class="wel_bg">
+    </div>
+    <div class="main_bg2">
+        <div class="container">
+            <div class="combine_sec">
+                <div class="left_part">
+                    <div class="event_part">
+                        <!-- Event Card -->
+                        <div id="divUpcomingEventsList">
+                            <!-- Load <!-- Load UpcomingEventsList -->-->
+
+                        </div>
+                    </div>
+                    <div class="registraion_bg">
+                        <h2>The Only Registered Kannada Association in Western Australia</h2>
+                        <div class="registration_btns">
+                            @if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null)
+                            {
+                                <a href="@Url.Action("Profile", "Members", new { cname = Context.Session.GetString("ChapterName") })" title="Profile">
+                                <span><img src="content/user/images/member.png" alt=""></span>Profile
+                            </a>
+                        }
+                        else{
+                              <a href="become-a-member">
+                                <span><img src="content/user/images/dollor.png" alt=""></span>Become A
+                                Member
+                            </a>
+                        }
+                           @Html.Raw(objPInnerPages.Description)
+
+                        </div>
+                       
+
+                    </div>
+                    <div class="reg_border">
+                        <img src="content/user/images/reg-border.png" alt="" class="w-100">
+                    </div>
+                </div>
+
+                <div class="right_part">
+                    <!-- sponsors_sec -->
+                    <div class="sponsors_part">
+                       @*  <h3>Sponsors</h3> *@
+                        @if (lstSponsorCategories != null)
+                        {
+                            int i = 1;
+
+
+                            <div class="aws-sponsers">
+
+                                <div class="row gy-lg-0 gy-4 gx-2">
+                                    @foreach (var SponsorCategory in lstSponsorCategories)
+                                    {
+                                        if (lstSponsors != null && lstSponsors.Count != 0 && SponsorCategory.SponsorsCount != 0)
+                                        {
+                                            <div class="col-lg-12 col-md-4 col-sm-6 col-6">
+
+                                                <div class="">
+                                                    <a href="sponsorship">
+                                                        <h4 class="sec-title2 text-center @(i > 1 ? "mt-lg-3 " : " ")" style="background-color: #0c8420; color: white;">@SponsorCategory.CategoryName</h4>
+
+                                                    </a>
+                                                    <div class="aws-ticker3 aws-cmn-ticker">
+                                                        <ul class="m-0 p-0">
+                                                            @foreach (var item in lstSponsors)
+                                                            {
+                                                                if (item.SponsorCategoryId == SponsorCategory.SponsorCategoryId)
+                                                                {
+                                                                    <li>
+                                                                        @if (item.RedirectUrl != null && item.RedirectUrl != "")
+                                                                        {
+                                                                            <img width="100px" title="@SponsorCategory.CategoryName" alt="@SponsorCategory.CategoryName" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocsponsor + item.LogoUrl), imglocsponsor + "no-image.jpg")" class="borwhite5 border-radius shadow" />
+
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <img width="100px" title="@SponsorCategory.CategoryName" alt="@SponsorCategory.CategoryName" src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((imglocsponsor + item.LogoUrl), imglocsponsor + "no-image.jpg")" class="borwhite5 border-radius shadow" />
+                                                                        }
+
+                                                                    </li>
+                                                                }
+                                                            }
+                                                        </ul>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        }
+                                        i++;
+                                    }
+                                </div>
+
+                            </div>
+                        }
+                       @*  <div class="aws-ticker4 aws-cmn-ticker">
+                            <ul class=" p-0 m-0">
+                                <li class=""><img src="content/user/images/sponsor1.jpg" alt=""></li>
+                                <li class=""><img src="content/user/images/sponsor2.jpg" alt=""></li>
+                                <li class=""><img src="content/user/images/sponsor3.jpg" alt=""></li>
+                                <li class=""><img src="content/user/images/sponsor4.jpg" alt=""></li>
+                                <li class=""><img src="content/user/images/sponsor5.jpg" alt=""></li>
+                                <li class=""><img src="content/user/images/sponsor6.jpg" alt=""></li>
+                                <li class=""><img src="content/user/images/sponsor7.jpg" alt=""></li>
+                                <li class=""><img src="content/user/images/sponsor8.jpg" alt=""></li>
+                            </ul>
+                        </div> *@
+                    </div>
+                    <div class="sponsors-border">
+                        <img src="content/user/images/sponser-border.png" alt="">
+                    </div>
+                    <!-- sponsors_sec_close -->
+                </div>
+            </div>
+
+            <!-- gallery  sec-->
+            <div class="gallery_main">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="gallery_bg">
+                            <div class="gallery_title">Photo Gallery</div>
+                            @if (lstPhotos != null && lstPhotos.Count != 0)
+                            {
+                                <div class="gal-grid">
+                                    @foreach (var item in lstPhotos)
+                                    {
+                                        <a href="@Url.Action("PhotosList", "Gallery", new { CategoryName = item.CategoryName, Year = pcurrentYear })">
+                                            <div class="g-box pos-relative">
+                                                @if (item.ImageUrl != null && item.ImageUrl != "")
+                                                {
+                                                    <img class="gallery__icon w-100"
+                                                         src="@AWS_AssociationToolCore.BLL.Common.ValidateImage((gnimgloc + item.ImageUrl), gnimgloc + "no-imagefinal.jpg")"
+                                                         alt="@item.CategoryName">
+                                                }
+                                                else
+                                                {
+                                                    <img class="gallery__icon w-100"
+                                                         src="@(gnimgloc + "no-imagefinal.jpg")"
+                                                         alt="No Image">
+                                                }
+                                                <div class="overlay">
+                                                    <div class="text"><i class="bi bi-images"></i></div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="gallery_bg">
+                            <div class="gallery_title">Video Gallery</div>
+                            <div class="gal-grid">
+                                @if (lstVideos != null && lstVideos.Count != 0)
+                                {
+                                    @foreach (var item in lstVideos)
+                                    {
+                                        <div class="aws-video-popup" id="aws-video-popup">
+                                        <a class="video-item" href="https://www.youtube.com/embed/@(item.VideoUrl)">
+                                            <span class="clearfix dis-b galleryhover-bg">
+                                                <span class="video-icon-hover flip">&nbsp;</span>
+                                            </span>
+                                            <img class="v-icon w-100"
+                                                 src="https://i1.ytimg.com/vi/@(item.VideoUrl)/hqdefault.jpg"
+                                                 alt="@item.Heading">
+                                        </a>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- gallery-sec close  -->
+        <div class="footer_left_img">
+            <img src="content/user/images/footer_top_left.png" alt="">
+        </div>
+        <div class="footer_middile_img">
+            <img src="content/user/images/footer_top_middle.png" alt="">
+        </div>
+        <div class="footer_right_img">
+            <img src="content/user/images/footer_top_right.png" alt="">
+        </div>
+    </div>
+
+    <!-- footer -->
+    <footer class="main-footer">
+        <div class="container">
+            <div class="footer-grid">
+
+                <div class="footer-section left-menu">
+                    <div class="footer-section help-desk">
+                        <div class="aks-brand">
+                            <a href="@HomeUrl/contact-us">
+                                <img src="content/user/images/help_desk.png" alt="">
+                            </a>
+                        </div>
+                        <div class="contact-item">
+                            <div class="icon-circle"><i class="bi bi-envelope"></i></div>
+                            <div class="contact-info">
+                                <p>Need help? Email us</p>
+                                <a href="mailto:@objAppInfo.CompanyEmail">@objAppInfo.CompanyEmail</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="footer-section address-section">
+                        <div class="address-box">
+                            <p>
+                                @objAppInfo.CompanyAddress
+                            </p>
+                        </div>
+                        <div class="contact-item">
+                            <div class="icon-circle"><i class="bi bi-telephone"></i></div>
+                            <div class="contact-info">
+                                <p>Need help? Call Us</p>
+                                <a href="tel:@objAppInfo.CompanyPhone">@objAppInfo.CompanyPhone</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer-section central-logo-section">
+                    <div class="logo-outer-glow">
+                        <img src="content/user/images/logo.png" alt="AKS Main Logo" class="main-logo">
+                    </div>
+
+                </div>
+
+                <div class="footer-section right-menu">
+                    <ul class="footer-links">
+                        @if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null)
+                        {
+                            <li>   <a href="@Url.Action("Profile", "Members", new { cname = Context.Session.GetString("ChapterName") })" title="Profile">
+                                    Profile
+                                </a>
+                            </li>
+
+                        }
+                        else
+                        {
+                            <li><a href="@HomeUrl/become-a-member">Member Registration</a></li>
+
+                        }
+
+                        <li><a href="@HomeUrl/upcoming-events">Events</a></li>
+                        <li><a href="@HomeUrl/sponsorship">Sponsor Us</a></li>
+                        <li><a href="@HomeUrl/2025/photo-gallery"> Gallery</a></li>
+                        <li><a href="@HomeUrl/contact-us">Contact Us</a></li>
+                    </ul>
+
+                    <div class="">
+                        <div class="newsletter-area">
+                            <div class="newsletter-header">
+                                <span><img src="content/user/images/news_letter.png" alt=""></span>
+                                <h5>Subscribe <br><span>Newsletter</span></h5>
+                            </div>
+                            <a href="" class="subscribe-btn">
+                                SUBSCRIBE NOW <span><img src="content/user/images/subscribe_icon.png" alt=""></span>
+                            </a>
+                        </div>
+
+                        <div class="social-icons">
+                              @if (objAppInfo.FacebookUrl != null && objAppInfo.FacebookUrl != "")
+                                    {
+                                        <a href="@objAppInfo.FacebookUrl" target="_blank" title="Facebook">
+                                            <i class="bi bi-facebook" style="font-size: 20px;"></i>
+                                        </a>}
+                                    @if (objAppInfo.TwitterUrl != null && objAppInfo.TwitterUrl != "")
+                                    {
+                                        <a href="@objAppInfo.TwitterUrl" target="_blank" title="Twitter">
+                                            <i class="bi bi-twitter-x"></i>
+                                        </a>}
+                                    @if (objAppInfo.YoutubeUrl != null && objAppInfo.YoutubeUrl != "")
+                                    {
+                                        <a href="@objAppInfo.YoutubeUrl" target="_blank" title="Linkedin">
+                                            <i class="bi bi-youtube"></i>
+                                        </a>}
+                            @if (objAppInfo.InstagramUrl != null && objAppInfo.InstagramUrl != "")
+                                    {
+                                <a href="@objAppInfo.InstagramUrl" target="_blank" title="Instagram">
+                                            <i class="bi bi-instagram"></i>
+                                        </a>
+                                    }
+                        
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            @{
+                var currentYear = DateTime.UtcNow.Year;
+            }
+            <div class="container bottom-flex">
+                <p>&copy; @currentYear @objAppInfo.SiteName. <br class="d-block d-md-none">All rights reserved</p>
+                <p>Design & developed by <span class="dev-name">Arjunweb</span></p>
+            </div>
+        </div>
+    </footer>
+    <!-- footer -->
+    <!-- Mobile App Menu (Bottom Navigation) -->
+    <div class="aws-app-menu d-block">
+        <div class="d-flex">
+            @if (this.User.Identity.IsAuthenticated && this.User.Identity.Name != null)
+            {
+
+         
+                    <a href="@Url.Action("Profile", "Members", new { cname = Context.Session.GetString("ChapterName") })" title="Profile">
+                        <i class="bi bi-people"></i> <span>Profile</span>
+                        
+                    </a>
+          
+            }
+            else
+            {
+                <a href="@HomeUrl/become-a-member">
+                    <i class="bi bi-people"></i> <span>Member</span>
+                </a>
+
+            }
+
+            <a href="@HomeUrl/volunteer-registration">
+                <i class="bi bi-person-raised-hand"></i><span> Volunteer</span>
+            </a>
+            <a href="@HomeUrl/donate-now">
+                <i class="bi bi-currency-dollar"></i><span>Donate</span>
+            </a>
+            <div class="mobile-nav-toggle mobile-nav-show" role="button">
+                <i class="bi bi-list"></i>Menu
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.js"></script>
+    <script src="scripts/user/jquery.magnific-popup.min.js"></script>
+    <script src="scripts/user/easy-ticker.min.js"></script>
+    <script src="scripts/user/aws.js"></script>
+    <script src="scripts/user/home-script.js"></script>
+    <script src="scripts/user/countdown.js"></script>
+
+
+
+
+    <script>
+        $(document).ready(function () {
+            // Initialize Magnific Popup
+            $('.aws-video-popup').magnificPopup({
+                delegate: 'a',
+                type: 'iframe',
+                iframe: {
+                    patterns: {
+                        youtube: {
+                            index: 'youtu',
+                            id: function (url) {
+                                // Extract video ID from URL
+                                var match = url.match(/[^\w-]([-\w]{11})[^-\w]?/);
+                                if (match && match[1]) {
+                                    return match[1];
+                                }
+                            },
+                            src: 'https://www.youtube.com/embed/%id%?autoplay=1'
+                        },
+                        vimeo: {
+                            index: 'vimeo.com/',
+                            id: '/',
+                            src: 'https://player.vimeo.com/video/%id%?autoplay=1'
+                        }
+                        // Add more patterns for other video platforms if needed
+                    }
+                },
+                gallery: {
+                    enabled: true
+                }
+            });
+        });
+    </script>
+  
+    <script>
+        $(document).ready(function () {
+            $(window).scroll(function () {
+                if ($(document).scrollTop() > 160) {
+                    $("#header").addClass("fixed-tab");
+                } else {
+                    $("#header").removeClass("fixed-tab");
+                }
+            });
+        });
+    </script>
+    <style>
+        /* Desktop - sub-menu hidden by default, show on hover */
+        #navbar ul .menu-item-has-children .sub-menu {
+            display: none;
+            flex-direction: column;
+            text-align: start;
+            width: max-content;
+            white-space: nowrap;
+        }
+
+        @@media (min-width: 769px) {
+            #navbar ul .menu-item-has-children:hover > .sub-menu {
+                display: block !important;
+            }
+        }
+
+        .dropdown-indicator {
+            transition: 0.3s;
+        }
+
+            .dropdown-indicator.rotate {
+                transform: rotate(180deg);
+            }
+
+    </style>
+
+</body>
+
+</html>

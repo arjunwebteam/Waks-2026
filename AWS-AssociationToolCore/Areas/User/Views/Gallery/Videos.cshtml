@@ -1,0 +1,116 @@
+﻿@{
+    int status = 0;
+    AWS_AssociationToolCore.BLL.AppInfo _AppInfo = new AWS_AssociationToolCore.BLL.AppInfo();
+    AWS_AssociationToolCore.Entities.AppInfo objAppInfo = new AWS_AssociationToolCore.Entities.AppInfo();
+    objAppInfo = _AppInfo.GetAppInfoDetails(ref status);
+
+    ViewBag.Title = "Videos - " +  objAppInfo.SiteName;
+    Layout = "~/Areas/User/Views/Shared/_MainLayout.cshtml";
+    var lstVideos = (List<AWS_AssociationToolCore.Entities.Videos>)ViewBag.lstVideos;
+    var lstVideoCategories = (List<AWS_AssociationToolCore.Entities.VideoCategories>)ViewBag.lstVideoCategories;
+    ViewBag.heading = "Videos";
+    AWS_AssociationToolCore.BLL.InnerPages _InnerPages = new AWS_AssociationToolCore.BLL.InnerPages();
+
+    var ChapterId = ViewBag.ChapterId;
+
+    var ChapterName = ViewBag.cname;
+
+    AWS_AssociationToolCore.Entities.PageDetails MenuPageDetails = ViewBag.objMenuPageDetails;
+
+    Int64 ActiveId = 0;
+
+    if (MenuPageDetails.ParentName != null && MenuPageDetails.ParentName != "")
+    {
+        ActiveId = MenuPageDetails.PageParentId;
+    }
+    else
+    {
+        ActiveId = MenuPageDetails.MenuItemId;
+    }
+}
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $('#M-@ActiveId').addClass('active');
+    });
+
+  
+</script>
+
+
+
+    @if (lstVideoCategories != null && lstVideoCategories.Count != 0)
+    {
+        int j = 0;
+        foreach (var VideoCategory in lstVideoCategories)
+        {
+
+
+<div class="aws-photo-gallery-sec">
+    @if (VideoCategory.VideosCount != 0 && VideoCategory.VideosCount != 0)
+    {
+    <div class="aws-sponser-head">@VideoCategory.CategoryName</div>
+
+    }
+    <div class="aws-gallery-grid aws-video-popup" id="aws-video-popup">
+        @foreach (var item in lstVideos)
+        {
+            if (item.VideoCategoryId == VideoCategory.VideoCategoryId)
+            {
+                <div class="aws-video-gallery-box">
+                    <a class="aws-video-item " href="https://www.youtube.com/embed/@(item.VideoUrl)">
+                        <img class="aws-v-icon" src="http://i1.ytimg.com/vi/@(item.VideoUrl)/hqdefault.jpg" alt="@item.VideoDescription" width="@item.VideoDescription">
+                    </a>
+                </div>
+            }
+        }
+
+    </div>
+
+</div>
+
+        }
+    }
+    else
+    {
+        <h4 class="sec-title2 t-t-c font22 m-5" style="text-align:center;">Video Gallery Will Update Soon..</h4>
+    }
+
+<link href="Content/User/css/magnific-popup.min.css" rel="stylesheet" />
+<script src="Scripts/User/jquery.magnific-popup.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Initialize Magnific Popup
+        $('.aws-video-popup').magnificPopup({
+            delegate: 'a',
+            type: 'iframe',
+            iframe: {
+                patterns: {
+                    youtube: {
+                        index: 'youtu',
+                        id: function (url) {
+                            // Extract video ID from URL
+                            var match = url.match(/[^\w-]([-\w]{11})[^-\w]?/);
+                            if (match && match[1]) {
+                                return match[1];
+                            }
+                        },
+                        src: 'https://www.youtube.com/embed/%id%?autoplay=1'
+                    },
+                    vimeo: {
+                        index: 'vimeo.com/',
+                        id: '/',
+                        src: 'https://player.vimeo.com/video/%id%?autoplay=1'
+                    }
+                    // Add more patterns for other video platforms if needed
+                }
+            },
+            gallery: {
+                enabled: true
+            }
+        });
+    });
+</script>
